@@ -22,6 +22,9 @@ class Grid:
         pygame.draw.line(WIN, (0, 0, 0), (0, self.center[1]), (1920, self.center[1]))
         pygame.draw.line(WIN, (0, 0, 0), (self.center[0], 0), (self.center[0], 1080))
 
+def color_client(pos, color):
+    WIN.fill(color, (pos, (5, 5)))
+
 class Client:
     def __init__(self):
         self.x = 0
@@ -59,12 +62,16 @@ def printStatus(posList, center):
     for pos in posList:
         if pos[0] <= center[0] and pos[1] <= center[1]:
             TopLeft += 1
+            color_client(pos, (0, 255, 0))
         if pos[0] > center[0] and pos[1] > center[1]:
             BotRight += 1
+            color_client(pos, (0, 0, 255))
         if pos[0] <= center[0] and pos[1] > center[1]:
             BotLeft += 1
+            color_client(pos, (255, 0, 0))
         if pos[0] > center[0] and pos[1] <= center[1]:
             TopRight += 1
+            color_client(pos, (255, 0, 255))
     print("TopLeft: " + str(TopLeft) + ", TopRight: " + str(TopRight) + ", BotLeft: " + str(BotLeft) + ", BotRight: " + str(BotRight))
 
 def main():
