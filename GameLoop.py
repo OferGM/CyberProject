@@ -2,11 +2,6 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 
 
-app = Ursina()
-
-ground = Entity(model='plane', collider='box', scale=64, texture='grass', texture_scale=(4,4))
-
-player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box')
 
 class Enemy(Entity):
     def __init__(self,position):
@@ -26,8 +21,6 @@ class Enemy(Entity):
             invoke(self.self_destroy)
 
 
-enemy = Enemy((2,2,2))
-enemy = Enemy((3,3,3))
 
 class Bullet(Entity):
     def __init__(self,position,rotation):
@@ -92,7 +85,6 @@ class Gun(Entity):
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.5)  # Set the cooldown duration (0.5 seconds in this example)
 
-gun = Gun(player,'pistol')
 def calculate_distance(vector1, vector2):
     # Ensure both vectors have three components (x, y, z)
     if len(vector1) != 3 or len(vector2) != 3:
@@ -119,4 +111,16 @@ def input(key):
     if held_keys['left mouse']:
         gun.shoot()
 
-app.run()
+if __name__ == "__main__":
+    app = Ursina()
+
+    ground = Entity(model='plane', collider='box', scale=64, texture='grass', texture_scale=(4, 4))
+
+    player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box')
+
+    gun = Gun(player, 'pistol')
+
+    enemy = Enemy((2, 2, 2))
+    enemy = Enemy((3, 3, 3))
+
+    app.run()
