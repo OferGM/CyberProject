@@ -41,13 +41,14 @@ class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(1, 1.0, 1.0)):
         super().__init__(
             model=f'{gun_type}.obj',
-            origin_z=-.5,
+            origin_z=-.3,
+            origin_y=-1,
             color=color.red,
             on_cooldown=False,
             scale=0.006,
             parent=parent_entity,
             position=position,
-            rotation_y=270
+            rotation_y=90
         )
         self.gun_type = gun_type
 
