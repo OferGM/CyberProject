@@ -2,6 +2,54 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 
+class RespawnScreen(Entity):
+    def __init__(self):
+        super().__init__(
+            parent=camera.ui,
+            model='quad',
+            scale=(2, 2),
+            color=color.rgb(1,0,0,0.7),
+            position=(0, 0),
+            z=-1,
+            visible = False,
+        )
+
+        self.respawn_button = Button(
+            text='Respawn',
+            color=color.azure,
+            scale=(0.1, 0.02),
+            parent=self,
+            on_click=self.on_respawn_button_click
+        )
+
+        self.visible = False
+
+    def show(self):
+        self.enabled = True
+
+    def hide(self):
+        self.enabled = False
+
+    def on_respawn_button_click(self):
+        player.respawn(screen=self)
+        player.health = 100
+        player_health_bar.value = 100
+        self.hide()
+
+class player(FirstPersonController):
+    def __init__(self):
+        super().__init__(
+            model='cube',
+            z=-10,
+            color=color.orange,
+            origin_y=-.5,
+            speed=8,
+            collider='box',
+            health=100,
+        )
+    def respawn(self,screen):
+        screen.hide()
+        player.position=(0,0,0)
 
 class Enemy(Entity):
     def __init__(self,position):
@@ -24,7 +72,6 @@ class Enemy(Entity):
         # Apply gravity
         if not self.intersects(ground):
             self.position=(self.position.x,self.position.y-0.05,self.position.z)
-            print(self.position.y)
 
     def reset_attack_cooldown(self):
         self.on_cooldown = False
@@ -45,32 +92,15 @@ class Enemy(Entity):
     def attack (self):
         player.health=player.health-10
         player_health_bar.value=player.health
-        print("attacking")
-
-
-
-class Bullet(Entity):
-    def __init__(self,position,rotation):
-        super().__init__(
-            model='cube',
-            color=color.red,
-            scale=(0.05, 0.05, 0.05),
-            parent=player,
-            position = position,
-            rotation = rotation,
-        )
-        invoke(self.self_destroy, delay=1.0)
-
-    def self_destroy(self):
-        destroy(self)
+        if player.health <= 0:
+            respawn_screen.show()
 
 class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(1, 1.0, 1.0)):
         super().__init__(
-            model=f'{gun_type}.obj',
+            model=f'{gun_type}.glb',
             origin_z=-.3,
             origin_y=-1,
-            color=color.red,
             on_cooldown=False,
             scale=0.006,
             parent=parent_entity,
@@ -100,22 +130,18 @@ class Gun(Entity):
 
     def shoot(self):
         if gun.on_cooldown:
-            print("cooldown")
             return
 
         hovered_entity = mouse.hovered_entity
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position,
                                                                                        hovered_entity.position) < 20:
-            print("DEAD")
             hovered_entity.enemy_hit()
-            print(hovered_entity.health)
         else:
-            print("ALIVE")
+            pass
 
-        print(gun.on_cooldown)
         gun.on_cooldown = True
-        invoke(gun.reset_cooldown, delay=0.5)  # Set the cooldown duration (0.5 seconds in this example)
+        invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
 def calculate_distance(vector1, vector2):
     # Ensure both vectors have three components (x, y, z)
@@ -137,10 +163,6 @@ def update():
     for enemy in enemies:
         enemy.gravity()
         enemy.chase()
-        print(player.health)
-
-
-
 
 def input(key):
     if key == 'escape':
@@ -151,15 +173,26 @@ def input(key):
 if __name__ == "__main__":
     app = Ursina()
 
-    ground = Entity(model='plane', collider='box', scale=64, texture='grass', texture_scale=(4, 4))
+    ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
 
-    player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box',health=100)
+    player = player()
 
     gun = Gun(player, 'galil')
 
-    enemy1 = Enemy((10, 2, 2))
-    enemy2= Enemy((3, 3, 9))
-    enemies=[enemy1,enemy2]
+    # enemy1 = Enemy((10, 2, 2))
+    # enemy2= Enemy((3, 3, 9))
+    enemies=[]
+    for _ in range(10):
+        random_coordinates = (random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
+        enemy = Enemy(random_coordinates)
+        enemies.append(enemy)
+
     player_health_bar = HealthBar(value=100, position=(-0.9,-0.48))
+
+    respawn_screen = RespawnScreen()
+    respawn_screen.hide()
+
+    player_money_bar = HealthBar(position=(-0.9, -0.445),bar_color=color.gold,max_value=1000)
+    player_money_bar.value = 100
 
     app.run()
