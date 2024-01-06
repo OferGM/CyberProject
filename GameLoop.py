@@ -71,7 +71,6 @@ class Gun(Entity):
             origin_z=-.3,
             origin_y=-1,
             color=color.red,
-            origin_z=-.5,
             on_cooldown=False,
             scale=0.006,
             parent=parent_entity,
