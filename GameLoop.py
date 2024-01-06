@@ -1,24 +1,51 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
-
+from ursina.prefabs.health_bar import HealthBar
 
 
 class Enemy(Entity):
     def __init__(self,position):
         super().__init__(
-            model='cube',
-            color=color.red,
+            model='zombie.glb',
             position = position,
             health = 100,
-            collider='box'
+            collider='box',
+            scale=0.08,
+            on_cooldown=False
         )
-
     def self_destroy(self):
         destroy(self)
+        enemies.remove(self)
     def enemy_hit(self):
         self.health -= 10
         if self.health <= 0:
             invoke(self.self_destroy)
+    def gravity(self):
+        # Apply gravity
+        if not self.intersects(ground):
+            self.position=(self.position.x,self.position.y-0.05,self.position.z)
+            print(self.position.y)
+
+    def reset_attack_cooldown(self):
+        self.on_cooldown = False
+
+    def chase (self):
+        if not distance(self.position, player.position) < 20:
+            return
+        self.position=(self.position.x+0.0012*(player.position.x-self.position.x),self.position.y,self.position.z+0.0012*(player.position.z-self.position.z))
+        self.look_at(player)
+        self.rotation_x = 0  # Lock rotation around X-axis
+        self.rotation_z = 0
+        self.rotation_y+=180
+        if distance(self.position, player.position) < 2 and self.on_cooldown==False:
+            self.attack()
+            self.on_cooldown=True
+            invoke(self.reset_attack_cooldown,delay=0.8)
+
+    def attack (self):
+        player.health=player.health-10
+        player_health_bar.value=player.health
+        print("attacking")
 
 
 
@@ -44,6 +71,7 @@ class Gun(Entity):
             origin_z=-.3,
             origin_y=-1,
             color=color.red,
+            origin_z=-.5,
             on_cooldown=False,
             scale=0.006,
             parent=parent_entity,
@@ -56,6 +84,10 @@ class Gun(Entity):
         if gun_type == 'ak-47':
             # Configure properties specific to the AK-47
             pass
+        if gun_type == 'galil':
+            self.model='galil.glb'
+            self.scale=0.5
+
         elif gun_type == 'shotgun':
             # Configure properties specific to the shotgun
             self.color = color.green  # Example: change color for shotgun
@@ -103,7 +135,12 @@ def calculate_distance(vector1, vector2):
 
 
 def update():
-    pass
+    for enemy in enemies:
+        enemy.gravity()
+        enemy.chase()
+        print(player.health)
+
+
 
 
 def input(key):
@@ -117,11 +154,13 @@ if __name__ == "__main__":
 
     ground = Entity(model='plane', collider='box', scale=64, texture='grass', texture_scale=(4, 4))
 
-    player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box')
+    player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box',health=100)
 
-    gun = Gun(player, 'pistol')
+    gun = Gun(player, 'galil')
 
-    enemy = Enemy((2, 2, 2))
-    enemy = Enemy((3, 3, 3))
+    enemy1 = Enemy((10, 2, 2))
+    enemy2= Enemy((3, 3, 9))
+    enemies=[enemy1,enemy2]
+    player_health_bar = HealthBar(value=100, position=(-0.9,-0.48))
 
     app.run()
