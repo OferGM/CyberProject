@@ -2,6 +2,21 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 
+class KillCountUI(Entity):
+    def __init__(self, icon_path, position=(0, 0), scale=1):
+        super().__init__()
+        self.kill_count = 0
+
+        # Create and set up the Kill Count label
+        self.label = Text(text=f'Kill Count: {self.kill_count}', origin=(0, 0), position=position, scale=scale, color=color.white)
+
+        # Create and set up the Kill Count icon
+        self.icon = Sprite(icon_path, parent=camera.ui, scale=scale * 0.035, position=(position[0] - 0.15, position[1]+0.005))
+
+    def increment_kill_count(self):
+        self.kill_count += 1
+        self.label.text = f'Kill Count: {self.kill_count}'
+
 class RespawnScreen(Entity):
     def __init__(self):
         super().__init__(
@@ -51,6 +66,13 @@ class player(FirstPersonController):
         screen.hide()
         player.position=(0,0,0)
 
+    def SpeedSkillEnable(self):
+        self.speed = 15
+        invoke(player.SpeedSkillDisable)
+
+    def SpeedSkillDisable(self):
+        self.speed = 8
+
 class Enemy(Entity):
     def __init__(self,position):
         super().__init__(
@@ -64,10 +86,12 @@ class Enemy(Entity):
     def self_destroy(self):
         destroy(self)
         enemies.remove(self)
-    def enemy_hit(self):
-        self.health -= 10
+        kill_count_ui.increment_kill_count()
+    def enemy_hit(self,gun):
+        self.health -= gun.damage
         if self.health <= 0:
             invoke(self.self_destroy)
+            player_money_bar.value+=100
     def gravity(self):
         # Apply gravity
         if not self.intersects(ground):
@@ -105,7 +129,8 @@ class Gun(Entity):
             scale=0.006,
             parent=parent_entity,
             position=position,
-            rotation_y=90
+            rotation_y=90,
+            damage=10,
         )
         self.gun_type = gun_type
 
@@ -136,7 +161,7 @@ class Gun(Entity):
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position,
                                                                                        hovered_entity.position) < 20:
-            hovered_entity.enemy_hit()
+            hovered_entity.enemy_hit(gun)
         else:
             pass
 
@@ -178,6 +203,8 @@ if __name__ == "__main__":
     player = player()
 
     gun = Gun(player, 'galil')
+
+    kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
     # enemy1 = Enemy((10, 2, 2))
     # enemy2= Enemy((3, 3, 9))
