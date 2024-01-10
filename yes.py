@@ -80,6 +80,12 @@ class ClientManager:
         x_coord, _ = self.client_dict.pop(client_id)
         self.segment_tree.add(x_coord, -1)
 
+    def update_client_position(self, client_id, new_x, new_y):
+        old_x, old_y = self.client_dict[client_id]
+        self.segment_tree.add(old_x, -1)
+        self.client_dict[client_id] = (new_x, new_y)
+        self.segment_tree.add(new_x, 1)
+
     def get_client_rectangle(self, client_id):
         x_coord, _ = self.client_dict[client_id]
         total_clients = self.segment_tree.sum(0, 1000)  # Adjust the range based on maximum possible x-coordinates
