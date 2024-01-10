@@ -1,89 +1,124 @@
 import pygame
 import math
+from bisect import bisect_left
 
 pygame.init()
 WIDTH, HEIGHT = 1920, 1080
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("LoadBalanceSimulation")
 
+
+class SegmentTree:
+    def __init__(self, max_size):
+        self.size = 1
+        while self.size < max_size:
+            self.size *= 2
+        self.tree = [0] * (2 * self.size)
+
+    def add(self, index, value):
+        index += self.size
+        self.tree[index] += value
+        while index > 1:
+            index //= 2
+            self.tree[index] = self.tree[2 * index] + self.tree[2 * index + 1]
+
+    def sum(self, left, right):
+        left += self.size
+        right += self.size
+        total_sum = 0
+        while left < right:
+            if left % 2 == 1:
+                total_sum += self.tree[left]
+                left += 1
+            if right % 2 == 1:
+                right -= 1
+                total_sum += self.tree[right]
+            left //= 2
+            right //= 2
+        return total_sum
+
 class Grid:
     def __init__(self):
-        self.first = (1920/2, 1080/2)
-        self.second = (1920 / 2, 1080 / 2)
-        self.third = (1920 / 2, 1080 / 2)
-    def get_first(self):
-        return self.first
-    def get_second(self):
-        return self.second
-    def get_third(self):
-        return self.third
-    def update_grid(self, ListInstance):
-        xArr = ListInstance.get_xList()
-        yArr = ListInstance.get_yList()
-        firstIndex = math.ceil(len(xArr) * 0.25)
-        secondIndex = math.ceil(len(xArr) * 0.5)
-        thirdIndex = math.ceil(len(xArr) * 0.75)
-        self.first = xArr[firstIndex-1]
-        self.second = xArr[secondIndex-1]
-        self.third = xArr[thirdIndex-1]
+        self.first = WIDTH / 2
+        self.second = WIDTH / 2
+        self.third = WIDTH / 2
+
+    def update_grid(self, manager):
+        x_coords = sorted(manager.client_dict.values())
+        first_index = math.ceil(len(x_coords) * 0.25)
+        second_index = math.ceil(len(x_coords) * 0.5)
+        third_index = math.ceil(len(x_coords) * 0.75)
+        self.first = x_coords[first_index - 1][0]
+        self.second = x_coords[second_index - 1][0]
+        self.third = x_coords[third_index - 1][0]
+
     def draw_grid(self):
-        pygame.draw.line(WIN, (120, 120, 120), (self.first, 0), (self.first, 1080))
-        pygame.draw.line(WIN, (120, 120, 120), (self.second, 0), (self.second, 1080))
-        pygame.draw.line(WIN, (120, 120, 120), (self.third, 0), (self.third, 1080))
+        pygame.draw.line(WIN, (120, 120, 120), (self.first, 0), (self.first, HEIGHT))
+        pygame.draw.line(WIN, (120, 120, 120), (self.second, 0), (self.second, HEIGHT))
+        pygame.draw.line(WIN, (120, 120, 120), (self.third, 0), (self.third, HEIGHT))
+
     def delete_grid(self):
-        pygame.draw.line(WIN, (0, 0, 0), (self.first, 0), (self.first, 1080))
-        pygame.draw.line(WIN, (0, 0, 0), (self.second, 0), (self.second, 1080))
-        pygame.draw.line(WIN, (0, 0, 0), (self.third, 0), (self.third, 1080))
+        pygame.draw.line(WIN, (0, 0, 0), (self.first, 0), (self.first, HEIGHT))
+        pygame.draw.line(WIN, (0, 0, 0), (self.second, 0), (self.second, HEIGHT))
+        pygame.draw.line(WIN, (0, 0, 0), (self.third, 0), (self.third, HEIGHT))
+
 
 def color_client(pos, color):
     WIN.fill(color, (pos, (5, 5)))
 
-class ClientList:
+
+class ClientManager:
     def __init__(self):
-        self.Clients = []
-        self.xList = []
-        self.yList = []
-    def get_Clients(self):
-        return self.Clients
-    def get_xList(self):
-        return self.xList
-    def get_yList(self):
-        return self.yList
-    def update_Clients(self, clientPos):
-        self.Clients.append(clientPos)
-        putSorted(self.xList, clientPos[0])
-        putSorted(self.yList, clientPos[1])
+        self.client_dict = {}
+        self.segment_tree = SegmentTree(100000)  # Adjust the size based on maximum possible clients
 
-def putSorted(arr, num):
-    arr.append(num)
-    arr.sort()
+    def add_client(self, client_id, x, y):
+        self.client_dict[client_id] = (x, y)
+        self.segment_tree.add(x, 1)
 
-def printStatus(posList, first, second, third):
-    inFirst = 0
-    inSecond = 0
-    inThird = 0
-    inFourth = 0
-    for pos in posList:
-        posX = pos[0]
-        if posX <= first:
-            inFirst += 1
+    def remove_client(self, client_id):
+        x_coord, _ = self.client_dict.pop(client_id)
+        self.segment_tree.add(x_coord, -1)
+
+    def get_client_rectangle(self, client_id):
+        x_coord, _ = self.client_dict[client_id]
+        total_clients = self.segment_tree.sum(0, 1000)  # Adjust the range based on maximum possible x-coordinates
+        index = bisect_left(self.segment_tree.tree, x_coord)
+        segment = index * 4 // total_clients
+        return segment  # Returns the segment (0-3) the client belongs to
+
+def print_status(manager, grid):
+    pos_list = manager.client_dict.values()
+
+    in_first, in_second, in_third, in_fourth = [], [], [], []
+
+    for pos in pos_list:
+        if pos[0] <= grid.first:
+            in_first.append(pos)
             color_client(pos, (0, 255, 0))
-        elif posX <= second:
-            inSecond += 1
+        elif pos[0] <= grid.second:
+            in_second.append(pos)
             color_client(pos, (0, 0, 255))
-        elif posX <= third:
-            inThird += 1
+        elif pos[0] <= grid.third:
+            in_third.append(pos)
             color_client(pos, (255, 0, 0))
         else:
-            inFourth += 1
+            in_fourth.append(pos)
             color_client(pos, (255, 0, 255))
-    print("in first: " + str(inFirst) + ", in second: " + str(inSecond) + ", in third: " + str(inThird) + ", inFourth: " + str(inFourth))
+
+    print(
+        "in first: " + str(len(in_first))
+        + ", in second: " + str(len(in_second))
+        + ", in third: " + str(len(in_third))
+        + ", in fourth: " + str(len(in_fourth))
+    )
+
+    pygame.display.update()
 
 def main():
     run = True
-    ClientPos = [0, 0]
-    ListInstance = ClientList()
-    GridInstance = Grid()
+    manager = ClientManager()
+    grid = Grid()
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -91,16 +126,15 @@ def main():
                 pygame.quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                ClientPos[0] = pygame.mouse.get_pos()[0]
-                ClientPos[1] = pygame.mouse.get_pos()[1]
+                manager.add_client(len(manager.client_dict), *pygame.mouse.get_pos())
 
-                ListInstance.update_Clients((pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]))
+                WIN.fill((0, 0, 0))
+                grid.update_grid(manager)
+                grid.draw_grid()
+                print_status(manager, grid)
 
-                GridInstance.update_grid(ListInstance)
-                GridInstance.draw_grid()
-                printStatus(ListInstance.get_Clients(), GridInstance.get_first(), GridInstance.get_second(), GridInstance.get_third())
                 pygame.display.update()
-                GridInstance.delete_grid()
+                grid.delete_grid()
 
 if __name__ == "__main__":
     main()
