@@ -1,6 +1,8 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
+from inventory import Inventory
+
 
 class KillCountUI(Entity):
     def __init__(self, icon_path, position=(0, 0), scale=1):
@@ -8,14 +10,17 @@ class KillCountUI(Entity):
         self.kill_count = 0
 
         # Create and set up the Kill Count label
-        self.label = Text(text=f'Kill Count: {self.kill_count}', origin=(0, 0), position=position, scale=scale, color=color.white)
+        self.label = Text(text=f'Kill Count: {self.kill_count}', origin=(0, 0), position=position, scale=scale,
+                          color=color.white)
 
         # Create and set up the Kill Count icon
-        self.icon = Sprite(icon_path, parent=camera.ui, scale=scale * 0.035, position=(position[0] - 0.15, position[1]+0.005))
+        self.icon = Sprite(icon_path, parent=camera.ui, scale=scale * 0.035,
+                           position=(position[0] - 0.15, position[1] + 0.005))
 
     def increment_kill_count(self):
         self.kill_count += 1
         self.label.text = f'Kill Count: {self.kill_count}'
+
 
 class RespawnScreen(Entity):
     def __init__(self):
@@ -23,10 +28,10 @@ class RespawnScreen(Entity):
             parent=camera.ui,
             model='quad',
             scale=(2, 2),
-            color=color.rgb(1,0,0,0.7),
+            color=color.rgb(1, 0, 0, 0.7),
             position=(0, 0),
             z=-1,
-            visible = False,
+            visible=False,
         )
 
         self.respawn_button = Button(
@@ -51,6 +56,7 @@ class RespawnScreen(Entity):
         player_health_bar.value = 100
         self.hide()
 
+
 class player(FirstPersonController):
     def __init__(self):
         super().__init__(
@@ -62,9 +68,10 @@ class player(FirstPersonController):
             collider='box',
             health=100,
         )
-    def respawn(self,screen):
+
+    def respawn(self, screen):
         screen.hide()
-        player.position=(0,0,0)
+        player.position = (0, 0, 0)
 
     def SpeedSkillEnable(self):
         self.speed = 15
@@ -73,51 +80,57 @@ class player(FirstPersonController):
     def SpeedSkillDisable(self):
         self.speed = 8
 
+
 class Enemy(Entity):
-    def __init__(self,position):
+    def __init__(self, position):
         super().__init__(
             model='zombie.glb',
-            position = position,
-            health = 100,
+            position=position,
+            health=100,
             collider='box',
             scale=0.08,
             on_cooldown=False
         )
+
     def self_destroy(self):
         destroy(self)
         enemies.remove(self)
         kill_count_ui.increment_kill_count()
-    def enemy_hit(self,gun):
+
+    def enemy_hit(self, gun):
         self.health -= gun.damage
         if self.health <= 0:
             invoke(self.self_destroy)
-            player_money_bar.value+=100
+            player_money_bar.value += 100
+
     def gravity(self):
         # Apply gravity
         if not self.intersects(ground):
-            self.position=(self.position.x,self.position.y-0.05,self.position.z)
+            self.position = (self.position.x, self.position.y - 0.05, self.position.z)
 
     def reset_attack_cooldown(self):
         self.on_cooldown = False
 
-    def chase (self):
+    def chase(self):
         if not distance(self.position, player.position) < 20:
             return
-        self.position=(self.position.x+0.0012*(player.position.x-self.position.x),self.position.y,self.position.z+0.0012*(player.position.z-self.position.z))
+        self.position = (self.position.x + 0.0012 * (player.position.x - self.position.x), self.position.y,
+                         self.position.z + 0.0012 * (player.position.z - self.position.z))
         self.look_at(player)
         self.rotation_x = 0  # Lock rotation around X-axis
         self.rotation_z = 0
-        self.rotation_y+=180
-        if distance(self.position, player.position) < 2 and self.on_cooldown==False:
+        self.rotation_y += 180
+        if distance(self.position, player.position) < 2 and self.on_cooldown == False:
             self.attack()
-            self.on_cooldown=True
-            invoke(self.reset_attack_cooldown,delay=0.8)
+            self.on_cooldown = True
+            invoke(self.reset_attack_cooldown, delay=0.8)
 
-    def attack (self):
-        player.health=player.health-10
-        player_health_bar.value=player.health
+    def attack(self):
+        player.health = player.health - 10
+        player_health_bar.value = player.health
         if player.health <= 0:
             respawn_screen.show()
+
 
 class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(1, 1.0, 1.0)):
@@ -139,8 +152,8 @@ class Gun(Entity):
             # Configure properties specific to the AK-47
             pass
         if gun_type == 'galil':
-            self.model='galil.glb'
-            self.scale=0.5
+            self.model = 'galil.glb'
+            self.scale = 0.5
 
         elif gun_type == 'shotgun':
             # Configure properties specific to the shotgun
@@ -148,7 +161,7 @@ class Gun(Entity):
         elif gun_type == 'pistol':
             # Configure properties specific to the pistol
             self.scale = 0.25  # Example: adjust scale for pistol
-            rotation_y=0
+            rotation_y = 0
 
     def reset_cooldown(self):
         self.on_cooldown = False
@@ -167,6 +180,7 @@ class Gun(Entity):
 
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+
 
 def calculate_distance(vector1, vector2):
     # Ensure both vectors have three components (x, y, z)
@@ -189,11 +203,36 @@ def update():
         enemy.gravity()
         enemy.chase()
 
+def openInv():
+    inv.enabled = True
+    inv.button_enabled = True
+    player.enabled = False
+    mouse.visible = False
+    Cursor.enabled = False
+def closeInv():
+    inv.enabled = False
+    inv.button_enabled = False
+    player.enabled = True
+    mouse.visible = False
+    Cursor.enabled = True
+
+
+
 def input(key):
+    global cursor
     if key == 'escape':
         application.quit()
     if held_keys['left mouse']:
         gun.shoot()
+    if key == 'i' and not inv.button_enabled:
+        openInv()
+        cursor = Cursor(texture='cursor', scale=.1)
+    else:
+        if key == 'i' and inv.button_enabled:
+            closeInv()
+            destroy(cursor)
+
+
 
 if __name__ == "__main__":
     app = Ursina()
@@ -206,20 +245,23 @@ if __name__ == "__main__":
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
+    inv = Inventory()
+    inv.enabled = False
+
     # enemy1 = Enemy((10, 2, 2))
     # enemy2= Enemy((3, 3, 9))
-    enemies=[]
+    enemies = []
     for _ in range(10):
         random_coordinates = (random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
         enemy = Enemy(random_coordinates)
         enemies.append(enemy)
 
-    player_health_bar = HealthBar(value=100, position=(-0.9,-0.48))
+    player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
     respawn_screen = RespawnScreen()
     respawn_screen.hide()
 
-    player_money_bar = HealthBar(position=(-0.9, -0.445),bar_color=color.gold,max_value=1000)
+    player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100
 
     app.run()
