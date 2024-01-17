@@ -3,6 +3,27 @@ from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from inventory import Inventory
 
+class Chest(Entity):
+    def __init__(self,position):
+        super().__init__(
+            model='Suitcase_for_tools.glb',
+            position=position,
+            collider='box',
+            scale=4,
+            )
+    def OpenChest(self):
+        inv.openInv(player)
+    def Check(self):
+            hovered_entity = mouse.hovered_entity
+
+            if hovered_entity and isinstance(hovered_entity, Chest) and calculate_distance(player.position,
+                                                                                           hovered_entity.position) < 5:
+                self.OpenChest()
+            else:
+                pass
+
+            gun.on_cooldown = True
+            invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
 class KillCountUI(Entity):
     def __init__(self, icon_path, position=(0, 0), scale=1):
@@ -203,18 +224,6 @@ def update():
         enemy.gravity()
         enemy.chase()
 
-def openInv():
-    inv.enabled = True
-    inv.button_enabled = True
-    player.enabled = False
-    mouse.visible = False
-    Cursor.enabled = False
-def closeInv():
-    inv.enabled = False
-    inv.button_enabled = False
-    player.enabled = True
-    mouse.visible = False
-    Cursor.enabled = True
 
 
 
@@ -224,13 +233,13 @@ def input(key):
         application.quit()
     if held_keys['left mouse']:
         gun.shoot()
+    if held_keys['right mouse']:
+        chest.Check()
     if key == 'i' and not inv.button_enabled:
-        openInv()
-        cursor = Cursor(texture='cursor', scale=.1)
+        inv.openInv(player)
     else:
         if key == 'i' and inv.button_enabled:
-            closeInv()
-            destroy(cursor)
+            inv.closeInv(player)
 
 
 
@@ -251,15 +260,17 @@ if __name__ == "__main__":
     # enemy1 = Enemy((10, 2, 2))
     # enemy2= Enemy((3, 3, 9))
     enemies = []
-    for _ in range(10):
-        random_coordinates = (random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
-        enemy = Enemy(random_coordinates)
-        enemies.append(enemy)
+    # for _ in range(10):
+    #     random_coordinates = (random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
+    #     enemy = Enemy(random_coordinates)
+    #     enemies.append(enemy)
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
     respawn_screen = RespawnScreen()
     respawn_screen.hide()
+
+    chest = Chest((2,0,2))
 
     player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100

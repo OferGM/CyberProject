@@ -106,6 +106,24 @@ class Inventory(Entity):
     def add_item(self):
         self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
 
+    def openInv(self,player):
+        global cursor
+        self.enabled = True
+        self.button_enabled = True
+        player.enabled = False
+        mouse.visible = False
+        Cursor.enabled = False
+        cursor = Cursor(texture='cursor', scale=.1)
+
+
+    def closeInv(self,player):
+        self.enabled = False
+        self.button_enabled = False
+        player.enabled = True
+        mouse.visible = False
+        Cursor.enabled = True
+        destroy(cursor)
+
 if __name__ == '__main__':
     app = Ursina()
 
