@@ -317,13 +317,7 @@ if __name__ == "__main__":
     inv.add_item()
     inv.add_item()
 
-    # enemy1 = Enemy((10, 2, 2))
-    # enemy2= Enemy((3, 3, 9))
     enemies = []
-    # for _ in range(10):
-    #     random_coordinates = (random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
-    #     enemy = Enemy(random_coordinates)
-    #     enemies.append(enemy)
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
