@@ -144,7 +144,8 @@ class Gun(Entity):
             position=position,
             rotation_y=180,
             damage=damage,
-            texture='m4_tex'
+            texture='m4_tex',
+            aiming=False
         )
         self.gun_type = gun_type
 
@@ -162,6 +163,14 @@ class Gun(Entity):
             self.texture = 'm4_tex'
             self.position = (0.5, 1.5, 1)
             self.scale = 0.25
+
+        if gun_type == 'awp':
+            self.model = 'awp.obj'
+            self.texture = 'awp_tex.png'
+            self.position = (0.5, 1.4, 0.2)
+            self.rotation_y = 0
+            self.damage = 100
+            self.scale = 0.05
 
         elif gun_type == 'shotgun':
             # Configure properties specific to the shotgun
@@ -188,6 +197,16 @@ class Gun(Entity):
 
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+
+    def aim(self):
+        if self.gun_type == "awp":
+            if not self.aiming:
+                camera.animate("fov", camera.fov - 80, delay=0, auto_destroy=True)
+                self.aiming = True
+
+            else:
+                camera.animate("fov", camera.fov + 80, delay=0, auto_destroy=True)
+                self.aiming = False
 
 
 def calculate_distance(vector1, vector2):
@@ -234,6 +253,8 @@ def input(key):
         application.quit()
     if held_keys['left mouse']:
         gun.shoot()
+    if held_keys['right mouse']:
+        gun.aim()
     if key == 'i' and not inv.button_enabled:
         openInv()
         cursor = Cursor(texture='cursor', scale=.1)
@@ -250,7 +271,7 @@ if __name__ == "__main__":
 
     player = player()
 
-    gun = Gun(player, 'ak-47')
+    gun = Gun(player, 'awp')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
