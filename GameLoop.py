@@ -3,27 +3,81 @@ from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from inventory import Inventory
 
+
+def seperateInv(inv3):
+    inv1 = Inventory(4, 4)
+    inv2 = Inventory(4, 1)
+    for item in inv3.children:
+        if item.sloty <= 4:
+            inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
+        else:
+            inv2.append(str(item.texture).replace('.png', ''), item.slotx, 0)
+    return inv1, inv2
+
+
+def combineInv(inv1, inv2):
+    inv3 = Inventory(4, 5)
+    for item in inv1.children:
+        inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
+
+    for item in inv2.children:
+        print(item.slotx, item.sloty)
+        inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
+
+    return inv3
+
+
 class Chest(Entity):
-    def __init__(self,position):
+    def __init__(self, position, chest_inventory=None):
         super().__init__(
             model='Suitcase_for_tools.glb',
             position=position,
             collider='box',
             scale=4,
-            )
+        )
+        # Initialize ChestInv with the provided inventory or a new one if not provided
+        self.isopen = False
+        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory()
+
+    @property
+    def ChestInv(self):
+        # Lazy initialization of ChestInv, if it's not already set
+        if self._ChestInv is None:
+            self._ChestInv = Inventory(4, 1)
+        return self._ChestInv
+
+    def CloseChest(self):
+        global inv
+        inv, self._ChestInv = seperateInv(inv3)
+        inv3.closeInv(player)
+        self.isopen = False
+
     def OpenChest(self):
-        inv.openInv(player)
+        global inv3
+        # Ensure that conditions are right to open the chest (e.g., resources are loaded)
+        if not self.isopen:
+            self.isopen = True
+            inv3 = combineInv(self.ChestInv, inv)  # Combine inventories
+            inv3.openInv(player)
+        else:
+            # Handle situation where chest can't be opened (show message, etc.)
+            print("Chest can't be opened right now.")
+
     def Check(self):
-            hovered_entity = mouse.hovered_entity
+        hovered_entity = mouse.hovered_entity
+        if hovered_entity and isinstance(hovered_entity, Chest) and calculate_distance(player.position,
+                                                                                       hovered_entity.position) < 5:
+            self.OpenChest()
+        else:
+            pass
+        gun.on_cooldown = True
+        invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration
 
-            if hovered_entity and isinstance(hovered_entity, Chest) and calculate_distance(player.position,
-                                                                                           hovered_entity.position) < 5:
-                self.OpenChest()
-            else:
-                pass
+    def can_open_chest(self):
+        # Placeholder for any checks you want to perform before opening the chest
+        # For example: Check if game resources are loaded, player is not in another interaction, etc.
+        return True  # Return True if chest can be opened, False otherwise
 
-            gun.on_cooldown = True
-            invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
 class KillCountUI(Entity):
     def __init__(self, icon_path, position=(0, 0), scale=1):
@@ -225,8 +279,6 @@ def update():
         enemy.chase()
 
 
-
-
 def input(key):
     global cursor
     if key == 'escape':
@@ -235,12 +287,18 @@ def input(key):
         gun.shoot()
     if held_keys['right mouse']:
         chest.Check()
-    if key == 'i' and not inv.button_enabled:
-        inv.openInv(player)
-    else:
-        if key == 'i' and inv.button_enabled:
-            inv.closeInv(player)
 
+    # Check if 'i' is pressed and the chest is open
+    if key == 'i' and chest.isopen:
+        print('hi')
+        chest.CloseChest()
+    else:
+        # Check if 'i' is pressed and the inventory button is enabled
+        if key == 'i':
+            if inv.enabled:
+                inv.closeInv(player)
+            else:
+                inv.openInv(player)
 
 
 if __name__ == "__main__":
@@ -254,8 +312,10 @@ if __name__ == "__main__":
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
-    inv = Inventory()
+    inv = Inventory(4, 4)
     inv.enabled = False
+    inv.add_item()
+    inv.add_item()
 
     # enemy1 = Enemy((10, 2, 2))
     # enemy2= Enemy((3, 3, 9))
@@ -270,7 +330,8 @@ if __name__ == "__main__":
     respawn_screen = RespawnScreen()
     respawn_screen.hide()
 
-    chest = Chest((2,0,2))
+    chest = Chest((2, 0, 2))
+    chest.ChestInv = Inventory()
 
     player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100

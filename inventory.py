@@ -12,7 +12,8 @@ class Inventory(Entity):
             origin=(-.5, .5),
             position=(-.3, .4),
             color=color.color(0, 0, .1, .9),
-            button_enabled = False
+            button_enabled = False,
+            enabled = False,
         )
 
         self.width = width
@@ -20,8 +21,6 @@ class Inventory(Entity):
 
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.add_item()
-        self.add_item()
         add_item_button = Button(
             scale=(.1, .1),
             x=-.5,
@@ -54,7 +53,8 @@ class Inventory(Entity):
             destroy(error_message, delay=1)
             return
 
-        x, y = self.find_free_spot()
+        if x + y == 0:
+            x, y = self.find_free_spot()
 
         icon = Draggable(
             parent=self,
@@ -64,15 +64,14 @@ class Inventory(Entity):
             scale_x=1 / self.texture_scale[0],
             scale_y=1 / self.texture_scale[1],
             origin=(-.5, .5),
+            slotx=x,
+            sloty=y,
             x=x * 1 / self.texture_scale[0],
             y=-y * 1 / self.texture_scale[1],
             z=-.5,
         )
         name = item.replace('_', ' ').title()
 
-        if random.random() < .25:
-            icon.color = color.gold
-            name = '<orange>Rare ' + name
 
         icon.tooltip = Tooltip(name)
         icon.tooltip.background.color = color.color(0, 0, 0, .8)
@@ -85,6 +84,11 @@ class Inventory(Entity):
             icon.x = int((icon.x + (icon.scale_x / 2)) * self.width) / self.width
             icon.y = int((icon.y - (icon.scale_y / 2)) * self.height) / self.height
             icon.z += .01
+
+            print(icon.x,icon.y,icon.z)
+            icon.slotx = icon.x*self.width
+            icon.sloty = icon.y * -self.height
+            print(icon.slotx,icon.sloty)
 
             # if outside, return to original position
             if icon.x < 0 or icon.x >= 1 or icon.y > 0 or icon.y <= -1:
@@ -99,6 +103,11 @@ class Inventory(Entity):
                 if c.x == icon.x and c.y == icon.y:
                     print('swap positions')
                     c.position = icon.org_pos
+                    temp_x, temp_y = c.slotx, c.sloty
+
+                    # Swap values
+                    c.slotx, c.sloty = icon.slotx, icon.sloty
+                    icon.slotx, icon.sloty = temp_x, temp_y
 
         icon.drag = drag
         icon.drop = drop
