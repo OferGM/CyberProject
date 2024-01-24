@@ -208,27 +208,35 @@ class Enemy(Entity):
 
 
 class Gun(Entity):
-    def __init__(self, parent_entity, gun_type='ak-47', position=(1, 1.0, 1.0)):
+    def __init__(self, parent_entity, gun_type='ak-47', position=(0.5, 1.5, 1), damage=25):
         super().__init__(
-            model=f'{gun_type}.glb',
-            origin_z=-.3,
-            origin_y=-1,
+            model='pistol.gltf',
+            origin_z=0,
+            origin_y=0,
             on_cooldown=False,
             scale=0.006,
             parent=parent_entity,
             position=position,
-            rotation_y=90,
-            damage=10,
+            rotation_y=180,
+            damage=damage,
+            texture='m4_tex'
         )
         self.gun_type = gun_type
 
         # Additional gun type configuration
         if gun_type == 'ak-47':
-            # Configure properties specific to the AK-47
-            pass
-        if gun_type == 'galil':
-            self.model = 'galil.glb'
-            self.scale = 0.5
+            self.model = 'Ak-47.obj'
+            self.texture = 'Ak-47_tex'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 35
+            self.scale = 0.01
+
+        if gun_type == 'm4':
+            self.model = 'M4a1.obj'
+            self.texture = 'm4_tex'
+            self.position = (0.5, 1.5, 1)
+            self.scale = 0.25
 
         elif gun_type == 'shotgun':
             # Configure properties specific to the shotgun
@@ -300,7 +308,6 @@ def input(key):
             else:
                 inv.openInv(player)
 
-
 if __name__ == "__main__":
     app = Ursina()
 
@@ -308,7 +315,7 @@ if __name__ == "__main__":
 
     player = player()
 
-    gun = Gun(player, 'galil')
+    gun = Gun(player, 'm4')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
@@ -318,6 +325,10 @@ if __name__ == "__main__":
     inv.add_item()
 
     enemies = []
+    for _ in range(10):
+        random_coordinates = (random.randint(1, 10), random.randint(3, 10), random.randint(1, 10))
+        enemy = Enemy(random_coordinates)
+        enemies.append(enemy)
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
