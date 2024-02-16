@@ -118,7 +118,8 @@ class Inventory(Entity):
         icon.drop = drop
 
     def add_item(self):
-        self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
+        # self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
+        self.append('bandage')
 
     def openInv(self,player):
         global cursor
