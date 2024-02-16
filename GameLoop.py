@@ -1,9 +1,20 @@
+import random
+
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from inventory import Inventory
+from random import choice
 
+# Define possible loot items
+LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
+def randomSpawn(enemies):
+    if (len(enemies) < 10):
+        if (random.randint(0,1000) == 50):
+            random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
+            enemy = Enemy(random_coordinates)
+            enemies.append(enemy)
 def seperateInv(inv3):
     inv1 = Inventory(4, 4)
     inv2 = Inventory(4, 1)
@@ -47,10 +58,12 @@ class Chest(Entity):
         return self._ChestInv
 
     def CloseChest(self):
-        global inv
+        global inv, inv3
         inv, self._ChestInv = seperateInv(inv3)
         inv3.closeInv(player)
         self.isopen = False
+        del inv3  # Delete inv3 after it's no longer needed
+
 
     def OpenChest(self):
         global inv3
@@ -156,6 +169,24 @@ class player(FirstPersonController):
         self.speed = 8
 
 
+class Item(Entity):
+    def __init__(self, position):
+        super().__init__(
+            model='cube',  # Replace 'cube' with a suitable model for your loot
+            position=position,  # Replace with appropriate texture if available
+            collider='box',
+        )
+
+    def self_destroy(self):
+        destroy(self)
+        items.remove(self)
+
+    def pickup(self):
+        if distance(self.position, player.position) < 2 and (not inv.isFull()):
+            destroy(self)
+            items.remove(self)
+            inv.add_item()
+
 class Enemy(Entity):
     def __init__(self, position):
         super().__init__(
@@ -172,9 +203,30 @@ class Enemy(Entity):
         enemies.remove(self)
         kill_count_ui.increment_kill_count()
 
+    def distance_to_ground(self):
+        # Cast a ray straight down from the entity
+        ray = raycast(self.world_position, Vec3(0, -1, 0), ignore=(self,))
+
+        if ray.hit:
+            # If the ray hits the ground, calculate the distance
+            return self.world_position.y - ray.world_point.y
+        else:
+            # If the ray doesn't hit anything, return some large number or a default value
+            return float('inf')  # or some large number
+
+    def drop_loot(self):
+        """ Drops a random loot item at the enemy's position on the ground. """
+        loot_item = choice(LOOT_ITEMS)
+        ground_height = 0  # Assuming your ground is at y=0
+        # Create a new entity for the loot item at the enemy's position on the ground
+        loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
+        items.append(loot)
+        print(f"Dropped {loot_item} at {loot.position}")
+
     def enemy_hit(self, gun):
         self.health -= gun.damage
         if self.health <= 0:
+            self.drop_loot()  # Drop loot when the enemy is killed
             invoke(self.self_destroy)
             player_money_bar.value += 100
 
@@ -265,6 +317,7 @@ class Gun(Entity):
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
 
+
 def calculate_distance(vector1, vector2):
     # Ensure both vectors have three components (x, y, z)
     if len(vector1) != 3 or len(vector2) != 3:
@@ -285,6 +338,10 @@ def update():
     for enemy in enemies:
         enemy.gravity()
         enemy.chase()
+    for item in items:
+            item.pickup()
+    randomSpawn(enemies)
+
 
 
 def input(key):
@@ -307,6 +364,8 @@ def input(key):
                 inv.closeInv(player)
             else:
                 inv.openInv(player)
+                print("open inv")
+
 
 if __name__ == "__main__":
     app = Ursina()
@@ -325,6 +384,7 @@ if __name__ == "__main__":
     inv.add_item()
 
     enemies = []
+    items = []
     for _ in range(10):
         random_coordinates = (random.randint(1, 10), random.randint(3, 10), random.randint(1, 10))
         enemy = Enemy(random_coordinates)

@@ -44,6 +44,11 @@ class Inventory(Entity):
                     print('found free spot:', x, y)
                     return x, y
 
+
+    def isFull(self):
+        if len(self.children) >= self.width * self.height:
+            return True
+        return False
     def append(self, item, x=0, y=0):
         print('add item:', item)
 
@@ -138,11 +143,9 @@ if __name__ == '__main__':
 
     inventory = Inventory()
 
-    def add_item():
-        inventory.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
+    def add_item(item):
+        inventory.append(item)
 
-    add_item()
-    add_item()
     add_item_button = Button(
         scale = (.1,.1),
         x = -.5,
