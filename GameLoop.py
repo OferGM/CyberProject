@@ -3,7 +3,7 @@ import random
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
-from inventory import Inventory
+from GameInventory import Inventory
 from random import choice
 
 # Define possible loot items
@@ -374,7 +374,7 @@ if __name__ == "__main__":
 
     player = player()
 
-    gun = Gun(player, 'm4')
+    gun = Gun(player, 'ak-47')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
