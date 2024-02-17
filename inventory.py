@@ -2,7 +2,7 @@ from ursina import *
 
 
 class Inventory(Entity):
-    def __init__(self, width=7, height=8, **kwargs):
+    def __init__(self,player, width=7, height=8, **kwargs):
         super().__init__(
             parent=camera.ui,
             model=Quad(radius=.015),
@@ -12,8 +12,9 @@ class Inventory(Entity):
             origin=(-.5, .5),
             position=(-.3, .4),
             color=color.color(0, 0, .1, .9),
-            button_enabled = False,
-            enabled = False,
+            button_enabled=False,
+            enabled=False,
+            player = player
         )
 
         self.width = width
@@ -44,11 +45,15 @@ class Inventory(Entity):
                     print('found free spot:', x, y)
                     return x, y
 
-
+    def input(self, key):
+        for item in self.children:
+            if held_keys['right mouse'] and item.hovered:
+                destroy(item)
     def isFull(self):
         if len(self.children) >= self.width * self.height:
             return True
         return False
+
     def append(self, item, x=0, y=0):
         print('add item:', item)
 
@@ -77,7 +82,6 @@ class Inventory(Entity):
         )
         name = item.replace('_', ' ').title()
 
-
         icon.tooltip = Tooltip(name)
         icon.tooltip.background.color = color.color(0, 0, 0, .8)
 
@@ -90,10 +94,10 @@ class Inventory(Entity):
             icon.y = int((icon.y - (icon.scale_y / 2)) * self.height) / self.height
             icon.z += .01
 
-            print(icon.x,icon.y,icon.z)
-            icon.slotx = icon.x*self.width
+            print(icon.x, icon.y, icon.z)
+            icon.slotx = icon.x * self.width
             icon.sloty = icon.y * -self.height
-            print(icon.slotx,icon.sloty)
+            print(icon.slotx, icon.sloty)
 
             # if outside, return to original position
             if icon.x < 0 or icon.x >= 1 or icon.y > 0 or icon.y <= -1:
@@ -121,7 +125,7 @@ class Inventory(Entity):
         # self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
         self.append('bandage')
 
-    def openInv(self,player):
+    def openInv(self, player):
         global cursor
         self.enabled = True
         self.button_enabled = True
@@ -130,8 +134,7 @@ class Inventory(Entity):
         Cursor.enabled = False
         cursor = Cursor(texture='cursor', scale=.1)
 
-
-    def closeInv(self,player):
+    def closeInv(self, player):
         self.enabled = False
         self.button_enabled = False
         player.enabled = True
@@ -139,23 +142,24 @@ class Inventory(Entity):
         Cursor.enabled = True
         destroy(cursor)
 
+
 if __name__ == '__main__':
     app = Ursina()
 
     inventory = Inventory()
 
+
     def add_item(item):
         inventory.append(item)
 
-    add_item_button = Button(
-        scale = (.1,.1),
-        x = -.5,
-        color = color.lime.tint(-.25),
-        text = '+',
-        tooltip = Tooltip('Add random item'),
-        on_click = add_item
-        )
 
+    add_item_button = Button(
+        scale=(.1, .1),
+        x=-.5,
+        color=color.lime.tint(-.25),
+        text='+',
+        tooltip=Tooltip('Add random item'),
+        on_click=add_item
+    )
 
     app.run()
-
