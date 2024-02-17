@@ -19,8 +19,8 @@ def randomSpawn(enemies):
 
 
 def seperateInv(inv3):
-    inv1 = Inventory(4, 4)
-    inv2 = Inventory(4, 1)
+    inv1 = Inventory(player,4, 4)
+    inv2 = Inventory(None,4, 1)
     for item in inv3.children:
         if item.sloty <= 4:
             inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
@@ -30,7 +30,7 @@ def seperateInv(inv3):
 
 
 def combineInv(inv1, inv2):
-    inv3 = Inventory(4, 5)
+    inv3 = Inventory(None,4, 5)
     for item in inv1.children:
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
 
@@ -51,13 +51,13 @@ class Chest(Entity):
         )
         # Initialize ChestInv with the provided inventory or a new one if not provided
         self.isopen = False
-        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory()
+        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory(None)
 
     @property
     def ChestInv(self):
         # Lazy initialization of ChestInv, if it's not already set
         if self._ChestInv is None:
-            self._ChestInv = Inventory(4, 1)
+            self._ChestInv = Inventory(None,4, 1)
         return self._ChestInv
 
     def CloseChest(self):
@@ -434,7 +434,7 @@ if __name__ == "__main__":
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
-    inv = Inventory(4, 4)
+    inv = Inventory(player,4, 4)
     inv.enabled = False
     inv.add_item()
     inv.add_item()
@@ -461,7 +461,7 @@ if __name__ == "__main__":
     respawn_screen.hide()
 
     chest = Chest((2, 0, 2))
-    chest.ChestInv = Inventory()
+    chest.ChestInv = Inventory(None)
 
     player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100
