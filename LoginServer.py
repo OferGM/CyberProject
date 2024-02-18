@@ -2,6 +2,7 @@ from dotenv import load_dotenv, find_dotenv
 import os
 import pprint
 from pymongo import MongoClient
+import PlayerInventory
 
 load_dotenv(find_dotenv())
 
@@ -91,3 +92,4 @@ def insert_starting_inventory(username, user_password, client_address, client_po
 
 
 insert_new_user("FatHalaf", "ILOVEFOOD")
+wow = PlayerInventory.PlayerInventory(1, PlayerInventory.Items(PlayerInventory.Bandage(5)))
