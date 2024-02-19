@@ -89,7 +89,3 @@ def insert_starting_inventory(username, user_password, client_address, client_po
     }
     user_id = collection.insert_one(user_document).inserted_id
     print(user_id)
-
-
-insert_new_user("FatHalaf", "ILOVEFOOD")
-wow = PlayerInventory.PlayerInventory(1, PlayerInventory.Items(PlayerInventory.Bandage(5)))
