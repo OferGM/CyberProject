@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="YahelGame + ak model">
-      <change afterPath="$PROJECT_DIR$/items.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/medkit.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/potion of leaping.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/potion of swiftness.png" afterDir="false" />
+    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="trying to merge">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameInventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameInventory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameLoop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/items.py" beforeDir="false" afterPath="$PROJECT_DIR$/items.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,7 +211,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708183080315</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="trying to merge">
+      <option name="closed" value="true" />
+      <created>1708441453705</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1708441453705</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -243,8 +247,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="trying to merge" />
     <MESSAGE value="YahelGame + ak model" />
-    <option name="LAST_COMMIT_MESSAGE" value="YahelGame + ak model" />
+    <MESSAGE value="trying to merge" />
+    <option name="LAST_COMMIT_MESSAGE" value="trying to merge" />
   </component>
 </project>

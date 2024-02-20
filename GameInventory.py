@@ -131,15 +131,19 @@ class Inventory(Entity):
                 self.use_item(item)
 
     def use_item(self, item):
-        print("using")
-        print(item.texture)
-        print(self.player.health)
         if str(item.texture) == 'bandage.png':
-            print ("DETECECT BANDAGE")
             if self.player.health == 100:
                 return
-            print("BANDAGING PRODECURE")
             items.bandage_player(self.player, item)
+
+        if str(item.texture) == 'medkit.png':
+                if self.player.health == 100:
+                    return
+                items.medkit_player(self.player, item)
+        if str(item.texture) == 'potion of leaping.png':
+                items.potion_of_leaping_player(self.player,item)
+        if str(item.texture) == 'potion of swiftness.png':
+            items.potion_of_swiftness_player(self.player, item)
 
     def openInv(self, player):
         global cursor
