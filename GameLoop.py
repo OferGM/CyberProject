@@ -9,12 +9,15 @@ from random import choice
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
+
 def randomSpawn(enemies):
     if (len(enemies) < 10):
-        if (random.randint(0,1000) == 50):
+        if (random.randint(0, 1000) == 50):
             random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
             enemy = Enemy(random_coordinates)
             enemies.append(enemy)
+
+
 def seperateInv(inv3):
     inv1 = Inventory(4, 4)
     inv2 = Inventory(4, 1)
@@ -63,7 +66,6 @@ class Chest(Entity):
         inv3.closeInv(player)
         self.isopen = False
         del inv3  # Delete inv3 after it's no longer needed
-
 
     def OpenChest(self):
         global inv3
@@ -187,6 +189,7 @@ class Item(Entity):
             items.remove(self)
             inv.add_item()
 
+
 class Enemy(Entity):
     def __init__(self, position):
         super().__init__(
@@ -262,7 +265,7 @@ class Enemy(Entity):
 class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(0.5, 1.5, 1), damage=25):
         super().__init__(
-            model='pistol.gltf',
+            model='',
             origin_z=0,
             origin_y=0,
             on_cooldown=False,
@@ -271,7 +274,7 @@ class Gun(Entity):
             position=position,
             rotation_y=180,
             damage=damage,
-            texture='m4_tex'
+            texture=''
         )
         self.gun_type = gun_type
 
@@ -290,14 +293,6 @@ class Gun(Entity):
             self.position = (0.5, 1.5, 1)
             self.scale = 0.25
 
-        elif gun_type == 'shotgun':
-            # Configure properties specific to the shotgun
-            self.color = color.green  # Example: change color for shotgun
-        elif gun_type == 'pistol':
-            # Configure properties specific to the pistol
-            self.scale = 0.25  # Example: adjust scale for pistol
-            rotation_y = 0
-
     def reset_cooldown(self):
         self.on_cooldown = False
 
@@ -315,7 +310,6 @@ class Gun(Entity):
 
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
-
 
 
 def calculate_distance(vector1, vector2):
@@ -339,9 +333,8 @@ def update():
         enemy.gravity()
         enemy.chase()
     for item in items:
-            item.pickup()
+        item.pickup()
     randomSpawn(enemies)
-
 
 
 def input(key):

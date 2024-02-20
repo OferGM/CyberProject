@@ -1,111 +1,46 @@
-import pygame
-import sys
+import customtkinter as ctk
+import tkinter.messagebox as tkmb
+from PIL import Image
 
-# Initialize Pygame
-pygame.init()
+# Selecting GUI theme - dark, light , system (for system default)
+ctk.set_appearance_mode("dark")
 
-# Constants
-WIDTH, HEIGHT = 1580, 1000
-WHITE = (255, 255, 255)
-GRAY = (200, 200, 200)
-FONT = pygame.font.Font(None, 36)
+# Selecting color theme - blue, green, dark-blue
+ctk.set_default_color_theme("green")
 
-# Create the window
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Escape from Tarkov Login")
+app = ctk.CTk()
+app.geometry("500x500")
+app.title("Sonis Ohel Batahat")
 
-# Load background image
-background = pygame.image.load("LoginPageBackground.png")
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
-# Load images
-login_butt_img = pygame.image.load("LoginButt.png").convert_alpha()
+def login():
+    return
 
-# Custom Button class
-class Button:
-    def __init__(self, x, y, image):
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
 
-    def draw(self):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+def sign_in():
+    return
 
-# Main loop
-def login_page():
-    username = ""
-    password = ""
-    is_typing_username = True
 
-    login_button = Button(200, 750, login_butt_img)
-    login_button1 = Button(1000, 750, login_butt_img)
+logo = ctk.CTkImage(light_image=Image.open("GameLogo.png"),
+                    dark_image=Image.open("GameLogo.png"),
+                    size=(207, 134))
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+label1 = ctk.CTkLabel(app, text="", image=logo)
+label1.pack(pady=12, padx=10)
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_TAB:
-                    is_typing_username = not is_typing_username
-                elif event.key == pygame.K_RETURN:
-                    if is_typing_username:
-                        is_typing_username = False
-                    else:
-                        # Perform login validation here
-                        print("Logging in with:")
-                        print("Username:", username)
-                        print("Password:", password)
+frame = ctk.CTkFrame(master=app)
+frame.pack(pady=20, padx=40, fill='both', expand=True)
 
-                elif event.key == pygame.K_BACKSPACE:
-                    if is_typing_username:
-                        username = username[:-1]
-                    else:
-                        password = password[:-1]
-                else:
-                    if is_typing_username:
-                        username += event.unicode
-                    else:
-                        password += event.unicode
+user_entry = ctk.CTkEntry(master=frame, placeholder_text="Username")
+user_entry.pack(pady=12, padx=10)
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if login_button.rect.collidepoint(event.pos):
-                    # Perform login validation here
-                    print("Logging in with:")
-                    print("Username:", username)
-                    print("Password:", password)
+user_pass = ctk.CTkEntry(master=frame, placeholder_text="Password", show="*")
+user_pass.pack(pady=12, padx=10)
 
-        # Draw background
-        screen.blit(background, (0, 0))
+button = ctk.CTkButton(master=frame, text='Login', command=login)
+button.pack(pady=12, padx=10)
 
-        # Draw login elements
-        login_button.draw()
-        login_button1.draw()
+button = ctk.CTkButton(master=frame, text='Sign Up', command=sign_in)
+button.pack(pady=12, padx=10)
 
-        pygame.draw.rect(screen, GRAY, (250, 250, 300, 50))  # Username box
-        pygame.draw.rect(screen, GRAY, (250, 320, 300, 50))  # Password box
-
-        text_surface = FONT.render("Username:", True, (0, 0, 0))
-        screen.blit(text_surface, (150, 250))
-
-        text_surface = FONT.render("Password:", True, (0, 0, 0))
-        screen.blit(text_surface, (150, 320))
-
-        if is_typing_username:
-            pygame.draw.rect(screen, (0, 0, 0), (260 + FONT.size(username)[0], 260, 2, 30))
-        else:
-            pygame.draw.rect(screen, (0, 0, 0), (260 + FONT.size(password)[0], 330, 2, 30))
-
-        if is_typing_username:
-            text_surface = FONT.render(username, True, (0, 0, 0))
-            screen.blit(text_surface, (260, 260))
-        else:
-            masked_password = "*" * len(password)
-            text_surface = FONT.render(masked_password, True, (0, 0, 0))
-            screen.blit(text_surface, (260, 330))
-
-        pygame.display.flip()
-
-# Run the login page
-login_page()
+app.mainloop()
