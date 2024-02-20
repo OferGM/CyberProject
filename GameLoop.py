@@ -12,15 +12,15 @@ LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
 def randomSpawn(enemies):
     if (len(enemies) < 10):
-        if (random.randint(0, 1000) == 50):
+        if random.randint(0, 1000) == 50:
             random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
             enemy = Enemy(random_coordinates)
             enemies.append(enemy)
 
 
 def seperateInv(inv3):
-    inv1 = Inventory(4, 4)
-    inv2 = Inventory(4, 1)
+    inv1 = Inventory(player, 4, 4)
+    inv2 = Inventory(None, 4, 1)
     for item in inv3.children:
         if item.sloty <= 4:
             inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
@@ -30,7 +30,7 @@ def seperateInv(inv3):
 
 
 def combineInv(inv1, inv2):
-    inv3 = Inventory(4, 5)
+    inv3 = Inventory(None, 4, 5)
     for item in inv1.children:
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
 
@@ -51,13 +51,13 @@ class Chest(Entity):
         )
         # Initialize ChestInv with the provided inventory or a new one if not provided
         self.isopen = False
-        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory()
+        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory(None)
 
     @property
     def ChestInv(self):
         # Lazy initialization of ChestInv, if it's not already set
         if self._ChestInv is None:
-            self._ChestInv = Inventory(4, 1)
+            self._ChestInv = Inventory(None, 4, 1)
         return self._ChestInv
 
     def CloseChest(self):
@@ -82,11 +82,14 @@ class Chest(Entity):
         hovered_entity = mouse.hovered_entity
         if hovered_entity and isinstance(hovered_entity, Chest) and calculate_distance(player.position,
                                                                                        hovered_entity.position) < 5:
-            self.OpenChest()
+            gun.on_cooldown = True
+            invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration
+            return True
         else:
             pass
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration
+        return False
 
     def can_open_chest(self):
         # Placeholder for any checks you want to perform before opening the chest
@@ -274,7 +277,12 @@ class Gun(Entity):
             position=position,
             rotation_y=180,
             damage=damage,
-            texture=''
+            texture='',
+            aiming=False,
+            on_cooldown_scope=False,
+            last_toggle_time=0,
+            cooldown_duration=0.5  # Cooldown duration in seconds
+
         )
         self.gun_type = gun_type
 
@@ -286,15 +294,29 @@ class Gun(Entity):
             self.rotation_y = 0
             self.damage = 35
             self.scale = 0.01
+            player.cursor.visible = True
 
         if gun_type == 'm4':
             self.model = 'M4a1.obj'
             self.texture = 'm4_tex'
             self.position = (0.5, 1.5, 1)
             self.scale = 0.25
+            player.cursor.visible = True
+
+        if gun_type == 'awp':
+            self.model = 'awp.obj'
+            self.texture = 'awp_tex.png'
+            self.position = (0.5, 1.4, 0.2)
+            self.rotation_y = 0
+            self.damage = 100
+            self.scale = 0.05
+            player.cursor.visible = False
 
     def reset_cooldown(self):
         self.on_cooldown = False
+
+    def reset_cooldown_scope(self):
+        self.on_cooldown_scope = False
 
     def shoot(self):
         if gun.on_cooldown:
@@ -310,6 +332,20 @@ class Gun(Entity):
 
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+
+    def aim(self):
+        current_time = time.time()
+        if current_time - self.last_toggle_time >= self.cooldown_duration:
+            if self.gun_type == "awp":
+                if not self.aiming:
+                    camera.fov = 30
+                    background.visible = True
+                    self.aiming = True
+                else:
+                    camera.fov = 90
+                    background.visible = False
+                    self.aiming = False
+                self.last_toggle_time = current_time
 
 
 def calculate_distance(vector1, vector2):
@@ -337,6 +373,22 @@ def update():
     randomSpawn(enemies)
 
 
+def openInv():
+    inv.enabled = True
+    inv.button_enabled = True
+    player.enabled = False
+    mouse.visible = False
+    Cursor.enabled = False
+
+
+def closeInv():
+    inv.enabled = False
+    inv.button_enabled = False
+    player.enabled = True
+    mouse.visible = False
+    Cursor.enabled = True
+
+
 def input(key):
     global cursor
     if key == 'escape':
@@ -344,7 +396,10 @@ def input(key):
     if held_keys['left mouse']:
         gun.shoot()
     if held_keys['right mouse']:
-        chest.Check()
+        if chest.Check():
+            chest.OpenChest()
+        elif gun.gun_type == 'awp':
+            gun.aim()
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and chest.isopen:
@@ -367,11 +422,11 @@ if __name__ == "__main__":
 
     player = player()
 
-    gun = Gun(player, 'ak-47')
+    gun = Gun(player, 'awp')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
-    inv = Inventory(4, 4)
+    inv = Inventory(player, 4, 4)
     inv.enabled = False
     inv.add_item()
     inv.add_item()
@@ -385,11 +440,20 @@ if __name__ == "__main__":
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
+    # Load the PNG image for the scope
+    scope_texture = load_texture('scope.png')  # Replace 'scope.png' with the path to your scope image
+
+    # Create a window panel to display the scope image
+    scope_panel = WindowPanel(texture=scope_texture, scale=(0.5, 0.5), enabled=False)
+
+    background = Entity(parent=camera.ui, model='quad', texture='scope.png', scale_x=camera.aspect_ratio, z=1)
+    background.visible = False
+
     respawn_screen = RespawnScreen()
     respawn_screen.hide()
 
     chest = Chest((2, 0, 2))
-    chest.ChestInv = Inventory()
+    chest.ChestInv = Inventory(None)
 
     player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100
