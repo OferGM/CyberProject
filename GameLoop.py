@@ -260,7 +260,6 @@ class Enemy(Entity):
 
     def attack(self):
         player.health = player.health - 10
-        player_health_bar.value = player.health
         if player.health <= 0:
             respawn_screen.show()
 
@@ -371,6 +370,7 @@ def update():
     for item in items:
         item.pickup()
     randomSpawn(enemies)
+    player_health_bar.value = player.health
 
 
 def openInv():
@@ -398,7 +398,7 @@ def input(key):
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
-        elif gun.gun_type == 'awp':
+        elif gun.gun_type == 'awp' and inv.enabled==False:
             gun.aim()
 
     # Check if 'i' is pressed and the chest is open

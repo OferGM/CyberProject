@@ -1,5 +1,5 @@
 from ursina import *
-
+import items
 
 class Inventory(Entity):
     def __init__(self,player, width=7, height=8, **kwargs):
@@ -123,7 +123,23 @@ class Inventory(Entity):
 
     def add_item(self):
         # self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
-        self.append('bandage')
+        self.append(random.choice(('bandage', 'potion of leaping', 'potion of swiftness', 'medkit')))
+
+    def input(self, key):
+        for item in self.children:
+            if held_keys['right mouse'] and item.hovered:
+                self.use_item(item)
+
+    def use_item(self, item):
+        print("using")
+        print(item.texture)
+        print(self.player.health)
+        if str(item.texture) == 'bandage.png':
+            print ("DETECECT BANDAGE")
+            if self.player.health == 100:
+                return
+            print("BANDAGING PRODECURE")
+            items.bandage_player(self.player, item)
 
     def openInv(self, player):
         global cursor
