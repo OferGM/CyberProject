@@ -3,7 +3,7 @@ import random
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
-from inventory import Inventory
+from GameInventory import Inventory
 from random import choice
 
 # Define possible loot items
