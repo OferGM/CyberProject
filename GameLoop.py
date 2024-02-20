@@ -19,8 +19,8 @@ def randomSpawn(enemies):
 
 
 def seperateInv(inv3):
-    inv1 = Inventory(player,4, 4)
-    inv2 = Inventory(None,4, 1)
+    inv1 = Inventory(player, 4, 4)
+    inv2 = Inventory(None, 4, 1)
     for item in inv3.children:
         if item.sloty <= 4:
             inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
@@ -30,7 +30,7 @@ def seperateInv(inv3):
 
 
 def combineInv(inv1, inv2):
-    inv3 = Inventory(None,4, 5)
+    inv3 = Inventory(None, 4, 5)
     for item in inv1.children:
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
 
@@ -57,7 +57,7 @@ class Chest(Entity):
     def ChestInv(self):
         # Lazy initialization of ChestInv, if it's not already set
         if self._ChestInv is None:
-            self._ChestInv = Inventory(None,4, 1)
+            self._ChestInv = Inventory(None, 4, 1)
         return self._ChestInv
 
     def CloseChest(self):
@@ -268,7 +268,7 @@ class Enemy(Entity):
 class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(0.5, 1.5, 1), damage=25):
         super().__init__(
-            model='pistol.gltf',
+            model='',
             origin_z=0,
             origin_y=0,
             on_cooldown=False,
@@ -277,7 +277,7 @@ class Gun(Entity):
             position=position,
             rotation_y=180,
             damage=damage,
-            texture='m4_tex',
+            texture='',
             aiming=False,
             on_cooldown_scope=False,
             last_toggle_time=0,
@@ -311,14 +311,6 @@ class Gun(Entity):
             self.damage = 100
             self.scale = 0.05
             player.cursor.visible = False
-
-        elif gun_type == 'shotgun':
-            # Configure properties specific to the shotgun
-            self.color = color.green  # Example: change color for shotgun
-        elif gun_type == 'pistol':
-            # Configure properties specific to the pistol
-            self.scale = 0.25  # Example: adjust scale for pistol
-            rotation_y = 0
 
     def reset_cooldown(self):
         self.on_cooldown = False
@@ -434,7 +426,7 @@ if __name__ == "__main__":
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
-    inv = Inventory(player,4, 4)
+    inv = Inventory(player, 4, 4)
     inv.enabled = False
     inv.add_item()
     inv.add_item()
