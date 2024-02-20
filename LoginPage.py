@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import tkinter.messagebox as tkmb
 from PIL import Image
 
 # Selecting GUI theme - dark, light , system (for system default)
