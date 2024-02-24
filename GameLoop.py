@@ -5,7 +5,7 @@ from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from GameInventory import Inventory
 from random import choice
-
+from MiniInv import MiniInv
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
@@ -388,6 +388,11 @@ def closeInv():
     mouse.visible = False
     Cursor.enabled = True
 
+def setup_inventory():
+    # Define the image paths for your inventory items
+    image_paths = ['bandage.png', 'bandage.png', 'bandage.png', 'bandage.png']
+    # Create an instance of MiniInv and set it to be a child of camera.ui for UI purposes
+    inventory = MiniInv.MiniInv(inv,image_paths=image_paths, parent=camera.ui)
 
 def input(key):
     global cursor
@@ -430,6 +435,8 @@ if __name__ == "__main__":
     inv.enabled = False
     inv.add_item()
     inv.add_item()
+
+    miniInv = MiniInv(inv)
 
     enemies = []
     items = []
