@@ -4,6 +4,7 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from GameInventory import Inventory
+from skills import SkillDisplay
 from random import choice
 from MiniInv import MiniInv
 # Define possible loot items
@@ -414,8 +415,10 @@ def input(key):
         # Check if 'i' is pressed and the inventory button is enabled
         if key == 'i':
             if inv.enabled:
+                skill_display.close_skills()
                 inv.closeInv(player)
             else:
+                skill_display.show_skills()
                 inv.openInv(player)
                 print("open inv")
 
@@ -424,12 +427,14 @@ if __name__ == "__main__":
     app = Ursina()
 
     ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
-
+    skill_display = SkillDisplay()
+    skill_display.close_skills()
     player = player()
 
     gun = Gun(player, 'awp')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
+
 
     inv = Inventory(player, 4, 4)
     inv.enabled = False
