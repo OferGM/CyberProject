@@ -324,8 +324,8 @@ class Gun(Entity):
 
         hovered_entity = mouse.hovered_entity
 
-        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position,
-                                                                                       hovered_entity.position) < 20:
+        if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
+                                                                                       hovered_entity.position) < 20 or gun.gun_type=='awp'):
             hovered_entity.enemy_hit(gun)
         else:
             pass
