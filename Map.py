@@ -9,8 +9,8 @@ Entity.default_shader = lit_with_shadows_shader
 
 
 def build_map():
-    ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
-    colosseum = Entity(model='Test_Colosseum', collider='mesh', texture='marble', scale=4, position=(0, 13, 0))
+    #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
+    colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=4, position=(0, 13, 0))
     jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=10, position=(-600, 15, -800))
     helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=10, position=(800, 0, 650),
                         rotation_x=-90)
@@ -27,7 +27,7 @@ def build_map():
     tree_scale = 6
     x_array = [159, 1056, 715, -1076, -936, -99, -123, 269, 384, 325, 1002, -203, -823, 1065, 743, -368, -821, 526,
                -368, 653]
-    z_array = [-684, -892, -590, -1062, 348, -748, -335, -738, -469, -1034, -70, -704, 12, -889, 890, -960, 1075, -288,
+    z_array = [-684, -892, -590, -1062, 348, -748, -335, -738, -469, -1034, -70, -704, 112, -889, 890, -960, 1075, -288,
                -535, -114]
     angle_array = [162, 53, 105, 223, 156, 175, 236, 212, 288, 308, 262, 290, 294, 334, 343, 180, 276, 253, 104, 266]
     for i in range(0, 20):
@@ -67,57 +67,6 @@ def build_map():
     for i in range(0, 20):
         Entity(model='rocks2', collider='box', texture='grey', scale=3, position=(x_array[i], 0, z_array[i]))
 
-
-build_map()
-editor_camera = EditorCamera(enabled=False, ignore_paused=True)
-player = FirstPersonController(model='cube', z=-10, color=color.orange, origin_y=-.5, speed=8, collider='box')
-player.collider = BoxCollider(player, Vec3(0, 1, 0), Vec3(1, 2, 1))
-
-gun = Entity(model='cube', parent=camera, position=(.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5, color=color.red,
-             on_cooldown=False)
-gun.muzzle_flash = Entity(parent=gun, z=1, world_scale=.5, model='quad', color=color.yellow, enabled=False)
-
-shootables_parent = Entity()
-mouse.traverse_target = shootables_parent
+    return
 
 
-def update():
-    if held_keys['left mouse']:
-        shoot()
-
-
-def shoot():
-    if not gun.on_cooldown:
-        # print('shoot')
-        gun.on_cooldown = True
-        gun.muzzle_flash.enabled = True
-        from ursina.prefabs.ursfx import ursfx
-        ursfx([(0.0, 0.0), (0.1, 0.9), (0.15, 0.75), (0.3, 0.14), (0.6, 0.0)], volume=0.5, wave='noise',
-              pitch=random.uniform(-13, -12), pitch_change=-12, speed=3.0)
-        invoke(gun.muzzle_flash.disable, delay=.05)
-        invoke(setattr, gun, 'on_cooldown', False, delay=.15)
-        if mouse.hovered_entity and hasattr(mouse.hovered_entity, 'hp'):
-            mouse.hovered_entity.hp -= 10
-            mouse.hovered_entity.blink(color.red)
-
-
-def pause_input(key):
-    if key == 'tab':  # press tab to toggle edit/play mode
-        editor_camera.enabled = not editor_camera.enabled
-
-        player.visible_self = editor_camera.enabled
-        player.cursor.enabled = not editor_camera.enabled
-        gun.enabled = not editor_camera.enabled
-        mouse.locked = not editor_camera.enabled
-        editor_camera.position = player.position
-
-        application.paused = editor_camera.enabled
-
-
-pause_handler = Entity(ignore_paused=True, input=pause_input)
-
-sun = DirectionalLight()
-sun.look_at(Vec3(1, -1, -1))
-Sky()
-
-app.run()

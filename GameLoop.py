@@ -5,6 +5,7 @@ from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
 from GameInventory import Inventory
 from random import choice
+from Map import build_map
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -418,7 +419,9 @@ def input(key):
 if __name__ == "__main__":
     app = Ursina()
 
-    ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
+    ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
+
+    build_map()
 
     player = player()
 
