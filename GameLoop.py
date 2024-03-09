@@ -148,6 +148,7 @@ class RespawnScreen(Entity):
         player.respawn(screen=self)
         player.health = 100
         player_health_bar.value = 100
+        countdown_timer.start()
         self.hide()
 
 
@@ -260,10 +261,37 @@ class Enemy(Entity):
             invoke(self.reset_attack_cooldown, delay=0.8)
 
     def attack(self):
-        player.health = player.health - 10
-        if player.health <= 0:
-            respawn_screen.show()
+        if not countdown_timer.is_invincible():
+            player.health = player.health - 10
+            if player.health <= 0:
+                respawn_screen.show()
 
+
+class CountdownTimer(Entity):
+    def __init__(self, duration):
+        super().__init__()
+        self.duration = duration
+        self.timer = Text(text=str(self.duration), position=(0.7, 0.5), scale=2, color=color.red)
+        self.countdown_finished = True
+
+    def update(self):
+        if not self.countdown_finished:
+            self.duration -= time.dt
+            if self.duration <= 0:
+                self.countdown_finished = True
+                self.timer.text = ""
+            else:
+                self.timer.text = str(round(self.duration, 2))
+
+    def stop(self):
+        self.countdown_finished = True
+        self.timer.text = ""
+
+    def start(self):
+        self.countdown_finished = False
+
+    def is_invincible(self):
+        return not self.countdown_finished
 
 class Gun(Entity):
     def __init__(self, parent_entity, gun_type='ak-47', position=(0.5, 1.5, 1), damage=25):
@@ -396,6 +424,7 @@ def input(key):
         application.quit()
     if held_keys['left mouse']:
         gun.shoot()
+        countdown_timer.stop()
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
@@ -422,6 +451,8 @@ if __name__ == "__main__":
     ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
 
     build_map()
+
+    countdown_timer = CountdownTimer(25)  # 25-second countdown
 
     player = player()
 
