@@ -1,0 +1,21 @@
+<RCC>
+  <qresource prefix="ButtonImages">
+    <file>image-removebg-preview (4).png</file>
+    <file>GameLogo.png</file>
+    <file>image-removebg-preview (3).png</file>
+    <file>image-removebg-preview (2).png</file>
+    <file>image-removebg-preview (1).png</file>
+  </qresource>
+  <qresource prefix="Icons">
+    <file>image-removebg-preview (9).png</file>
+    <file>medkit.png</file>
+    <file>potion of leaping.png</file>
+    <file>potion of swiftness.png</file>
+    <file>bandage.png</file>
+    <file>image-removebg-preview (8).png</file>
+    <file>image-removebg-preview (7).png</file>
+    <file>image-removebg-preview (6).png</file>
+    <file>image-removebg-preview (5).png</file>
+    <file>GameIcon.png</file>
+  </qresource>
+</RCC>
