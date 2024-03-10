@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def __init__(self):
         self.money = 0
-        self.ak_count = 16
+        self.ak_count = 12
         self.m4_count = 16
         self.awp_count = 8
         self.mp5_count = 7
@@ -1456,7 +1456,6 @@ class Ui_MainWindow(object):
         ###~~~PLAY_SCREEN_FUNCS~~~###
         # sliders
         self.horizontalSlider.valueChanged.connect(self.ak_slided)
-        self.horizontalSlider.setMaximum(self.ak_count)
 
         self.horizontalSlider_2.valueChanged.connect(self.m4_slided)
         self.horizontalSlider_2.setMaximum(self.m4_count)
@@ -1479,49 +1478,75 @@ class Ui_MainWindow(object):
         self.horizontalSlider_8.valueChanged.connect(self.leaping_potion_slided)
         self.horizontalSlider_8.setMaximum(self.lPotion_count)
 
+        #play_butt
+        self.pushButton_4.clicked.connect(self.play_butt_pressed)
+
     def ak_slided(self, value):
         self.label_23.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
-        if max == 0:
-            self.horizontalSlider.setDisabled(True)
+        if max < self.ak_count:
+            self.horizontalSlider.setMaximum(max)
         else:
-            self.horizontalSlider.setDisabled(False)
-        self.horizontalSlider.setMaximum(max)
+            self.horizontalSlider.setMaximum(self.ak_count)
 
     def m4_slided(self, value):
         self.label_22.setText(str(value))
-        self.horizontalSlider_2.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+        if max < self.m4_count:
+            self.horizontalSlider_2.setMaximum(max)
+        else:
+            self.horizontalSlider_2.setMaximum(self.m4_count)
 
     def awp_slided(self, value):
         self.label_21.setText(str(value))
-        self.horizontalSlider_3.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+        if max < self.awp_count:
+            self.horizontalSlider_3.setMaximum(max)
+        else:
+            self.horizontalSlider_3.setMaximum(self.awp_count)
 
     def mp5_slided(self, value):
         self.label_20.setText(str(value))
-        self.horizontalSlider_4.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+        if max < self.mp5_count:
+            self.horizontalSlider_4.setMaximum(max)
+        else:
+            self.horizontalSlider_4.setMaximum(self.mp5_count)
 
     def med_kit_slided(self, value):
         self.label_15.setText(str(value))
-        self.horizontalSlider_5.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+        if max < self.med_kit_count:
+            self.horizontalSlider_5.setMaximum(max)
+        else:
+            self.horizontalSlider_5.setMaximum(self.med_kit_count)
 
     def bandage_slided(self, value):
         self.label_19.setText(str(value))
-        self.horizontalSlider_6.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+        if max < self.bandage_count:
+            self.horizontalSlider_6.setMaximum(max)
+        else:
+            self.horizontalSlider_6.setMaximum(self.bandage_count)
 
     def swiftness_potion_slided(self, value):
         self.label_17.setText(str(value))
-        self.horizontalSlider_7.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_8.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider.value() - self.horizontalSlider_8.value()
+        if max < self.sPotion_count:
+            self.horizontalSlider_7.setMaximum(max)
+        else:
+            self.horizontalSlider_7.setMaximum(self.sPotion_count)
 
     def leaping_potion_slided(self, value):
         self.label_18.setText(str(value))
-        self.horizontalSlider_8.setMaximum(
-            16 - self.horizontalSlider.value() - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value())
+        max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider.value()
+        if max < self.lPotion_count:
+            self.horizontalSlider_8.setMaximum(max)
+        else:
+            self.horizontalSlider_8.setMaximum(self.lPotion_count)
+
+    def play_butt_pressed(self):
+        print("hi")
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
