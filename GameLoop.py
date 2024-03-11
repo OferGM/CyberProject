@@ -1,5 +1,4 @@
 import random
-
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.health_bar import HealthBar
@@ -7,6 +6,8 @@ from GameInventory import Inventory
 from skills import SkillDisplay
 from random import choice
 from MiniInv import MiniInv
+from clientfuncs import clientfuncs
+
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
@@ -325,7 +326,7 @@ class Gun(Entity):
         hovered_entity = mouse.hovered_entity
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
-                                                                                       hovered_entity.position) < 20 or gun.gun_type=='awp'):
+                                                                                        hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             hovered_entity.enemy_hit(gun)
         else:
             pass
@@ -389,14 +390,21 @@ def closeInv():
     mouse.visible = False
     Cursor.enabled = True
 
+
 def setup_inventory():
     # Define the image paths for your inventory items
     image_paths = ['bandage.png', 'bandage.png', 'bandage.png', 'bandage.png']
     # Create an instance of MiniInv and set it to be a child of camera.ui for UI purposes
-    inventory = MiniInv.MiniInv(inv,image_paths=image_paths, parent=camera.ui)
+    inventory = MiniInv.MiniInv(inv, image_paths=image_paths, parent=camera.ui)
+
+
+def SendGameData(player):
+    client.send_data(f"{player.x}&{player.y}&{player.z}&{client.id}")
+    client.receive_data()
 
 def input(key):
     global cursor
+    SendGameData(player)
     if key == 'escape':
         application.quit()
     if held_keys['left mouse']:
@@ -404,7 +412,7 @@ def input(key):
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
-        elif gun.gun_type == 'awp' and inv.enabled==False:
+        elif gun.gun_type == 'awp' and inv.enabled == False:
             gun.aim()
 
     # Check if 'i' is pressed and the chest is open
@@ -425,6 +433,8 @@ def input(key):
 
 if __name__ == "__main__":
     app = Ursina()
+    client = clientfuncs()
+
 
     ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
     skill_display = SkillDisplay()
@@ -434,7 +444,6 @@ if __name__ == "__main__":
     gun = Gun(player, 'awp')
 
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
-
 
     inv = Inventory(player, 4, 4)
     inv.enabled = False
