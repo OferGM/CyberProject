@@ -1481,6 +1481,8 @@ class Ui_MainWindow(object):
         #play_butt
         self.pushButton_4.clicked.connect(self.play_butt_pressed)
 
+        ###~~~SHOP_SCREEN_FUNCS~~~###
+
     def ak_slided(self, value):
         self.label_23.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
@@ -1613,14 +1615,14 @@ class Ui_MainWindow(object):
         self.pushButton_13.setText(_translate("MainWindow", "+"))
         self.pushButton_16.setText(_translate("MainWindow", "-"))
         self.label_43.setText(_translate("MainWindow", "0"))
-        self.label_50.setText(_translate("MainWindow", "0"))
-        self.label_52.setText(_translate("MainWindow", "0"))
-        self.label_54.setText(_translate("MainWindow", "0"))
-        self.label_56.setText(_translate("MainWindow", "0"))
-        self.label_66.setText(_translate("MainWindow", "0"))
-        self.label_68.setText(_translate("MainWindow", "0"))
-        self.label_70.setText(_translate("MainWindow", "0"))
-        self.label_72.setText(_translate("MainWindow", "0"))
+        self.label_50.setText(_translate("MainWindow", f"{str(self.ak_count)}"))
+        self.label_52.setText(_translate("MainWindow", f"{str(self.m4_count)}"))
+        self.label_54.setText(_translate("MainWindow", f"{str(self.awp_count)}"))
+        self.label_56.setText(_translate("MainWindow", f"{str(self.mp5_count)}"))
+        self.label_66.setText(_translate("MainWindow", f"{str(self.med_kit_count)}"))
+        self.label_68.setText(_translate("MainWindow", f"{str(self.bandage_count)}"))
+        self.label_70.setText(_translate("MainWindow", f"{str(self.sPotion_count)}"))
+        self.label_72.setText(_translate("MainWindow", f"{str(self.lPotion_count)}"))
 
 
 import resources_rc
