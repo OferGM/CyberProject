@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
     def __init__(self):
-        self.money = 0
+        # INV & PLAY VARS
         self.ak_count = 12
         self.m4_count = 16
         self.awp_count = 8
@@ -22,6 +22,18 @@ class Ui_MainWindow(object):
         self.bandage_count = 3
         self.sPotion_count = 11
         self.lPotion_count = 13
+
+        # SHOP VARS
+        self.money = 0
+        self.buy_sum = 0
+        self.buy_ak_count = 0
+        self.buy_m4_count = 0
+        self.buy_awp_count = 0
+        self.buy_mp5_count = 0
+        self.buy_med_kit_count = 0
+        self.buy_bandage_count = 0
+        self.buy_sPotion_count = 0
+        self.buy_lPotion_count = 0
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -1478,10 +1490,139 @@ class Ui_MainWindow(object):
         self.horizontalSlider_8.valueChanged.connect(self.leaping_potion_slided)
         self.horizontalSlider_8.setMaximum(self.lPotion_count)
 
-        #play_butt
+        # play_butt
         self.pushButton_4.clicked.connect(self.play_butt_pressed)
 
         ###~~~SHOP_SCREEN_FUNCS~~~###
+        self.pushButton_18.clicked.connect(self.add_ak)
+        self.pushButton_17.clicked.connect(self.sub_ak)
+
+        self.pushButton_20.clicked.connect(self.add_m4)
+        self.pushButton_19.clicked.connect(self.sub_m4)
+
+        self.pushButton_23.clicked.connect(self.add_awp)
+        self.pushButton_21.clicked.connect(self.sub_awp)
+
+        self.pushButton_24.clicked.connect(self.add_mp5)
+        self.pushButton_22.clicked.connect(self.sub_mp5)
+
+        self.pushButton_9.clicked.connect(self.add_med_kit)
+        self.pushButton_10.clicked.connect(self.sub_med_kit)
+
+        self.pushButton_11.clicked.connect(self.add_bandage)
+        self.pushButton_14.clicked.connect(self.sub_bandage)
+
+        self.pushButton_12.clicked.connect(self.add_sPotion)
+        self.pushButton_15.clicked.connect(self.sub_sPotion)
+
+        self.pushButton_13.clicked.connect(self.add_lPotion)
+        self.pushButton_16.clicked.connect(self.sub_lPotion)
+
+        self.pushButton_8.clicked.connect(self.buy_items)
+
+    def update_sum(self, value):
+        self.buy_sum += value
+        self.label_39.setText(f"{str(self.buy_sum)}$")
+
+    def add_ak(self):
+        if (self.money - self.buy_sum) > 2700:
+            self.buy_ak_count += 1
+            self.label_44.setText(str(self.buy_ak_count))
+            self.update_sum(2700)
+
+    def sub_ak(self):
+        if self.buy_ak_count > 0:
+            self.buy_ak_count -= 1
+            self.label_44.setText(str(self.buy_ak_count))
+            self.update_sum(-2700)
+
+    def add_m4(self):
+        if (self.money - self.buy_sum) > 3100:
+            self.buy_m4_count += 1
+            self.label_45.setText(str(self.buy_m4_count))
+            self.update_sum(3100)
+
+    def sub_m4(self):
+        if self.buy_m4_count > 0:
+            self.buy_m4_count -= 1
+            self.label_45.setText(str(self.buy_m4_count))
+            self.update_sum(-3100)
+
+    def add_awp(self):
+        if (self.money - self.buy_sum) > 4750:
+            self.buy_awp_count += 1
+            self.label_46.setText(str(self.buy_awp_count))
+            self.update_sum(4750)
+
+    def sub_awp(self):
+        if self.buy_awp_count > 0:
+            self.buy_awp_count -= 1
+            self.label_46.setText(str(self.buy_awp_count))
+            self.update_sum(-4700)
+
+    def add_mp5(self):
+        if (self.money - self.buy_sum) > 1500:
+            self.buy_mp5_count += 1
+            self.label_47.setText(str(self.buy_mp5_count))
+            self.update_sum(1500)
+
+    def sub_mp5(self):
+        if self.buy_mp5_count > 0:
+            self.buy_mp5_count -= 1
+            self.label_47.setText(str(self.buy_mp5_count))
+            self.update_sum(-1500)
+
+    def add_med_kit(self):
+        if (self.money - self.buy_sum) > 1000:
+            self.buy_med_kit_count += 1
+            self.label_37.setText(str(self.buy_med_kit_count))
+            self.update_sum(1000)
+
+    def sub_med_kit(self):
+        if self.buy_med_kit_count > 0:
+            self.buy_med_kit_count -= 1
+            self.label_37.setText(str(self.buy_med_kit_count))
+            self.update_sum(-1000)
+
+    def add_bandage(self):
+        if (self.money - self.buy_sum) > 650:
+            self.buy_bandage_count += 1
+            self.label_41.setText(str(self.buy_bandage_count))
+            self.update_sum(650)
+
+    def sub_bandage(self):
+        if self.buy_bandage_count > 0:
+            self.buy_bandage_count -= 1
+            self.label_41.setText(str(self.buy_bandage_count))
+            self.update_sum(-650)
+
+    def add_sPotion(self):
+        if (self.money - self.buy_sum) > 1800:
+            self.buy_sPotion_count += 1
+            self.label_42.setText(str(self.buy_sPotion_count))
+            self.update_sum(1800)
+
+    def sub_sPotion(self):
+        if self.buy_sPotion_count > 0:
+            self.buy_sPotion_count -= 1
+            self.label_42.setText(str(self.buy_sPotion_count))
+            self.update_sum(-1800)
+
+    def add_lPotion(self):
+        if (self.money - self.buy_sum) > 1200:
+            self.buy_lPotion_count += 1
+            self.label_43.setText(str(self.buy_lPotion_count))
+            self.update_sum(1200)
+
+    def sub_lPotion(self):
+        if self.buy_lPotion_count > 0:
+            self.buy_lPotion_count -= 1
+            self.label_43.setText(str(self.buy_lPotion_count))
+            self.update_sum(-1200)
+
+    def buy_items(self):
+        #send packet to confirm
+        pass
 
     def ak_slided(self, value):
         self.label_23.setText(str(value))
@@ -1548,7 +1689,8 @@ class Ui_MainWindow(object):
             self.horizontalSlider_8.setMaximum(self.lPotion_count)
 
     def play_butt_pressed(self):
-        print("hi")
+        #send packet to confirm
+        pass
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -1572,7 +1714,7 @@ class Ui_MainWindow(object):
         self.pushButton_4.setText(_translate("MainWindow", "PLAY"))
         self.pushButton_8.setText(_translate("MainWindow", "buy now"))
         self.label_11.setText(_translate("MainWindow", "money:"))
-        self.label_12.setText(_translate("MainWindow", "0$"))
+        self.label_12.setText(_translate("MainWindow", f"{str(self.money)}$"))
         self.label_38.setText(_translate("MainWindow", "sum:"))
         self.label_39.setText(_translate("MainWindow", "0$"))
         self.label_40.setText(_translate("MainWindow", "Prices"))
@@ -1591,18 +1733,18 @@ class Ui_MainWindow(object):
         self.label_25.setText(_translate("MainWindow",
                                          "<html><head/><body><p><span style=\" font-weight:600; color:#000000;\">2700$</span></p></body></html>"))
         self.label_26.setText(_translate("MainWindow",
-                                         "<html><head/><body><p><span style=\" font-weight:600; color:#000000;\">3500$</span></p></body></html>"))
+                                         "<html><head/><body><p><span style=\" font-weight:600; color:#000000;\">3100$</span></p></body></html>"))
         self.label_27.setText(_translate("MainWindow",
-                                         "<html><head/><body><p><span style=\" font-weight:600; color:#000000;\">4700$</span></p></body></html>"))
-        self.label_28.setText(_translate("MainWindow", "<html><head/><body><p>2000$</p></body></html>"))
+                                         "<html><head/><body><p><span style=\" font-weight:600; color:#000000;\">4750$</span></p></body></html>"))
+        self.label_28.setText(_translate("MainWindow", "<html><head/><body><p>1500$</p></body></html>"))
         self.label_29.setText(_translate("MainWindow",
-                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">500$</span></p></body></html>"))
-        self.label_30.setText(_translate("MainWindow",
-                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">200$</span></p></body></html>"))
-        self.label_31.setText(_translate("MainWindow",
                                          "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">1000$</span></p></body></html>"))
+        self.label_30.setText(_translate("MainWindow",
+                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">650$</span></p></body></html>"))
+        self.label_31.setText(_translate("MainWindow",
+                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">1800$</span></p></body></html>"))
         self.label_32.setText(_translate("MainWindow",
-                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">750$</span></p></body></html>"))
+                                         "<html><head/><body><p align=\"right\"><span style=\" font-weight:600; color:#000000;\">1200$</span></p></body></html>"))
         self.pushButton_9.setText(_translate("MainWindow", "+"))
         self.pushButton_10.setText(_translate("MainWindow", "-"))
         self.label_37.setText(_translate("MainWindow", "0"))
