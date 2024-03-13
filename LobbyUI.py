@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
         self.lPotion_count = 13
 
         # SHOP VARS
-        self.money = 0
+        self.money = 9999
         self.buy_sum = 0
         self.buy_ak_count = 0
         self.buy_m4_count = 0
