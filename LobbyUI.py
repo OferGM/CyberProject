@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import pygame
 # Form implementation generated from reading ui file 'untitled.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from pygame import mixer
 
 
 class Ui_MainWindow(object):
@@ -1773,6 +1774,9 @@ if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
+    pygame.init()
+    mixer.music.load('Shmoney.mp3')
+    mixer.music.play(-1)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
