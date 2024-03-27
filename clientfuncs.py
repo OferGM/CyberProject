@@ -19,9 +19,20 @@ class clientfuncs:
         try:
             data, server = self.socket.recvfrom(1024)  # Adjust buffer size as needed
             # Process received data
+            if data == b'':
+                return
             print("Received data from server:", data.decode())  # Deserialize received data
             data = data.decode()
-            dataArr = data.split('&')
+            return data
+        except socket.timeout:
+            print("No data received within timeout period")
+            # Handle the lack of data here, such as setting a default value or raising an error
+            # For example:
+            # dataArr = []
+            # or
+            # raise Exception("No data received within timeout period")
+        except Exception as e:
+            print("An error occurred:", e)
 
 
         except Exception as e:

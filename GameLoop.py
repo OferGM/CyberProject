@@ -7,17 +7,50 @@ from skills import SkillDisplay
 from random import choice
 from MiniInv import MiniInv
 from clientfuncs import clientfuncs
+import threading
+import time
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
+running = 1
 
-def randomSpawn(enemies):
-    if (len(enemies) < 10):
-        if random.randint(0, 1000) == 50:
-            random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
-            enemy = Enemy(random_coordinates)
-            enemies.append(enemy)
+mobs = {}
+
+
+# def randomSpawn(enemies):
+#     if (len(enemies) < 10):
+#         if random.randint(0, 1000) == 50:
+#             random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
+#             enemy = Enemy(random_coordinates)
+#             enemies.append(enemy)
+
+
+def CreateEnemy(coords, id):
+    if id in mobs:
+        if mobs[id].position == coords:
+            return
+    enemy = Enemy(position=coords, id=id)
+    mobs[id] = enemy
+
+
+def separate_mob_string(all_mobs_string):
+    global mobs
+    # Split the string by semicolons to get individual mob data strings
+    mob_entries = all_mobs_string.split(';')
+    mobs = {}  # Dictionary to hold the separated mob data
+
+    for entry in mob_entries:
+        if entry:  # Check if entry is not empty
+            parts = entry.split('&')
+            # Extract the ID and coordinates, converting them to the appropriate types
+            try:
+                id = int(parts[0])
+                coords = tuple(map(int, parts[1:4]))
+                CreateEnemy(coords, id)
+            except ValueError:
+                # Handle the case where conversion to int fails
+                print(f"Could not convert {parts} to mob data")
 
 
 def seperateInv(inv3):
@@ -37,7 +70,6 @@ def combineInv(inv1, inv2):
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
 
     for item in inv2.children:
-        print(item.slotx, item.sloty)
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
 
     return inv3
@@ -196,20 +228,20 @@ class Item(Entity):
 
 
 class Enemy(Entity):
-    def __init__(self, position):
+    def __init__(self, position, id):
         super().__init__(
             model='zombie.glb',
             position=position,
             health=100,
             collider='box',
             scale=0.08,
-            on_cooldown=False
+            on_cooldown=False,
+            id=id
         )
 
     def self_destroy(self):
-        destroy(self)
-        enemies.remove(self)
         kill_count_ui.increment_kill_count()
+        destroy(self)
 
     def distance_to_ground(self):
         # Cast a ray straight down from the entity
@@ -229,13 +261,19 @@ class Enemy(Entity):
         # Create a new entity for the loot item at the enemy's position on the ground
         loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
         items.append(loot)
-        print(f"Dropped {loot_item} at {loot.position}")
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
-            invoke(self.self_destroy)
+            client.send_data(f"R&{self.id}")
+            if self.id in mobs:
+                print("REMOVED/DEAD")
+                mobs.pop(self.id)
+            else:
+                print("ZOMBIE NOT FOUND")
+                print(self.id, self.position)
+            self.self_destroy()
             player_money_bar.value += 100
 
     def gravity(self):
@@ -264,6 +302,15 @@ class Enemy(Entity):
         player.health = player.health - 10
         if player.health <= 0:
             respawn_screen.show()
+
+
+class MultiPlayer(Entity):
+    def __init__(self, **kwargs):
+        super().__init__(
+            model='minecraft_steve.glb',
+            scale=0.08,
+            **kwargs
+        )
 
 
 class Gun(Entity):
@@ -366,12 +413,11 @@ def calculate_distance(vector1, vector2):
 
 
 def update():
-    for enemy in enemies:
-        enemy.gravity()
-        enemy.chase()
+    # for enemy in mobs.values():
+    #     enemy.gravity()
+    #     enemy.chase()
     for item in items:
         item.pickup()
-    randomSpawn(enemies)
     player_health_bar.value = player.health
 
 
@@ -398,15 +444,38 @@ def setup_inventory():
     inventory = MiniInv.MiniInv(inv, image_paths=image_paths, parent=camera.ui)
 
 
-def SendGameData(player):
-    client.send_data(f"{player.x}&{player.y}&{player.z}&{client.id}")
-    client.receive_data()
+def send_game_data_continuously(player, stop_event):
+    global mobs
+    while not stop_event.is_set():  # Check if a stop event is signaled
+        print("Hi")
+        client.send_data(f"{player.x}&{player.y}&{player.z}&{player.rotation_y}&{client.id}")
+        a = client.receive_data()
+        print(a)
+        if a and a[0] == "M":
+            separate_mob_string(a.replace("M", ""))
+            print("MOBS: " + a)
+        elif a != "Single" and a[0] != "M":
+            aList = a.split('&')
+            if len(aList) >= 4:
+                p2.x = float(aList[0])
+                p2.y = float(aList[1]) + 1.2
+                p2.z = float(aList[2])
+                p2.rotation_y = float(aList[3]) + 180
+        time.sleep(0.2)  # Wait for 0.2 seconds before sending the next update
+
+
+stop_event = threading.Event()
+
 
 def input(key):
     global cursor
-    SendGameData(player)
     if key == 'escape':
+        client.send_data(f"{client.id}&disconnect")
+        stop_event.set()
+        # Wait for the background thread to finish
+        thread.join()
         application.quit()
+        exit()
     if held_keys['left mouse']:
         gun.shoot()
     if held_keys['right mouse']:
@@ -417,7 +486,6 @@ def input(key):
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and chest.isopen:
-        print('hi')
         chest.CloseChest()
     else:
         # Check if 'i' is pressed and the inventory button is enabled
@@ -428,18 +496,19 @@ def input(key):
             else:
                 skill_display.show_skills()
                 inv.openInv(player)
-                print("open inv")
 
 
 if __name__ == "__main__":
-    app = Ursina()
+    app = Ursina(borderless=False)
     client = clientfuncs()
-
 
     ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
     skill_display = SkillDisplay()
     skill_display.close_skills()
     player = player()
+
+    thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+    thread.start()
 
     gun = Gun(player, 'awp')
 
@@ -450,14 +519,14 @@ if __name__ == "__main__":
     inv.add_item()
     inv.add_item()
 
+    p2 = MultiPlayer()
+
     miniInv = MiniInv(inv)
 
-    enemies = []
+    enemies = {}
+    enemy = Enemy((1,2,3),123)
+    mobs[123] = enemy
     items = []
-    for _ in range(10):
-        random_coordinates = (random.randint(1, 10), random.randint(3, 10), random.randint(1, 10))
-        enemy = Enemy(random_coordinates)
-        enemies.append(enemy)
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
