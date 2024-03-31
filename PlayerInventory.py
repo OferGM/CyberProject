@@ -30,18 +30,6 @@ class Weapons:
         return self.__mp5
 
 
-class Gun:
-    def __init__(self, quantity, ammo):
-        self.__quantity = quantity
-        self.__ammo = ammo
-
-    def get_quantity(self):
-        return self.__quantity
-
-    def get_ammo(self):
-        return self.__ammo
-
-
 class Items:
     def __init__(self, bandage, medkit):
         self.__bandage = bandage
@@ -52,11 +40,3 @@ class Items:
 
     def get_medkit(self):
         return self.__medkit
-
-
-class Item:
-    def __init__(self, quantity):
-        self.__quantity = quantity
-
-    def get_quantity(self):
-        return self.__quantity

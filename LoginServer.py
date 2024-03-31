@@ -65,8 +65,7 @@ def insert_starting_inventory(username, user_password, client_address, client_po
         "inventory": {
             "weapons": {
                 "ak-47": {
-                    "quantity": 0,
-                    "7.62x39mm": 0
+                    "quantity": 0
                 },
                 "m4": {
                     "quantity": 0,

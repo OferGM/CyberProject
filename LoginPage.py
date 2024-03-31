@@ -1,12 +1,12 @@
 import customtkinter as ctk
 import socket
-
+from functools import partial
 import pygame
 from pygame import mixer
 from PIL import Image
 
 
-def build_page():
+def build_page(client_sock):
     pygame.init()
     mixer.music.load('MyNig.mp3')
     mixer.music.play()
@@ -19,6 +19,7 @@ def build_page():
 
     app = ctk.CTk()
     app.geometry("500x500")
+    app.resizable(False, False)
     app.title("Sonis Ohel Batahat")
 
     logo = ctk.CTkImage(light_image=Image.open("GameLogo.png"),
@@ -34,24 +35,35 @@ def build_page():
     user_entry = ctk.CTkEntry(master=frame, placeholder_text="Username")
     user_entry.pack(pady=12, padx=10)
 
-    user_pass = ctk.CTkEntry(master=frame, placeholder_text="Password", show="*")
-    user_pass.pack(pady=12, padx=10)
+    pass_entry = ctk.CTkEntry(master=frame, placeholder_text="Password", show="*")
+    pass_entry.pack(pady=12, padx=10)
 
-    button = ctk.CTkButton(master=frame, text='Login', command=login)
+    button = ctk.CTkButton(master=frame, text='Login',
+                           command=lambda: login(client_sock, user_entry.get(), pass_entry.get()))
     button.pack(pady=12, padx=10)
 
-    button = ctk.CTkButton(master=frame, text='Sign Up', command=sign_in)
+    button = ctk.CTkButton(master=frame, text='Sign Up',
+                           command=lambda: sign_in(client_sock, user_entry.get(), pass_entry.get()))
     button.pack(pady=12, padx=10)
 
     app.mainloop()
 
 
-def login():
-
+def login(client_sock, username, password):
+    response = f"L⚔️{username}⚔️{password}"
+    client_sock.send(response.encode())
     return
 
 
-def sign_in():
+def sign_in(client_sock, username, password):
+    response = f"S⚔️{username}⚔️{password}"
+    client_sock.send(response.encode())
     return
 
-build_page()
+
+def main(client_sock):
+    build_page(client_sock)
+
+
+if __name__ == "__main__":
+    main(1)
