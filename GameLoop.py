@@ -449,7 +449,7 @@ def setup_inventory():
 def send_game_data_continuously(player, stop_event):
     while True:
         client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}")
-        time.sleep(0.02)
+        time.sleep(0.01)
 
 def recv_game_data_continuosly(player, stop_event, p2):
     while True:

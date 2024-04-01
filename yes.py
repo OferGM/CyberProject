@@ -185,7 +185,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket):
             if client[0] >= clientX - LOOKING_DISTANCE:                     #if the client's x is big enough to see the relevant client
                 if client[0] <= clientX + LOOKING_DISTANCE:                         #and if the client's x is also small enough to see
                     print(ClientList.get_ip_dict().items())
-                    udp_socket.sendto(data.encode(), ClientList.get_ip_dict()[client[1]])              #then send the client
+                    udp_socket.sendto(data.encode(), ClientList.get_ip_dict()[int(client[1])])              #then send the client
                 else:
                     return                  #if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
         return
