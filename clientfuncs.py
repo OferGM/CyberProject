@@ -4,10 +4,17 @@ import random
 
 class clientfuncs:
     def __init__(self):
-        self.server_address = ('localhost', 12345)
+        self.server_address = ('localhost', 9999)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.connect(('localhost', 9999))
         self.connected = False
         self.id =  random.randint(1, 10**8)
+
+    def get_id(self):
+        return self.id
+
+    def get_ip(self):
+        return self.socket.getsockname()
 
     def send_data(self, data):
         try:

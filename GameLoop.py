@@ -9,6 +9,7 @@ from MiniInv import MiniInv
 from clientfuncs import clientfuncs
 import threading
 import time
+import socket
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -17,6 +18,8 @@ running = 1
 
 mobs = {}
 
+myID = 12345678
+p2ID = 87654321
 
 # def randomSpawn(enemies):
 #     if (len(enemies) < 10):
@@ -266,7 +269,6 @@ class Enemy(Entity):
         self.health -= gun.damage
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
-            client.send_data(f"R&{self.id}")
             if self.id in mobs:
                 print("REMOVED/DEAD")
                 mobs.pop(self.id)
@@ -445,24 +447,22 @@ def setup_inventory():
 
 
 def send_game_data_continuously(player, stop_event):
-    global mobs
-    while not stop_event.is_set():  # Check if a stop event is signaled
-        print("Hi")
-        client.send_data(f"{player.x}&{player.y}&{player.z}&{player.rotation_y}&{client.id}")
-        a = client.receive_data()
-        print(a)
-        if a and a[0] == "M":
-            separate_mob_string(a.replace("M", ""))
-            print("MOBS: " + a)
-        elif a != "Single" and a[0] != "M":
-            aList = a.split('&')
-            if len(aList) >= 4:
-                p2.x = float(aList[0])
-                p2.y = float(aList[1]) + 1.2
-                p2.z = float(aList[2])
-                p2.rotation_y = float(aList[3]) + 180
-        time.sleep(0.2)  # Wait for 0.2 seconds before sending the next update
+    while True:
+        client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}")
+        time.sleep(0.2)
 
+def recv_game_data_continuosly(player, stop_event, p2):
+    while True:
+        a = client.receive_data()
+        aList = a.split('&')
+        if aList[0] == 'STATE':
+            if int(aList[1]) != int(client.get_id()):
+                print(client.get_id())
+                print(aList[1])
+                p2.x = float(aList[2])
+                p2.y = float(aList[3]) + 1.2
+                p2.z = float(aList[4])
+                p2.rotation_y = float(aList[5]) + 180
 
 stop_event = threading.Event()
 
@@ -470,7 +470,6 @@ stop_event = threading.Event()
 def input(key):
     global cursor
     if key == 'escape':
-        client.send_data(f"{client.id}&disconnect")
         stop_event.set()
         # Wait for the background thread to finish
         thread.join()
@@ -507,7 +506,18 @@ if __name__ == "__main__":
     skill_display.close_skills()
     player = player()
 
+    addr = client.get_ip()
+    addr = f'({addr[0]}, {addr[1]})'
+    msg = f'NEW&{client.get_id()}&{addr}'
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.sendto(msg.encode(), ('localhost', 8989))
+
+    p2 = MultiPlayer()
+
     thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+    thread.start()
+
+    thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, p2))
     thread.start()
 
     gun = Gun(player, 'awp')
@@ -518,8 +528,6 @@ if __name__ == "__main__":
     inv.enabled = False
     inv.add_item()
     inv.add_item()
-
-    p2 = MultiPlayer()
 
     miniInv = MiniInv(inv)
 
