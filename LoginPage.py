@@ -1,3 +1,4 @@
+import customtkinter
 import customtkinter as ctk
 import socket
 from functools import partial
@@ -39,7 +40,7 @@ def build_page(client_sock):
     pass_entry.pack(pady=12, padx=10)
 
     button = ctk.CTkButton(master=frame, text='Login',
-                           command=lambda: login(client_sock, user_entry.get(), pass_entry.get()))
+                           command=lambda: login(client_sock, user_entry.get(), pass_entry.get(), app))
     button.pack(pady=12, padx=10)
 
     button = ctk.CTkButton(master=frame, text='Sign Up',
@@ -49,16 +50,26 @@ def build_page(client_sock):
     app.mainloop()
 
 
-def login(client_sock, username, password):
-    response = f"L⚔️{username}⚔️{password}"
-    client_sock.send(response.encode())
+def login(client_sock, username, password, app):
+    if all(char not in (username + password) for char in "%&") and username and password:
+        response = f"Login%{username}&{password}"
+        client_sock.send(response.encode())
+
+    else:
+        customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
+                                          "% OR &. \nWrite feedback below:", title="sonis faggot")
+
     return
 
 
 def sign_in(client_sock, username, password):
-    response = f"S⚔️{username}⚔️{password}"
-    client_sock.send(response.encode())
-    return
+    if all(char not in (username + password) for char in "%&") and username and password:
+        response = f"Sign_in%{username}&{password}"
+        client_sock.send(response.encode())
+    else:
+        customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
+                                          "% OR &. \nWrite feedback below:", title="sonis faggot")
+        return
 
 
 def main(client_sock):
