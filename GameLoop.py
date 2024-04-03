@@ -18,9 +18,6 @@ running = 1
 
 mobs = {}
 
-myID = 12345678
-p2ID = 87654321
-
 # def randomSpawn(enemies):
 #     if (len(enemies) < 10):
 #         if random.randint(0, 1000) == 50:
@@ -38,10 +35,8 @@ def CreateEnemy(coords, id):
 
 
 def separate_mob_string(all_mobs_string):
-    global mobs
     # Split the string by semicolons to get individual mob data strings
     mob_entries = all_mobs_string.split(';')
-    mobs = {}  # Dictionary to hold the separated mob data
 
     for entry in mob_entries:
         if entry:  # Check if entry is not empty
@@ -50,7 +45,10 @@ def separate_mob_string(all_mobs_string):
             try:
                 id = int(parts[0])
                 coords = tuple(map(int, parts[1:4]))
-                CreateEnemy(coords, id)
+                if id in mobs.keys():
+                    mobs[id].set_position(coords)
+                else:
+                    CreateEnemy(coords, id)
             except ValueError:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {parts} to mob data")
@@ -463,6 +461,9 @@ def recv_game_data_continuosly(player, stop_event, p2):
                 p2.y = float(aList[3]) + 1.2
                 p2.z = float(aList[4])
                 p2.rotation_y = float(aList[5]) + 180
+        if aList[0] == 'aM':
+            separate_mob_string(a.replace('aM', ''))
+
 
 stop_event = threading.Event()
 
@@ -522,7 +523,7 @@ if __name__ == "__main__":
 
     gun = Gun(player, 'awp')
 
-    kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
+    kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
 
     inv = Inventory(player, 4, 4)
     inv.enabled = False
@@ -532,7 +533,7 @@ if __name__ == "__main__":
     miniInv = MiniInv(inv)
 
     enemies = {}
-    enemy = Enemy((1,2,3),123)
+    enemy = Enemy((1,2,3, 4),123)
     mobs[123] = enemy
     items = []
 
