@@ -10,9 +10,9 @@ Entity.default_shader = lit_with_shadows_shader
 
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
-    colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=4, position=(0, 13, 0))
-    jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=10, position=(-600, 15, -800))
-    helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=10, position=(800, 0, 650),
+    #colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=2, position=(0, 6, 0))
+    jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=5, position=(-600, 11, -800))
+    helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=5, position=(800, 0, 650),
                         rotation_x=-90)
     wall1 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, -1250))
     wall2 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, 1250),
@@ -21,10 +21,10 @@ def build_map():
                    rotation_y=90)
     wall4 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(1250, 0, 0),
                    rotation_y=-90)
-    Entity(model='forest_trunk', collider='mesh', texture='brown', scale=4, position=(0, 0, 0))
-    Entity(model='forest_head', texture='dark_green', scale=4, position=(0, 0, 0))
+    Entity(model='forest_trunk', collider='mesh', texture='brown', scale=2, position=(0, 0, 0))
+    Entity(model='forest_head', texture='dark_green', scale=2, position=(0, 0, 0))
 
-    tree_scale = 6
+    tree_scale = 3
     x_array = [159, 1056, 715, -1076, -936, -99, -123, 269, 384, 325, 1002, -203, -823, 1065, 743, -368, -821, 526,
                -368, 653]
     z_array = [-684, -892, -590, -1062, 348, -748, -335, -738, -469, -1034, -70, -704, 112, -889, 890, -960, 1075, -288,
@@ -47,7 +47,7 @@ def build_map():
         Entity(model='tree_head4', texture='dark_green', scale=tree_scale, position=(x_array[i], 0, z_array[i]),
                rotation_y=angle_array[i])
 
-    grass_scale = 8
+    grass_scale = 4
     x_array = [690, 910, -581, 621, 572, 583, -290, 155, 683, 556, 620, -569, 176, 814, -652, -140, 475, 237, -160,
                -624]
     z_array = [-358, -371, 749, 706, -25, 445, 439, 424, 690, 119, 297, 919, 145, -612, 55, -364, -535, 672, 560, -859]

@@ -148,7 +148,6 @@ class RespawnScreen(Entity):
         player.respawn(screen=self)
         player.health = 100
         player_health_bar.value = 100
-        countdown_timer.start()
         self.hide()
 
 
@@ -287,8 +286,6 @@ class CountdownTimer(Entity):
         self.countdown_finished = True
         self.timer.text = ""
 
-    def start(self):
-        self.countdown_finished = False
 
     def is_invincible(self):
         return not self.countdown_finished
@@ -313,6 +310,9 @@ class Gun(Entity):
 
         )
         self.gun_type = gun_type
+        self.activation_cooldown = 1
+        self.prev_activation_time = 0
+        self.original_gun_position = Vec3(0.5, 1.5, 1)
 
         # Additional gun type configuration
         if gun_type == 'ak-47':
@@ -375,6 +375,30 @@ class Gun(Entity):
                     self.aiming = False
                 self.last_toggle_time = current_time
 
+    def deactivate(self):
+        # Animate the arms to a deactivated position (putting them down)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if self.enabled:
+                self.animate_position(self.original_gun_position + Vec3(0, -1.2, 0), duration=0.4)
+                invoke(self.disable, delay=0.6)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()  # So that you won't be able to punch mid animation
+
+    def activate(self):
+        # Animate the arms to an activated position (putting them up)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if not self.enabled:
+                self.enable()
+                self.animate_position(self.original_gun_position, duration=0.4)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()
+
+    def check_active_cooldown(self):
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            return True
+        else:
+            return False
+
 
 def calculate_distance(vector1, vector2):
     # Ensure both vectors have three components (x, y, z)
@@ -422,9 +446,13 @@ def input(key):
     global cursor
     if key == 'escape':
         application.quit()
+
     if held_keys['left mouse']:
-        gun.shoot()
-        countdown_timer.stop()
+        if arm1.enabled and arm2.enabled:
+            melee.punch()
+        elif gun.enabled:
+            gun.shoot()
+
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
@@ -444,6 +472,89 @@ def input(key):
                 inv.openInv(player)
                 print("open inv")
 
+    if key == '2':
+        if melee.check_active_cooldown() and gun.check_active_cooldown():
+            if arm1.enabled and arm2.enabled:
+                melee.deactivate()
+                invoke(gun.activate, delay=0.6)
+            else:
+                gun.deactivate()
+                invoke(melee.activate, delay=0.6)
+
+
+
+
+class Melee:
+    def __init__(self, arm1, arm2):
+        self.arm1 = arm1
+        self.arm2 = arm2
+        self.original_arm1_position = arm1.position
+        self.original_arm2_position = arm2.position
+        self.right_arm = True
+        self.punch_cooldown = 0.7
+        self.last_toggle_time = 0
+        self.activation_cooldown = 1
+        self.prev_activation_time = 0
+        self.damage = 100
+
+    def punch(self):
+        # Move arms forward slightly as a punch
+        if time.time() - self.last_toggle_time >= self.punch_cooldown:
+            if self.right_arm:
+                self.arm1.animate_position(self.arm1.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = False
+            else:
+                self.arm2.animate_position(self.arm2.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = True
+            self.hit()
+            # Reset arm positions after punch
+            self.last_toggle_time = time.time()
+            invoke(self.reset_arm_positions, delay=0.3)
+
+    def reset_arm_positions(self):
+        # Reset arm positions back to their original positions
+        self.arm1.animate_position(self.original_arm1_position, duration=0.2)
+        self.arm2.animate_position(self.original_arm2_position, duration=0.2)
+
+    def hit(self):
+        hovered_entity = mouse.hovered_entity
+        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
+            hovered_entity.enemy_hit(self)
+
+    def deactivate(self):
+        # Animate the arms to a deactivated position (putting them down)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if self.arm1.enabled and self.arm2.enabled:
+                self.arm1.animate_position(self.original_arm1_position + Vec3(0, -0.8, 0), duration=0.4)
+                self.arm2.animate_position(self.original_arm2_position + Vec3(0, -0.8, 0), duration=0.4)
+                invoke(self.create_destroy_arms, delay=0.6)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()  # So that you won't be able to punch mid animation
+
+    def activate(self):
+        # Animate the arms to an activated position (putting them up)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if not (self.arm1.enabled and self.arm2.enabled):
+                self.create_destroy_arms()
+                self.arm2.animate_position(self.original_arm2_position, duration=0.4)
+                self.arm1.animate_position(self.original_arm1_position, duration=0.4)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()
+
+    def create_destroy_arms(self):
+        # Enable or disable arms accordingly
+        if self.arm1.enabled and self.arm2.enabled:
+            self.arm1.enabled = False
+            self.arm2.enabled = False
+        else:
+            self.arm1.enabled = True
+            self.arm2.enabled = True
+
+    def check_active_cooldown(self):
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            return True
+        else:
+            return False
 
 if __name__ == "__main__":
     app = Ursina()
@@ -451,13 +562,21 @@ if __name__ == "__main__":
     ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
 
     build_map()
-
+    scene.fog_density = 0.1
+    scene.fog_color = color.black
+    #camera.clip_plane_far = 500
     countdown_timer = CountdownTimer(25)  # 25-second countdown
 
     player = player()
 
     gun = Gun(player, 'awp')
 
+    arm1 = Entity(model='cube', parent=camera, position=(.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                  color=color.white)
+    arm2 = Entity(model='cube', parent=camera, position=(-.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                  color=color.white)
+    melee = Melee(arm1, arm2)
+    melee.create_destroy_arms()
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=1.5)
 
     inv = Inventory(player, 4, 4)
