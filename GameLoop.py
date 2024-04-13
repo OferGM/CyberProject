@@ -10,7 +10,6 @@ from clientfuncs import clientfuncs
 import threading
 import time
 import socket
-from queue import Queue
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -19,7 +18,13 @@ running = 1
 
 mobs = {}
 
-update_queue = Queue()
+# def randomSpawn(enemies):
+#     if (len(enemies) < 10):
+#         if random.randint(0, 1000) == 50:
+#             random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
+#             enemy = Enemy(random_coordinates)
+#             enemies.append(enemy)
+
 
 def CreateEnemy(coords, id):
     if id in mobs:
@@ -28,52 +33,26 @@ def CreateEnemy(coords, id):
     enemy = Enemy(position=coords, id=id)
     mobs[id] = enemy
 
-def CreateItem(coords, id):
-    if id in items:
-        if items[id].position == coords:
-            return
-    item = Item(position=coords, id=id)
-    items[id] = item
-
 
 def separate_mob_string(all_mobs_string):
     # Split the string by semicolons to get individual mob data strings
     mob_entries = all_mobs_string.split(';')
 
     for entry in mob_entries:
-        if entry:  # Check if entry is not empty
+        if entry and entry != '&':  # Check if entry is not empty
             parts = entry.split('&')
             # Extract the ID and coordinates, converting them to the appropriate types
             try:
                 id = int(parts[0])
-                coords = tuple(map(int, parts[1:4]))
+                coords = tuple(map(float, parts[1:4]))
                 if id in mobs.keys():
                     mobs[id].set_position(coords)
+                    mobs[id].rotation_y = float(parts[4])
                 else:
                     CreateEnemy(coords, id)
-            except ValueError:
+            except Exception as e:
                 # Handle the case where conversion to int fails
-                print(f"Could not convert {parts} to mob data")
-
-def separate_item_string(all_items_string):
-    # Split the string by semicolons to get individual mob data strings
-    item_entries = all_items_string.split(';')
-
-    for entry in item_entries:
-        if entry:  # Check if entry is not empty
-            parts = entry.split('&')
-            # Extract the ID and coordinates, converting them to the appropriate types
-            try:
-                id = int(parts[0])
-                coords = tuple(map(int, parts[1:4]))
-                if id in items.keys():
-                    items[id].set_position(coords)
-                else:
-                    pass
-                    CreateItem(coords, id)
-            except ValueError:
-                # Handle the case where conversion to int fails
-                print(f"Could not convert {parts} to item data")
+                print(f"Could not convert {entry} to mob data: ", e)
 
 
 def seperateInv(inv3):
@@ -232,32 +211,22 @@ class player(FirstPersonController):
 
 
 class Item(Entity):
-    def __init__(self, position, id):
+    def __init__(self, position):
         super().__init__(
             model='cube',  # Replace 'cube' with a suitable model for your loot
-            position=position,  # Consider specifying an actual texture if available
+            position=position,  # Replace with appropriate texture if available
             collider='box',
-            id=id,
         )
 
     def self_destroy(self):
-        # Schedule the destruction and removal to be handled in the main update loop
-        update_queue.put(lambda: self.safe_destroy())
-
-    def safe_destroy(self):
-        # This method will be called in the main thread from the update loop
-        if self.id in items:
-            items.pop(self.id, None)
-            destroy(self)
+        destroy(self)
+        items.remove(self)
 
     def pickup(self):
-        print("HEY")
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
-            client.send_data(f"gPICKED&{client.id}&{self.id}")
+            destroy(self)
+            items.remove(self)
             inv.add_item()
-            # Queue the removal to ensure it happens in the main thread
-            update_queue.put(lambda: self.safe_destroy())
-            print("Item queued for removal")
 
 
 class Enemy(Entity):
@@ -289,11 +258,11 @@ class Enemy(Entity):
 
     def drop_loot(self):
         """ Drops a random loot item at the enemy's position on the ground. """
-        # loot_item = choice(LOOT_ITEMS)
+        loot_item = choice(LOOT_ITEMS)
         ground_height = 0  # Assuming your ground is at y=0
         # Create a new entity for the loot item at the enemy's position on the ground
-        # loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
-        # items.append(loot)
+        loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
+        items.append(loot)
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
@@ -302,7 +271,6 @@ class Enemy(Entity):
             if self.id in mobs:
                 print("REMOVED/DEAD")
                 mobs.pop(self.id)
-                client.send_data(f"gDEAD&{client.id}&{self.id}")
             else:
                 print("ZOMBIE NOT FOUND")
                 print(self.id, self.position)
@@ -446,11 +414,10 @@ def calculate_distance(vector1, vector2):
 
 
 def update():
-    while not update_queue.empty():
-        task = update_queue.get()
-        task()  # Execute the task
-
-    for item_id, item in items.items():
+    # for enemy in mobs.values():
+    #     enemy.gravity()
+    #     enemy.chase()
+    for item in items:
         item.pickup()
     player_health_bar.value = player.health
 
@@ -479,12 +446,12 @@ def setup_inventory():
 
 
 def send_game_data_continuously(player, stop_event):
-    while not stop_event.is_set():
+    while True:
         client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}")
         time.sleep(0.01)
 
 def recv_game_data_continuosly(player, stop_event, p2):
-    while not stop_event.is_set():
+    while True:
         a = client.receive_data()
         aList = a.split('&')
         if aList[0] == 'STATE':
@@ -497,8 +464,6 @@ def recv_game_data_continuosly(player, stop_event, p2):
                 p2.rotation_y = float(aList[5]) + 180
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
-        if aList[0] == 'aI':
-            separate_item_string(a.replace('aI', ''))
 
 
 stop_event = threading.Event()
@@ -507,8 +472,8 @@ stop_event = threading.Event()
 def input(key):
     global cursor
     if key == 'escape':
-        # Wait for the background thread to finish
         stop_event.set()
+        # Wait for the background thread to finish
         thread.join()
         application.quit()
         exit()
@@ -571,7 +536,7 @@ if __name__ == "__main__":
     enemies = {}
     enemy = Enemy((1,2,3, 4),123)
     mobs[123] = enemy
-    items = {}
+    items = []
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
