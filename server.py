@@ -14,12 +14,13 @@ class Server:
         self.coordinates = {}
         self.disconnected = []
         self.mobs = {}
+        self.items = {}
 
     def GenerateMobs(self):
         if len(self.mobs) < 10:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
-            random.randint(1, 50), 0, random.randint(1, 50), random.randint(0, 360)]
+            random.randint(1, 50), 1, random.randint(1, 50), random.randint(0, 360)]
             self.mobs[id] = random_coordinates
 
     def CreateMobString(self):
@@ -59,6 +60,8 @@ class Server:
 
     def update_zombies(self):
         while(True):
+            if (len(self.mobs) < 10):
+                self.GenerateMobs()
             self.update_positions()
             self.SendPositions(addr=LOAD_BALANCER_UDP_ADDR)
             time.sleep(0.5)
@@ -68,10 +71,13 @@ class Server:
             try:
                 data, addr = self.socket.recvfrom(4096)
                 data = data.decode()
+                print(data)
                 dataArr = data.split('&')
                 if dataArr[0] == 'gSTATE':
                     msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}'
                     self.socket.sendto(msg.encode(), addr)
+                if dataArr[0] == 'gDEAD':
+                    self.mobs.pop(int(dataArr[2]))
 
             except Exception as e:
                 print(f"Error handling client: {e}")

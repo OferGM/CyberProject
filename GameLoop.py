@@ -18,13 +18,6 @@ running = 1
 
 mobs = {}
 
-# def randomSpawn(enemies):
-#     if (len(enemies) < 10):
-#         if random.randint(0, 1000) == 50:
-#             random_coordinates = (random.randint(1, 50), random.randint(3, 50), random.randint(1, 50))
-#             enemy = Enemy(random_coordinates)
-#             enemies.append(enemy)
-
 
 def CreateEnemy(coords, id):
     if id in mobs:
@@ -270,6 +263,7 @@ class Enemy(Entity):
             if self.id in mobs:
                 print("REMOVED/DEAD")
                 mobs.pop(self.id)
+                client.send_data(f"gDEAD&{client.id}&{self.id}")
             else:
                 print("ZOMBIE NOT FOUND")
                 print(self.id, self.position)
@@ -445,12 +439,12 @@ def setup_inventory():
 
 
 def send_game_data_continuously(player, stop_event):
-    while True:
+    while not stop_event.is_set():
         client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}")
         time.sleep(0.01)
 
 def recv_game_data_continuosly(player, stop_event, p2):
-    while True:
+    while not stop_event.is_set():
         a = client.receive_data()
         aList = a.split('&')
         if aList[0] == 'STATE':
@@ -471,8 +465,8 @@ stop_event = threading.Event()
 def input(key):
     global cursor
     if key == 'escape':
-        stop_event.set()
         # Wait for the background thread to finish
+        stop_event.set()
         thread.join()
         application.quit()
         exit()
