@@ -10,6 +10,7 @@ from clientfuncs import clientfuncs
 import threading
 import time
 import socket
+from queue import Queue
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -18,6 +19,7 @@ running = 1
 
 mobs = {}
 
+update_queue = Queue()
 
 def CreateEnemy(coords, id):
     if id in mobs:
@@ -25,6 +27,13 @@ def CreateEnemy(coords, id):
             return
     enemy = Enemy(position=coords, id=id)
     mobs[id] = enemy
+
+def CreateItem(coords, id):
+    if id in items:
+        if items[id].position == coords:
+            return
+    item = Item(position=coords, id=id)
+    items[id] = item
 
 
 def separate_mob_string(all_mobs_string):
@@ -45,6 +54,26 @@ def separate_mob_string(all_mobs_string):
             except ValueError:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {parts} to mob data")
+
+def separate_item_string(all_items_string):
+    # Split the string by semicolons to get individual mob data strings
+    item_entries = all_items_string.split(';')
+
+    for entry in item_entries:
+        if entry:  # Check if entry is not empty
+            parts = entry.split('&')
+            # Extract the ID and coordinates, converting them to the appropriate types
+            try:
+                id = int(parts[0])
+                coords = tuple(map(int, parts[1:4]))
+                if id in items.keys():
+                    items[id].set_position(coords)
+                else:
+                    pass
+                    CreateItem(coords, id)
+            except ValueError:
+                # Handle the case where conversion to int fails
+                print(f"Could not convert {parts} to item data")
 
 
 def seperateInv(inv3):
@@ -203,22 +232,32 @@ class player(FirstPersonController):
 
 
 class Item(Entity):
-    def __init__(self, position):
+    def __init__(self, position, id):
         super().__init__(
             model='cube',  # Replace 'cube' with a suitable model for your loot
-            position=position,  # Replace with appropriate texture if available
+            position=position,  # Consider specifying an actual texture if available
             collider='box',
+            id=id,
         )
 
     def self_destroy(self):
-        destroy(self)
-        items.remove(self)
+        # Schedule the destruction and removal to be handled in the main update loop
+        update_queue.put(lambda: self.safe_destroy())
+
+    def safe_destroy(self):
+        # This method will be called in the main thread from the update loop
+        if self.id in items:
+            items.pop(self.id, None)
+            destroy(self)
 
     def pickup(self):
+        print("HEY")
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
-            destroy(self)
-            items.remove(self)
+            client.send_data(f"gPICKED&{client.id}&{self.id}")
             inv.add_item()
+            # Queue the removal to ensure it happens in the main thread
+            update_queue.put(lambda: self.safe_destroy())
+            print("Item queued for removal")
 
 
 class Enemy(Entity):
@@ -250,11 +289,11 @@ class Enemy(Entity):
 
     def drop_loot(self):
         """ Drops a random loot item at the enemy's position on the ground. """
-        loot_item = choice(LOOT_ITEMS)
+        # loot_item = choice(LOOT_ITEMS)
         ground_height = 0  # Assuming your ground is at y=0
         # Create a new entity for the loot item at the enemy's position on the ground
-        loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
-        items.append(loot)
+        # loot = Item((self.position.x, self.position.y - self.distance_to_ground(), self.position.z))
+        # items.append(loot)
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
@@ -407,10 +446,11 @@ def calculate_distance(vector1, vector2):
 
 
 def update():
-    # for enemy in mobs.values():
-    #     enemy.gravity()
-    #     enemy.chase()
-    for item in items:
+    while not update_queue.empty():
+        task = update_queue.get()
+        task()  # Execute the task
+
+    for item_id, item in items.items():
         item.pickup()
     player_health_bar.value = player.health
 
@@ -457,6 +497,8 @@ def recv_game_data_continuosly(player, stop_event, p2):
                 p2.rotation_y = float(aList[5]) + 180
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
+        if aList[0] == 'aI':
+            separate_item_string(a.replace('aI', ''))
 
 
 stop_event = threading.Event()
@@ -529,7 +571,7 @@ if __name__ == "__main__":
     enemies = {}
     enemy = Enemy((1,2,3, 4),123)
     mobs[123] = enemy
-    items = []
+    items = {}
 
     player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
