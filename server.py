@@ -2,8 +2,6 @@ import random
 import socket
 import threading
 import time
-import math
-from ursina import *
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
@@ -17,8 +15,9 @@ class Server:
         self.connections = []
         self.coordinates = {}
         self.disconnected = []
-        self.playerChase = {}
         self.mobs = {}
+        self.playerChase = {}
+        self.items = {}
 
     def GenerateMobs(self):
         if len(self.mobs) < 10:
@@ -28,21 +27,37 @@ class Server:
             self.mobs[id] = random_coordinates
             self.playerChase[id] = 0
 
+    def GenerateItem(self,x,z):
+        id = random.randint(10000000, 99999999)
+        random_coordinates = [x, 1, z, random.randint(0, 360)]
+        self.items[id] = random_coordinates
+
     def CreateMobString(self):
-        print(len(self.mobs))
         mob_strings = ["aM&"]
         for id, coords in self.mobs.items():
             # Format each mob's data into "id&x&y&z"
-            mob_str = f"{id}&{coords[0]}&{coords[1]}&{coords[2]}&{coords[3]}&"
+            mob_str = f"{id}&{coords[0]}&{coords[1]}&{coords[2]}&{coords[3]}"
             mob_strings.append(mob_str)
         # Join all mob strings into one single string, separated by semicolons
         all_mobs_string = ";".join(mob_strings)
         return all_mobs_string
 
+    def CreateItemString(self):
+        item_strings = ["aI&"]
+        for id, coords in self.items.items():
+            # Format each mob's data into "id&x&y&z"
+            item_str = f"{id}&{coords[0]}&{coords[1]}&{coords[2]}&"
+            item_strings.append(item_str)
+        # Join all mob strings into one single string, separated by semicolons
+        all_items_string = ";".join(item_strings)
+        return all_items_string
+
     def SendPositions(self, addr):
         data = self.CreateMobString()
         self.socket.sendto(data.encode(), addr)
+        data = self.CreateItemString()
         print("sending: ", data)
+        self.socket.sendto(data.encode(), addr)
 
     def start_server(self):
         try:
@@ -51,11 +66,11 @@ class Server:
             self.GenerateMobs()
             self.GenerateMobs()
             self.GenerateMobs()
+
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
             threading.Thread(target=self.update_zombies).start()
             threading.Thread(target=self.handle_client).start()
-            print(len(self.mobs))
         except Exception as e:
             print(f"Error starting server: {e}")
 
@@ -67,7 +82,6 @@ class Server:
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChase[zombieID] = clientID
-                print(self.playerChase.items())
 
     def rotate_enemy(self, player_posit, enemy_posit):
         # Calculate vector from enemy to player
@@ -78,8 +92,6 @@ class Server:
         return 90
 
     def update_positions(self):
-        if connected == 1:
-            print("ghgh")
         for zombie_id in self.playerChase.keys():
             if connected == 1:
                 zombie_x = float(self.mobs[zombie_id][0])
@@ -87,21 +99,20 @@ class Server:
                 zombie_z = float(self.mobs[zombie_id][2])
                 playerID = int(self.playerChase[zombie_id])
                 if playerID != 0:
-                    print("player ID is ", playerID)
                     player_coords = self.coordinates[str(playerID)]
                     player_x = float(player_coords[0])
                     player_y = float(player_coords[1])
                     player_z = float(player_coords[2])
                     self.mobs[zombie_id] = (1, 1, 1, 1)
-                    self.mobs[zombie_id] = (zombie_x + (player_x-zombie_x)*0.01, zombie_y, zombie_z + (player_z-zombie_z)*0.01, self.rotate_enemy(player_coords, self.mobs[zombie_id]))
+                    self.mobs[zombie_id] = (
+                    zombie_x + (player_x - zombie_x) * 0.01, zombie_y, zombie_z + (player_z - zombie_z) * 0.01,
+                    self.rotate_enemy(player_coords, self.mobs[zombie_id]))
+
     def update_zombies(self):
-        while(True):
-            print("loop")
+        while (True):
             for zombieID in self.mobs.keys():
-                print("inner")
                 self.find_closest_player(zombieID)
             self.update_positions()
-            print("updated")
             self.SendPositions(addr=LOAD_BALANCER_UDP_ADDR)
             time.sleep(SEARCH_CLOSEST_PLAYER_RATE)
 
@@ -110,12 +121,18 @@ class Server:
             try:
                 data, addr = self.socket.recvfrom(4096)
                 data = data.decode()
+                print("received: ", data)
                 dataArr = data.split('&')
                 if dataArr[0] == 'gSTATE':
-                    connected = 1
                     msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}'
                     self.socket.sendto(msg.encode(), addr)
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5])
+                if dataArr[0] == 'gDEAD':
+                    self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])
+                    self.mobs.pop(int(dataArr[2]))
+                    self.playerChase.pop(int(dataArr[2]))
+                if dataArr[0] == 'gPICKED':
+                    self.items.pop(int(dataArr[2]))
 
             except Exception as e:
                 print(f"Error handling client: {e}")
