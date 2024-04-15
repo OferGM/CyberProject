@@ -517,6 +517,8 @@ def recv_game_data_continuosly(player, stop_event):
                     p2.y = float(aList[3]) + 1.2
                     p2.z = float(aList[4])
                     p2.rotation_y = float(aList[5]) + 180
+                else:
+                    players[int(aList[1])] = MultiPlayer()
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
         if aList[0] == 'aI':
