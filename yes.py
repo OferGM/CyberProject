@@ -113,6 +113,7 @@ def handle_tcp(data, rosie, ClientList, yes_dict, servers_list):
         client_socket.send(data.encode())
 
     if data.startswith("NEW"):
+        print("NEWNEWNEW")
         dataArr = data.split('&')
         clientID = dataArr[1]
         clientIP = dataArr[2]
@@ -122,6 +123,12 @@ def handle_tcp(data, rosie, ClientList, yes_dict, servers_list):
         client_server = ClientList.get_server(clientID)
         ClientList.get_server_dict()[clientID] = client_server
         server_ip = servers_list[client_server[0]]
+
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socket.bind(('127.0.0.1', 1232))
+        for clientIP in ClientList.get_ip_dict().values():                  #for every client:
+            udp_socket.sendto("NEW&123".encode(), clientIP)
+
         ##server_socket = yes_dict[server_ip]
         ##data = "yes yes yes i am big i am smoll yes yes yes"                                #update yes!
         ##server_socket.send(data.encode())
@@ -255,7 +262,7 @@ def udp_server(host, port, ClientList, servers_list):
         data, client_address = udp_socket.recvfrom(1024)
         if data:
             print("New UDP message from " + str(client_address) + ": " + data.decode())
-            handle_udp(data.decode(), ClientList, servers_list, udp_socket)
+            handle_udp(data.decode(), ClientList, servers_list,udp_socket)
 
 def main():
 
@@ -272,7 +279,7 @@ def main():
     ClientList.get_update_dict()['total'] = 0
 
     # Start TCP server in a separate thread
-    tcp_thread = threading.Thread(target=tcp_server, args=(tcp_host, tcp_port, ClientList, servers_dict))
+    tcp_thread = threading.Thread(target=tcp_server, args=(tcp_host, tcp_port, ClientList, servers_dict,))
     tcp_thread.start()
 
     # Start UDP server in a separate thread

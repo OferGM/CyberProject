@@ -127,9 +127,9 @@ class Server:
                 print("received: ", data)
                 dataArr = data.split('&')
                 if dataArr[0] == 'gSTATE':
-                    msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}'
+                    msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}'
                     self.socket.sendto(msg.encode(), addr)
-                    self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5])
+                    self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'gDEAD':
                     self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])
                     self.mobs.pop(int(dataArr[2]))

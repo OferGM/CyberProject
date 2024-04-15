@@ -1,6 +1,6 @@
 import socket
 import threading
-
+LOAD_BALANCER_UDP_ADDR = ('127.0.0.1', 9999)
 def handle_udp():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind(('localhost', 8989))

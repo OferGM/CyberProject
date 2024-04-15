@@ -18,9 +18,12 @@ LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 running = 1
 
 mobs = {}
-
+players = {}
 update_queue = Queue()
 
+def CreateNewPlayer(id):
+    if id not in players:
+        players[id] = MultiPlayer()
 def CreateEnemy(coords, id):
     if id in mobs:
         if mobs[id].position == coords:
@@ -349,9 +352,15 @@ class MultiPlayer(Entity):
     def __init__(self, **kwargs):
         super().__init__(
             model='minecraft_steve.glb',
+            health = 100,
             scale=0.08,
             **kwargs
         )
+
+    def damage(self,amount):
+        self.health -= amount
+        # client.send_data(f"gDAMAGE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
+
 
 
 class Gun(Entity):
@@ -416,9 +425,9 @@ class Gun(Entity):
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             hovered_entity.enemy_hit(gun)
-        else:
-            pass
-
+        if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
+                                                                                        hovered_entity.position) < 20 or gun.gun_type == 'awp'):
+            hovered_entity.damage(20)
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
@@ -489,7 +498,7 @@ def setup_inventory():
 
 def send_game_data_continuously(player, stop_event):
     while not stop_event.is_set():
-        client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}")
+        client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
         time.sleep(0.01)
 
 def recv_game_data_continuosly(player, stop_event, p2):
@@ -498,16 +507,19 @@ def recv_game_data_continuosly(player, stop_event, p2):
         aList = a.split('&')
         if aList[0] == 'STATE':
             if int(aList[1]) != int(client.get_id()):
-                print(client.get_id())
-                print(aList[1])
-                p2.x = float(aList[2])
-                p2.y = float(aList[3]) + 1.2
-                p2.z = float(aList[4])
-                p2.rotation_y = float(aList[5]) + 180
+                if int(client.get_id()) in players:
+                    p2 = players[int(client.get_id())]
+                    p2.x = float(aList[2])
+                    p2.y = float(aList[3]) + 1.2
+                    p2.z = float(aList[4])
+                    p2.rotation_y = float(aList[5]) + 180
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
         if aList[0] == 'aI':
             separate_item_string(a.replace('aI', ''))
+        if aList[0] == 'NEW':
+            print("NEW PLAYER")
+            # CreateNewPlayer(int(aList[1]))
 
 
 stop_event = threading.Event()
