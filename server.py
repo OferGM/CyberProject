@@ -68,6 +68,7 @@ class Server:
             self.GenerateMobs()
             self.GenerateMobs()
             self.GenerateMobs()
+            self.GenerateMobs()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")

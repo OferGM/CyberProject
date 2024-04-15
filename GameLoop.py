@@ -32,7 +32,7 @@ def CreateItem(coords, id,type):
     if id in items:
         if items[id].position == coords:
             return
-    item = Item(position=coords, id=id, type=type)
+    item = Item(position=coords, id=id, ttype=type)
     items[id] = item
 
 
@@ -234,17 +234,18 @@ class player(FirstPersonController):
 
 
 class Item(Entity):
-    def __init__(self, position, id,type):
+    def __init__(self, position, id,ttype): #DONT CHANGE ttype NAME
         super().__init__(
-            model=type,  # Replace 'cube' with a suitable model for your loot
+            model=ttype,  # Replace 'cube' with a suitable model for your loot
             position=position,  # Consider specifying an actual texture if available
             collider='box',
-            type=type,
+            ttype = ttype,
             id=id,
+            scale = 1
         )
-        if type == "potion of leaping":
-            self.scale = 0.01
-        if type == "bandage" or type == "medkit":
+        if ttype == "potion of leaping":
+            self.scale = 0.001
+        if ttype == "bandage" or ttype == "medkit":
             self.scale = 4
 
     def self_destroy(self):
@@ -261,7 +262,7 @@ class Item(Entity):
         print("HEY")
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
             client.send_data(f"gPICKED&{client.id}&{self.id}")
-            inv.add_item()
+            inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
             print("Item queued for removal")
@@ -457,7 +458,8 @@ def update():
         task = update_queue.get()
         task()  # Execute the task
 
-    for item_id, item in items.items():
+    for item_id in list(items.keys()):
+        item = items[item_id]
         item.pickup()
     player_health_bar.value = player.health
 
@@ -570,8 +572,8 @@ if __name__ == "__main__":
 
     inv = Inventory(player, 4, 4)
     inv.enabled = False
-    inv.add_item()
-    inv.add_item()
+    inv.add_item("medkit")
+    inv.add_item("medkit")
 
     miniInv = MiniInv(inv)
 

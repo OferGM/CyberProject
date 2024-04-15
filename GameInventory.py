@@ -121,9 +121,8 @@ class Inventory(Entity):
         icon.drag = drag
         icon.drop = drop
 
-    def add_item(self):
-        # self.append(random.choice(('bag', 'bow_arrow', 'gem', 'orb', 'sword')))
-        self.append(random.choice(('bandage', 'potion of leaping', 'potion of swiftness', 'medkit')))
+    def add_item(self,type):
+        self.append(type)
 
     def input(self, key):
         for item in self.children:
