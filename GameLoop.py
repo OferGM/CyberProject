@@ -23,7 +23,9 @@ update_queue = Queue()
 
 def CreateNewPlayer(id):
     if id not in players:
-        players[id] = MultiPlayer()
+        print(f"CREATED NEW PLAYER {id}")
+        pn = MultiPlayer()
+        players[id] = pn
 def CreateEnemy(coords, id):
     if id in mobs:
         if mobs[id].position == coords:
@@ -501,14 +503,16 @@ def send_game_data_continuously(player, stop_event):
         client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
         time.sleep(0.01)
 
-def recv_game_data_continuosly(player, stop_event, p2):
+def recv_game_data_continuosly(player, stop_event):
     while not stop_event.is_set():
         a = client.receive_data()
         aList = a.split('&')
         if aList[0] == 'STATE':
             if int(aList[1]) != int(client.get_id()):
-                if int(client.get_id()) in players:
-                    p2 = players[int(client.get_id())]
+                print(f"is {int(aList[1])} in players:",int(aList[1]) in players)
+                if int(aList[1]) in players:
+                    print(aList[1],"HELLO")
+                    p2 = players[int(aList[1])]
                     p2.x = float(aList[2])
                     p2.y = float(aList[3]) + 1.2
                     p2.z = float(aList[4])
@@ -519,7 +523,7 @@ def recv_game_data_continuosly(player, stop_event, p2):
             separate_item_string(a.replace('aI', ''))
         if aList[0] == 'NEW':
             print("NEW PLAYER")
-            # CreateNewPlayer(int(aList[1]))
+            CreateNewPlayer(int(aList[1]))
 
 
 stop_event = threading.Event()
@@ -570,12 +574,10 @@ if __name__ == "__main__":
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.sendto(msg.encode(), ('localhost', 8989))
 
-    p2 = MultiPlayer()
-
     thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
     thread.start()
 
-    thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, p2))
+    thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
     thread.start()
 
     gun = Gun(player, 'awp')

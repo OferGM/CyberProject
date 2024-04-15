@@ -104,7 +104,7 @@ def print_status(ClientList):
 
     print("in first: {}, in second: {}, in third: {}, in fourth: {}".format(in_first, in_second, in_third, in_fourth))'''
 
-def handle_tcp(data, rosie, ClientList, yes_dict, servers_list):
+def handle_tcp(data, rosie, ClientList, yes_dict, servers_list, udp_socket):
     if data.startswith("s"):                        #intended for one specific client, not all of them
         indi = data.find("&")
         clientID = data[(indi+1):(indi+4)]
@@ -124,10 +124,8 @@ def handle_tcp(data, rosie, ClientList, yes_dict, servers_list):
         ClientList.get_server_dict()[clientID] = client_server
         server_ip = servers_list[client_server[0]]
 
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socket.bind(('127.0.0.1', 1232))
         for clientIP in ClientList.get_ip_dict().values():                  #for every client:
-            udp_socket.sendto("NEW&123".encode(), clientIP)
+            udp_socket.sendto(data.encode(), clientIP)
 
         ##server_socket = yes_dict[server_ip]
         ##data = "yes yes yes i am big i am smoll yes yes yes"                                #update yes!
@@ -218,7 +216,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket):
     return
 
 # Function to handle multiple TCP connections
-def tcp_server(host, port, ClientList, servers_list):
+def tcp_server(host, port, ClientList, servers_list, udp_socket):
     rosie = 0
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind((host, port))
@@ -245,7 +243,7 @@ def tcp_server(host, port, ClientList, servers_list):
                 if data:
                     print(f"Received data from {ready_socket.getpeername()}: {data.decode()}")
                     # Process data using the handle_func function
-                    rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, yes_dict=yes_dict, servers_list=servers_list)
+                    rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, yes_dict=yes_dict, servers_list=servers_list, udp_socket=udp_socket)
 
                 else:                   #if !data, then the connection was closed
                     print(f"Connection with {ready_socket.getpeername()} closed")
@@ -253,9 +251,8 @@ def tcp_server(host, port, ClientList, servers_list):
                     inputs.remove(ready_socket)  # Remove closed socket from the list of monitored inputs
 
 # Function to handle UDP connections
-def udp_server(host, port, ClientList, servers_list):
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind((host, port))
+def udp_server(host, port, ClientList, servers_list, udp_socket):
+
     print("UDP Server listening on " + str(host) + ", " + str(port))
 
     while True:
@@ -278,12 +275,15 @@ def main():
 
     ClientList.get_update_dict()['total'] = 0
 
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind((udp_host, udp_port))
+
     # Start TCP server in a separate thread
-    tcp_thread = threading.Thread(target=tcp_server, args=(tcp_host, tcp_port, ClientList, servers_dict,))
+    tcp_thread = threading.Thread(target=tcp_server, args=(tcp_host, tcp_port, ClientList, servers_dict, udp_socket))
     tcp_thread.start()
 
     # Start UDP server in a separate thread
-    udp_thread = threading.Thread(target=udp_server, args=(udp_host, udp_port, ClientList, servers_dict))
+    udp_thread = threading.Thread(target=udp_server, args=(udp_host, udp_port, ClientList, servers_dict, udp_socket))
     udp_thread.start()
 
 if __name__ == "__main__":
