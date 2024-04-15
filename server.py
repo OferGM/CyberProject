@@ -44,9 +44,11 @@ class Server:
 
     def CreateItemString(self):
         item_strings = ["aI&"]
+        items = ["potion of swiftness", "potion of leaping", "medkit", "bandage"]
         for id, coords in self.items.items():
             # Format each mob's data into "id&x&y&z"
-            item_str = f"{id}&{coords[0]}&{coords[1]}&{coords[2]}&"
+            type = random.choice(items)
+            item_str = f"{id}&{type}&{coords[0]}&{coords[1]}&{coords[2]}&"
             item_strings.append(item_str)
         # Join all mob strings into one single string, separated by semicolons
         all_items_string = ";".join(item_strings)

@@ -28,11 +28,11 @@ def CreateEnemy(coords, id):
     enemy = Enemy(position=coords, id=id)
     mobs[id] = enemy
 
-def CreateItem(coords, id):
+def CreateItem(coords, id,type):
     if id in items:
         if items[id].position == coords:
             return
-    item = Item(position=coords, id=id)
+    item = Item(position=coords, id=id, type=type)
     items[id] = item
 
 
@@ -66,12 +66,13 @@ def separate_item_string(all_items_string):
             # Extract the ID and coordinates, converting them to the appropriate types
             try:
                 id = int(parts[0])
-                coords = tuple(map(float, parts[1:4]))
+                type = parts[1]
+                coords = tuple(map(float, parts[2:5]))
                 if id in items.keys():
                     items[id].set_position(coords)
                 else:
                     pass
-                    CreateItem(coords, id)
+                    CreateItem(coords, id, type)
             except Exception as e:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {parts} to item data: ", e)
@@ -233,13 +234,18 @@ class player(FirstPersonController):
 
 
 class Item(Entity):
-    def __init__(self, position, id):
+    def __init__(self, position, id,type):
         super().__init__(
-            model='cube',  # Replace 'cube' with a suitable model for your loot
+            model=type,  # Replace 'cube' with a suitable model for your loot
             position=position,  # Consider specifying an actual texture if available
             collider='box',
+            type=type,
             id=id,
         )
+        if type == "potion of leaping":
+            self.scale = 0.01
+        if type == "bandage" or type == "medkit":
+            self.scale = 4
 
     def self_destroy(self):
         # Schedule the destruction and removal to be handled in the main update loop
