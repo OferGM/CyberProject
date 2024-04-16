@@ -13,19 +13,22 @@ from pygame import mixer
 
 
 class Ui_MainWindow(object):
-    def __init__(self):
+    def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+        # SOCKET
+        self.client_socket = client_socket
+
         # INV & PLAY VARS
-        self.ak_count = 12
-        self.m4_count = 16
-        self.awp_count = 8
-        self.mp5_count = 7
-        self.med_kit_count = 5
-        self.bandage_count = 3
-        self.sPotion_count = 11
-        self.lPotion_count = 13
+        self.ak_count = ak
+        self.m4_count = m4
+        self.awp_count = awp
+        self.mp5_count = mp5
+        self.med_kit_count = mk
+        self.bandage_count = bnd
+        self.sPotion_count = sp
+        self.lPotion_count = lp
 
         # SHOP VARS
-        self.money = 9999
+        self.money = cash
         self.buy_sum = 0
         self.buy_ak_count = 0
         self.buy_m4_count = 0
@@ -1622,8 +1625,43 @@ class Ui_MainWindow(object):
             self.update_sum(-1200)
 
     def buy_items(self):
-        #send packet to confirm
-        pass
+        # send packet to confirm
+        if self.buy_sum > 0:
+            print("hello1")
+            response = f"Buy%{self.buy_ak_count}&{self.buy_m4_count}&{self.buy_awp_count}&{self.buy_mp5_count}&{self.buy_med_kit_count}&{self.buy_bandage_count}&{self.buy_sPotion_count}&{self.buy_lPotion_count}"
+            print(response)
+            self.client_socket.send(response.encode())
+            data = self.client_socket.recv(1024).decode()
+            print(data)
+            if data == "successful buy":
+                self.ak_count += self.buy_ak_count
+                self.m4_count += self.buy_m4_count
+                self.awp_count += self.buy_awp_count
+                self.mp5_count += self.buy_mp5_count
+                self.med_kit_count += self.buy_med_kit_count
+                self.bandage_count += self.buy_bandage_count
+                self.sPotion_count += self.buy_sPotion_count
+                self.lPotion_count += self.buy_lPotion_count
+
+                self.buy_ak_count = 0
+                self.buy_m4_count = 0
+                self.buy_awp_count = 0
+                self.buy_mp5_count = 0
+                self.buy_med_kit_count = 0
+                self.buy_bandage_count = 0
+                self.buy_sPotion_count = 0
+                self.buy_lPotion_count = 0
+                self.money -= self.buy_sum
+                self.update_sum(0)
+
+                self.label_44.setText(str(0))
+                self.label_45.setText(str(0))
+                self.label_46.setText(str(0))
+                self.label_47.setText(str(0))
+                self.label_37.setText(str(0))
+                self.label_41.setText(str(0))
+                self.label_42.setText(str(0))
+                self.label_43.setText(str(0))
 
     def ak_slided(self, value):
         self.label_23.setText(str(value))
@@ -1690,7 +1728,7 @@ class Ui_MainWindow(object):
             self.horizontalSlider_8.setMaximum(self.lPotion_count)
 
     def play_butt_pressed(self):
-        #send packet to confirm
+        # send packet to confirm
         pass
 
     def retranslateUi(self, MainWindow):
@@ -1770,7 +1808,8 @@ class Ui_MainWindow(object):
 
 import resources_rc
 
-if __name__ == "__main__":
+
+def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
@@ -1778,7 +1817,11 @@ if __name__ == "__main__":
     mixer.music.load('Shmoney.mp3')
     mixer.music.play(-1)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
+    ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash)
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)

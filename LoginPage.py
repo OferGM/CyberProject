@@ -6,6 +6,8 @@ import pygame
 from pygame import mixer
 from PIL import Image
 
+app = ctk.CTk()
+
 
 def build_page(client_sock):
     pygame.init()
@@ -18,7 +20,6 @@ def build_page(client_sock):
     # Selecting color theme - blue, green, dark-blue
     ctk.set_default_color_theme("green")
 
-    app = ctk.CTk()
     app.geometry("500x500")
     app.resizable(False, False)
     app.title("Sonis Ohel Batahat")
@@ -40,7 +41,7 @@ def build_page(client_sock):
     pass_entry.pack(pady=12, padx=10)
 
     button = ctk.CTkButton(master=frame, text='Login',
-                           command=lambda: login(client_sock, user_entry.get(), pass_entry.get(), app))
+                           command=lambda: login(client_sock, user_entry.get(), pass_entry.get()))
     button.pack(pady=12, padx=10)
 
     button = ctk.CTkButton(master=frame, text='Sign Up',
@@ -50,10 +51,20 @@ def build_page(client_sock):
     app.mainloop()
 
 
-def login(client_sock, username, password, app):
+def login(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Login%{username}&{password}"
+        print("sending")
         client_sock.send(response.encode())
+        data = client_sock.recv(1024).decode()
+        print("reciving")
+        if data == "Login_failed":
+            customtkinter.CTkInputDialog(text="INVALID INPUT\n WRONG USERNAME OR PASSWORD\nWrite feedback below:",
+                                         title="sonis faggot")
+
+        if data == "Login_successful":
+            close_page()
+
 
     else:
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
@@ -66,10 +77,19 @@ def sign_in(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Sign_in%{username}&{password}"
         client_sock.send(response.encode())
+        data = client_sock.recv(1024).decode()
+        if data == "Taken":
+            customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME TAKEN\nWrite feedback below:",
+                                         title="sonis faggot")
+
     else:
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
                                           "% OR &. \nWrite feedback below:", title="sonis faggot")
         return
+
+
+def close_page():
+    app.destroy()
 
 
 def main(client_sock):
