@@ -18,6 +18,7 @@ class Server:
         self.mobs = {}
         self.playerChase = {}
         self.items = {}
+        self.chat_messages = []
 
     def GenerateMobs(self):
         if len(self.mobs) < 10:
@@ -108,6 +109,8 @@ class Server:
 
     def update_zombies(self):
         while (True):
+            if len(self.mobs) < 30:
+                self.GenerateMobs()
             for zombieID in self.mobs.keys():
                 self.find_closest_player(zombieID)
             self.update_positions()

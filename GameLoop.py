@@ -69,19 +69,20 @@ def separate_item_string(all_items_string):
     for entry in item_entries:
         if entry:  # Check if entry is not empty
             parts = entry.split('&')
+            if parts != ['', '']:
             # Extract the ID and coordinates, converting them to the appropriate types
-            try:
-                id = int(parts[0])
-                type = parts[1]
-                coords = tuple(map(float, parts[2:5]))
-                if id in items.keys():
-                    items[id].set_position(coords)
-                else:
-                    pass
-                    CreateItem(coords, id, type)
-            except Exception as e:
-                # Handle the case where conversion to int fails
-                print(f"Could not convert {parts} to item data: ", e)
+                try:
+                    id = int(parts[0])
+                    type = parts[1]
+                    coords = tuple(map(float, parts[2:5]))
+                    if id in items.keys():
+                        items[id].set_position(coords)
+                    else:
+                        pass
+                        CreateItem(coords, id, type)
+                except Exception as e:
+                    # Handle the case where conversion to int fails
+                    print(f"Could not convert {parts} to item data: ", e)
 
 
 def seperateInv(inv3):
@@ -352,8 +353,8 @@ class MultiPlayer(Entity):
         super().__init__(
             position=position,
             model=model,
-            collider='box',  # Assuming we want collision detection
             scale=scale,
+            collider='box',
             **kwargs
         )
         self.id = id
@@ -475,6 +476,12 @@ def update():
     for item_id in list(items.keys()):
         item = items[item_id]
         item.pickup()
+
+    for zombie_id in list(mobs.keys()):
+        mob = mobs[zombie_id]
+        if calculate_distance(player.position,mob.position) < 2:
+            player.health -= 10
+
     player_health_bar.value = player.health
 
 
