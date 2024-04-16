@@ -24,7 +24,7 @@ update_queue = Queue()
 def CreateNewPlayer(id):
     if id not in players:
         print(f"CREATED NEW PLAYER {id}")
-        pn = MultiPlayer()
+        pn = MultiPlayer(id=id)
         players[id] = pn
 def CreateEnemy(coords, id):
     if id in mobs:
@@ -264,13 +264,11 @@ class Item(Entity):
             destroy(self)
 
     def pickup(self):
-        print("HEY")
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
             client.send_data(f"gPICKED&{client.id}&{self.id}")
             inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
-            print("Item queued for removal")
 
 
 class Enemy(Entity):
@@ -313,12 +311,10 @@ class Enemy(Entity):
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             if self.id in mobs:
-                print("REMOVED/DEAD")
                 mobs.pop(self.id)
                 client.send_data(f"gDEAD&{client.id}&{self.id}")
             else:
-                print("ZOMBIE NOT FOUND")
-                print(self.id, self.position)
+                pass
             self.self_destroy()
             player_money_bar.value += 100
 
@@ -351,17 +347,21 @@ class Enemy(Entity):
 
 
 class MultiPlayer(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, id, position=(0,0,0), health=100, model='minecraft_steve.glb', scale=0.08, **kwargs):
         super().__init__(
-            model='minecraft_steve.glb',
-            health = 100,
-            scale=0.08,
+            position=position,
+            model=model,
+            collider='box',  # Assuming we want collision detection
+            scale=scale,
             **kwargs
         )
+        self.id = id
+        self.health = health
 
     def damage(self,amount):
         self.health -= amount
-        # client.send_data(f"gDAMAGE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
+        client.send_data(f"gDAMAGE&{self.id}&{self.health}")
+        print(f"DAMAGED {self.id}")
 
 
 
@@ -423,12 +423,14 @@ class Gun(Entity):
             return
 
         hovered_entity = mouse.hovered_entity
+        print(type(hovered_entity))
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             hovered_entity.enemy_hit(gun)
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
+            print("HIT PLAYER")
             hovered_entity.damage(20)
         gun.on_cooldown = True
         invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
@@ -509,23 +511,37 @@ def recv_game_data_continuosly(player, stop_event):
         aList = a.split('&')
         if aList[0] == 'STATE':
             if int(aList[1]) != int(client.get_id()):
-                print(f"is {int(aList[1])} in players:",int(aList[1]) in players)
                 if int(aList[1]) in players:
-                    print(aList[1],"HELLO")
                     p2 = players[int(aList[1])]
                     p2.x = float(aList[2])
                     p2.y = float(aList[3]) + 1.2
                     p2.z = float(aList[4])
                     p2.rotation_y = float(aList[5]) + 180
+                    p2.health = int(aList[6])
                 else:
-                    players[int(aList[1])] = MultiPlayer()
+                    players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
         if aList[0] == 'aI':
-            separate_item_string(a.replace('aI', ''))
+            if (a.replace('aI', '') != ''):
+                separate_item_string(a.replace('aI', ''))
         if aList[0] == 'NEW':
             print("NEW PLAYER")
             CreateNewPlayer(int(aList[1]))
+        if aList[0] == 'aR':
+            print(f"Zombie removed: {aList[1]}")
+            if int(aList[1]) in mobs:
+                destroy(mobs[int(aList[1])])
+                mobs.pop(int(aList[1]))
+        if aList[0] == 'aH':
+            if int(aList[1]) in players:
+                p = players[int(aList[1])]
+                p.health = int(aList[2])
+            if int(aList[1]) == client.get_id():
+                player.health = int(aList[2])
+                if player.health <= 0:
+                    respawn_screen.show()
+
 
 
 stop_event = threading.Event()

@@ -63,12 +63,8 @@ class Server:
 
     def start_server(self):
         try:
-            self.GenerateMobs()
-            self.GenerateMobs()
-            self.GenerateMobs()
-            self.GenerateMobs()
-            self.GenerateMobs()
-            self.GenerateMobs()
+            for i in range(10):
+                self.GenerateMobs()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
@@ -134,8 +130,13 @@ class Server:
                     self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])
                     self.mobs.pop(int(dataArr[2]))
                     self.playerChase.pop(int(dataArr[2]))
+                    self.socket.sendto(f"aR&{int(dataArr[2])}".encode(), addr)
                 if dataArr[0] == 'gPICKED':
                     self.items.pop(int(dataArr[2]))
+                if dataArr[0] == 'gDAMAGE':
+                    self.coordinates[dataArr[1]] = (self.coordinates[dataArr[1]][0], self.coordinates[dataArr[1]][1], self.coordinates[dataArr[1]][2], self.coordinates[dataArr[1]][3], dataArr[2])
+                    print(f"Player {int(dataArr[1])} hurt and his health is {dataArr[2]}")
+                    self.socket.sendto(f"aH&{int(dataArr[1])}&{dataArr[2]}".encode(), addr)
 
             except Exception as e:
                 print(f"Error handling client: {e}")

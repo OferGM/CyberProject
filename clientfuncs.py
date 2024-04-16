@@ -28,7 +28,6 @@ class clientfuncs:
             # Process received data
             if data == b'':
                 return
-            print("Received data from server:", data.decode())  # Deserialize received data
             data = data.decode()
             return data
         except socket.timeout:
