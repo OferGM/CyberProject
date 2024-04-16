@@ -6,7 +6,7 @@ from pyskiplist import SkipList
 
 UPDATE_RATE = 1            #update the client's positions in the databases every UPDATE_RATEth movement msg from a client
 SERVER_UPDATE_RATE = 1         #update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
-LOOKING_DISTANCE = 30000           #the max distance from which you can see other ppl
+LOOKING_DISTANCE = 20           #the max distance from which you can see other ppl
 CLIENT_ID_LENGTH = 8
 
 class ClientLister:

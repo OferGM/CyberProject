@@ -76,8 +76,8 @@ class Server:
     def find_closest_player(self, zombieID):
         min_dist = 1000
         for clientID in self.coordinates.keys():
-            total_dist = (float(self.coordinates[clientID][0]) - self.mobs[zombieID][0]) + \
-                         (float(self.coordinates[clientID][1]) - self.mobs[zombieID][1])
+            total_dist = abs((abs(float(self.coordinates[clientID][0])) - abs(self.mobs[zombieID][0]))) + \
+                         abs((abs(float(self.coordinates[clientID][1])) - abs(self.mobs[zombieID][1])))
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChase[zombieID] = clientID
@@ -102,7 +102,6 @@ class Server:
                     player_x = float(player_coords[0])
                     player_y = float(player_coords[1])
                     player_z = float(player_coords[2])
-                    self.mobs[zombie_id] = (1, 1, 1, 1)
                     self.mobs[zombie_id] = (
                     zombie_x + (player_x - zombie_x) * 0.01, zombie_y, zombie_z + (player_z - zombie_z) * 0.01,
                     self.rotate_enemy(player_coords, self.mobs[zombie_id]))

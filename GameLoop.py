@@ -19,6 +19,7 @@ running = 1
 
 mobs = {}
 players = {}
+rendered_players = {}
 update_queue = Queue()
 
 def CreateNewPlayer(id):
@@ -499,6 +500,16 @@ def setup_inventory():
     # Create an instance of MiniInv and set it to be a child of camera.ui for UI purposes
     inventory = MiniInv.MiniInv(inv, image_paths=image_paths, parent=camera.ui)
 
+def stop_rendering_continuosly():
+    while True:
+        for ID in rendered_players.keys():
+            print("sdklsdkl")
+            if rendered_players[ID] == 1:
+                players[ID].enabled = True
+                rendered_players[ID] = 0
+            else:
+                players[ID].enabled = False
+        time.sleep(0.2)
 
 def send_game_data_continuously(player, stop_event):
     while not stop_event.is_set():
@@ -512,6 +523,7 @@ def recv_game_data_continuosly(player, stop_event):
         if aList[0] == 'STATE':
             if int(aList[1]) != int(client.get_id()):
                 if int(aList[1]) in players:
+                    rendered_players[int(aList[1])] = 1
                     p2 = players[int(aList[1])]
                     p2.x = float(aList[2])
                     p2.y = float(aList[3]) + 1.2
@@ -596,6 +608,9 @@ if __name__ == "__main__":
     thread.start()
 
     thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
+    thread.start()
+
+    thread = threading.Thread(target=stop_rendering_continuosly, args=())
     thread.start()
 
     gun = Gun(player, 'awp')
