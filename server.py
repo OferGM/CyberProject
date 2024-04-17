@@ -120,7 +120,7 @@ class Server:
     def handle_client(self):
         while(True):
             try:
-                data, addr = self.socket.recvfrom(4096)
+                data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
                 print("received: ", data)
                 dataArr = data.split('&')

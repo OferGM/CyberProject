@@ -24,7 +24,7 @@ class clientfuncs:
 
     def receive_data(self):
         try:
-            data, server = self.socket.recvfrom(1024)  # Adjust buffer size as needed
+            data, server = self.socket.recvfrom(9192)  # Adjust buffer size as needed
             # Process received data
             if data == b'':
                 return

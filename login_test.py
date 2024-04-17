@@ -21,7 +21,7 @@ def tcp_response(data, udp_addr):
     tcp_socket.sendall(data)
 
     # Receive response from TCP server
-    response = tcp_socket.recv(1024)
+    response = tcp_socket.recv(9192)
     print(f"Received TCP response: {response.decode()}")
 
     tcp_socket.close()
@@ -34,6 +34,6 @@ udp_socket.bind(('localhost', 8989))
 
 while True:
     print("UDP Server listening on localhost:8989")
-    data, addr = udp_socket.recvfrom(1024)
+    data, addr = udp_socket.recvfrom(9192)
     print(f"Received UDP message from {addr}: {data.decode()}")
     tcp_socket.sendall(data)

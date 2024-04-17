@@ -12,6 +12,7 @@ CLIENT_ID_LENGTH = 8
 class ClientLister:
     def __init__(self):
         self.client_dict = {}                       #dict that matches ID to x pos
+        self.client_dict_z = {}
         self.edges_arr = [100, 200, 300]            #arr that holds the x positions of the edges of the rectangles
         self.ip_dict = {}                           #dict that matches ID to ip
         self.server_dict = {}                       #dict that matches between ID and server
@@ -36,7 +37,10 @@ class ClientLister:
     def get_sl(self):
         return self.sl
 
-    def insert_new_client(self, client_x, client_id, client_ip):
+    def get_z_dict(self):
+        return self.client_dict_z
+
+    def insert_new_client(self, client_x, client_z, client_id, client_ip):
         indi = client_ip.find(",")
         ip = client_ip[1:indi]
         bindi = client_ip.find(")")
@@ -45,20 +49,23 @@ class ClientLister:
 
         self.ip_dict[int(client_id)] = real_addr
         self.client_dict[int(client_id)] = client_x
+        self.client_dict_z[int(client_id)] = client_z
         self.sl.insert(client_x, client_id)
         self.update_dict[int(client_id)] = 0                #make a new slot in the update list, init to 0
 
-    def insert_client(self, client_x, client_id):
+    def insert_client(self, client_x, client_z, client_id):
         self.client_dict[client_id] = client_x
+        self.client_dict_z[client_id] = client_z
         self.sl.insert(client_x, client_id)
 
     def remove_client(self, client_id):
         client_x = self.client_dict.pop(client_id)
+        gh = self.client_dict_z.pop(client_id)
         self.sl.remove(client_x)
 
-    def update_client(self, new_x, client_id):
+    def update_client(self, new_x, new_z, client_id):
         self.remove_client(client_id)
-        self.insert_client(new_x, client_id)
+        self.insert_client(new_x, new_z, client_id)
 
     def calc_edges(self):
         num_clients = len(self.client_dict)
@@ -117,7 +124,7 @@ def handle_tcp(data, rosie, ClientList, yes_dict, servers_list, udp_socket):
         dataArr = data.split('&')
         clientID = dataArr[1]
         clientIP = dataArr[2]
-        ClientList.insert_new_client(client_x=0, client_id=clientID, client_ip=clientIP)       #insert at x, with id and ip from the login server
+        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)       #insert at x, with id and ip from the login server
         ClientList.calc_edges()
         print("the edges are " + str(ClientList.get_edges_arr()))
         client_server = ClientList.get_server(clientID)
@@ -170,7 +177,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket):
         print(ClientList.get_ip_dict().items())
         dataArr = data.split('&')
         clientID = int(dataArr[1])
-        clientX = int(float(dataArr[2]))
+        clientX = float(dataArr[2])
+        clientZ = float(dataArr[4])
         '''indi = data.find("&")
         clientID = int(data[indi+1:indi+CLIENT_ID_LENGTH+1])
         indi = indi+CLIENT_ID_LENGTH+1
@@ -178,7 +186,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket):
         clientX = int(data[indi : finale])'''
 
         if ClientList.get_update_dict()[clientID] % UPDATE_RATE == 0:           #every UPDATE_RATEth move ack from a specific client, update the client list with his current values
-            ClientList.update_client(clientX, clientID)
+            ClientList.update_client(clientX, clientZ, clientID)
 
         if ClientList.get_update_dict()['total'] % SERVER_UPDATE_RATE == 0:     #every SERVER_UPDATE_RATEth move ack, calculate the edges again by the values currently in the client list
             ClientList.calc_edges()
@@ -189,10 +197,12 @@ def handle_udp(data, ClientList, servers_list, udp_socket):
         for client in ClientList.get_sl().items():                  #for every client:
             if client[0] >= clientX - LOOKING_DISTANCE:                     #if the client's x is big enough to see the relevant client
                 if client[0] <= clientX + LOOKING_DISTANCE:                         #and if the client's x is also small enough to see
-                    print(ClientList.get_ip_dict().items())
-                    udp_socket.sendto(data.encode(), ClientList.get_ip_dict()[int(client[1])])              #then send the client
-                else:
-                    return                  #if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+                    if ClientList.get_z_dict()[client[1]] >= clientZ - LOOKING_DISTANCE:
+                        if ClientList.get_z_dict()[client[1]] <= clientZ + LOOKING_DISTANCE:
+                            print(ClientList.get_ip_dict().items())
+                            udp_socket.sendto(data.encode(), ClientList.get_ip_dict()[int(client[1])])              #then send the client
+                        else:
+                            return                  #if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
         return
 
     if data.startswith("REM"):
@@ -238,7 +248,7 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
                 yes_dict[client_address] = client_socket            #add to dict
 
             else:               # Handle data from an existing client connection
-                data = ready_socket.recv(1024)
+                data = ready_socket.recv(9192)
 
                 if data:
                     print(f"Received data from {ready_socket.getpeername()}: {data.decode()}")
@@ -256,7 +266,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
     print("UDP Server listening on " + str(host) + ", " + str(port))
 
     while True:
-        data, client_address = udp_socket.recvfrom(1024)
+        data, client_address = udp_socket.recvfrom(9192)
         if data:
             print("New UDP message from " + str(client_address) + ": " + data.decode())
             handle_udp(data.decode(), ClientList, servers_list,udp_socket)
