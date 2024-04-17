@@ -542,7 +542,7 @@ def recv_game_data_continuosly(player, stop_event):
         if aList[0] == 'aM':
             separate_mob_string(a.replace('aM', ''))
         if aList[0] == 'aI':
-            if (a.replace('aI', '') != ''):
+            if (a.replace('aI&', '') != ''):
                 separate_item_string(a.replace('aI', ''))
         if aList[0] == 'NEW':
             print("NEW PLAYER")
@@ -560,8 +560,8 @@ def recv_game_data_continuosly(player, stop_event):
                 player.health = int(aList[2])
                 if player.health <= 0:
                     respawn_screen.show()
-
-
+        if aList[0] == 'aPICKED':
+            items[int(aList[1])].enabled = False
 
 stop_event = threading.Event()
 
