@@ -82,6 +82,10 @@ def sign_in(client_sock, username, password):
             customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME TAKEN\nWrite feedback below:",
                                          title="sonis faggot")
 
+        if data == "Sign_in_successful":
+            print("signed in")
+            close_page()
+
     else:
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
                                           "% OR &. \nWrite feedback below:", title="sonis faggot")

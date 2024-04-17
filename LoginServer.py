@@ -22,8 +22,8 @@ def update_user_address(client_ip, client_port, user_id):
     _id = ObjectId(user_id)
 
     updates = {
-        "$set": {"ip": client_ip},
-        "$set": {"port": client_port}
+        "$set": {"ip": client_ip,
+        "port": client_port}
     }
     users_collection.update_one({"_id": _id}, updates)
 
@@ -46,6 +46,7 @@ def insert_new_user(username, user_password, client_ip, client_port):
     }
 
     users_collection.insert_one(user_document)
+    print("inserted user")
 
 
 def init_lobby(client_socket, user_document):
@@ -84,29 +85,34 @@ def sign_in(client_socket, client_address, data):
     username, passwrd = data.split("&")
     user_document = users_collection.find_one({"name": username})
     if user_document:
-        client_socket.send(f"Taken".encode())
+        client_socket.send("Taken".encode())
     else:
         ip, port = client_address
         insert_new_user(username, passwrd, ip, port)
+        client_socket.send("Sign_in_successful".encode())
+        user_document = users_collection.find_one({"name": username})
+        init_lobby(client_socket, user_document)
 
 
-def update_user(data, client_address):
+def update_user(data, client_address, buy_sum):
     ip, port = client_address
     user_document = users_collection.find_one({"ip": ip, "port": port})
     _id = ObjectId(user_document["_id"])
-
+    print(_id)
     print(data)
 
     ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
+    print(int(ak_count))
     updates = {
-        "$inc": {"ak-47": int(ak_count)},
-        "$inc": {"m4": int(m4_count)},
-        "$inc": {"awp": int(awp_count)},
-        "$inc": {"mp5": int(mp5_count)},
-        "$inc": {"medkit": int(med_kit_count)},
-        "$inc": {"bandage": int(bandage_count)},
-        "$inc": {"speed_potion": int(sp_count)},
-        "$inc": {"leaping_potion": int(lp_count)}
+        "$inc": {"ak-47": int(ak_count),
+        "m4": int(m4_count),
+        "awp": int(awp_count),
+        "mp5": int(mp5_count),
+        "medkit": int(med_kit_count),
+        "bandage": int(bandage_count),
+        "speed_potion": int(sp_count),
+        "leaping_potion": int(lp_count),
+        "money": -1 * buy_sum}
     }
     print("bulbul")
 
@@ -123,10 +129,11 @@ def buy_shit(data, client_socket, client_address):
     ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
     print(user_document["_id"])
 
-    if int(ak_count) * 2700 + int(m4_count) * 3100 + int(awp_count) * 4750 + int(mp5_count) * 1500 + int(
-            med_kit_count) * 1000 + int(bandage_count) * 650 + int(sp_count) * 1800 + int(lp_count) * 1200 < \
-            user_document["money"]:
-        update_user(data, client_address)
+    buy_sum = (int(ak_count) * 2700 + int(m4_count) * 3100 + int(awp_count) * 4750 + int(mp5_count) * 1500 +
+               int(med_kit_count) * 1000 + int(bandage_count) * 650 + int(sp_count) * 1800 + int(lp_count) * 1200)
+
+    if buy_sum < user_document["money"]:
+        update_user(data, client_address, buy_sum)
         client_socket.send("successful buy".encode())
 
     else:
@@ -151,7 +158,7 @@ def handle_client(client_socket, client_address):
         match method:
             case "Login":
                 login(client_socket, client_address, data)
-            case "Sign in":
+            case "Sign_in":
                 sign_in(client_socket, client_address, data)
             case "Buy":
                 print("buy")

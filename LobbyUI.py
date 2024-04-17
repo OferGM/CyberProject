@@ -1634,6 +1634,7 @@ class Ui_MainWindow(object):
             data = self.client_socket.recv(1024).decode()
             print(data)
             if data == "successful buy":
+                _translate = QtCore.QCoreApplication.translate
                 self.ak_count += self.buy_ak_count
                 self.m4_count += self.buy_m4_count
                 self.awp_count += self.buy_awp_count
@@ -1652,7 +1653,7 @@ class Ui_MainWindow(object):
                 self.buy_sPotion_count = 0
                 self.buy_lPotion_count = 0
                 self.money -= self.buy_sum
-                self.update_sum(0)
+                self.update_sum(-1 * self.buy_sum)
 
                 self.label_44.setText(str(0))
                 self.label_45.setText(str(0))
@@ -1662,6 +1663,16 @@ class Ui_MainWindow(object):
                 self.label_41.setText(str(0))
                 self.label_42.setText(str(0))
                 self.label_43.setText(str(0))
+
+                self.label_50.setText(_translate("MainWindow", f"{str(self.ak_count)}"))
+                self.label_52.setText(_translate("MainWindow", f"{str(self.m4_count)}"))
+                self.label_54.setText(_translate("MainWindow", f"{str(self.awp_count)}"))
+                self.label_56.setText(_translate("MainWindow", f"{str(self.mp5_count)}"))
+                self.label_66.setText(_translate("MainWindow", f"{str(self.med_kit_count)}"))
+                self.label_68.setText(_translate("MainWindow", f"{str(self.bandage_count)}"))
+                self.label_70.setText(_translate("MainWindow", f"{str(self.sPotion_count)}"))
+                self.label_72.setText(_translate("MainWindow", f"{str(self.lPotion_count)}"))
+                self.label_12.setText(_translate("MainWindow", f"{str(self.money)}$"))
 
     def ak_slided(self, value):
         self.label_23.setText(str(value))
