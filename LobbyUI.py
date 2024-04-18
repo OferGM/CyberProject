@@ -1740,6 +1740,7 @@ class Ui_MainWindow(object):
 
     def play_butt_pressed(self):
         # send packet to confirm
+
         pass
 
     def retranslateUi(self, MainWindow):
@@ -1832,7 +1833,3 @@ def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)

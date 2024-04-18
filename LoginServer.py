@@ -3,7 +3,7 @@ import os
 from pymongo import MongoClient
 import socket
 from bson.objectid import ObjectId
-import LobbyUI
+import threading
 
 load_dotenv(find_dotenv())
 
@@ -18,12 +18,20 @@ collections = login_serverDB.list_collection_names()
 users_collection = login_serverDB.users
 
 
+def change_connection_status(client_address, bool_var):
+    ip, port = client_address
+    user_document = users_collection.find_one({"ip": ip, "port": port})
+    _id = ObjectId(user_document["_id"])
+    update = {"$set": {"connected": bool_var}}
+    users_collection.update_one({"_id": _id}, update)
+
+
 def update_user_address(client_ip, client_port, user_id):
     _id = ObjectId(user_id)
 
     updates = {
         "$set": {"ip": client_ip,
-        "port": client_port}
+                 "port": client_port}
     }
     users_collection.update_one({"_id": _id}, updates)
 
@@ -42,7 +50,8 @@ def insert_new_user(username, user_password, client_ip, client_port):
         "medkit": 0,
         "bandage": 0,
         "speed_potion": 0,
-        "leaping_potion": 0
+        "leaping_potion": 0,
+        "connected": True
     }
 
     users_collection.insert_one(user_document)
@@ -68,12 +77,22 @@ def login(client_socket, client_address, data):
     username, passwrd = data.split("&")
     user_document = users_collection.find_one({"name": username, "password": passwrd})
     if user_document:
-        ip, port = client_address
-        update_user_address(ip, port, user_document["_id"])
-        print("sending valid")
-        client_socket.send("Login_successful".encode())
-        init_lobby(client_socket, user_document)
-        print("VALID")
+        if not user_document["connected"]:
+            ip, port = client_address
+            update_user_address(ip, port, user_document["_id"])
+
+            print("sending valid")
+            client_socket.send("Login_successful".encode())
+
+            change_connection_status(client_address, True)
+            print(f"{client_address} connected")
+
+            init_lobby(client_socket, user_document)
+            print("VALID")
+
+        else:
+            print("user already connected")
+            client_socket.send("User_already_connected".encode())
 
     else:
         print("sending invalid")
@@ -91,6 +110,8 @@ def sign_in(client_socket, client_address, data):
         insert_new_user(username, passwrd, ip, port)
         client_socket.send("Sign_in_successful".encode())
         user_document = users_collection.find_one({"name": username})
+        change_connection_status(client_address, True)
+        print(f"{client_address} connected")
         init_lobby(client_socket, user_document)
 
 
@@ -105,14 +126,14 @@ def update_user(data, client_address, buy_sum):
     print(int(ak_count))
     updates = {
         "$inc": {"ak-47": int(ak_count),
-        "m4": int(m4_count),
-        "awp": int(awp_count),
-        "mp5": int(mp5_count),
-        "medkit": int(med_kit_count),
-        "bandage": int(bandage_count),
-        "speed_potion": int(sp_count),
-        "leaping_potion": int(lp_count),
-        "money": -1 * buy_sum}
+                 "m4": int(m4_count),
+                 "awp": int(awp_count),
+                 "mp5": int(mp5_count),
+                 "medkit": int(med_kit_count),
+                 "bandage": int(bandage_count),
+                 "speed_potion": int(sp_count),
+                 "leaping_potion": int(lp_count),
+                 "money": -1 * buy_sum}
     }
     print("bulbul")
 
@@ -145,6 +166,7 @@ def handle_client(client_socket, client_address):
     """
     Handle a client request by parsing the request, determining the appropriate action, and responding accordingly.
     """
+
     while True:
         data = client_socket.recv(1024).decode()
 
@@ -163,6 +185,23 @@ def handle_client(client_socket, client_address):
             case "Buy":
                 print("buy")
                 buy_shit(data, client_socket, client_address)
+            case "Disconnect":
+                change_connection_status(client_address, False)
+                print(f"{client_address} disconnected")
+
+
+def client_handler(client_socket, client_address):
+    """
+    Thread function to handle each client connection independently.
+    """
+    try:
+        handle_client(client_socket, client_address)
+    except Exception as e:
+        print(f"Error handling client {client_address}: {e}")
+        change_connection_status(client_address, False)
+        print(f"{client_address} disconnected")
+    finally:
+        client_socket.close()
 
 
 def main():
@@ -176,7 +215,10 @@ def main():
     while True:
         client_socket, client_address = server_socket.accept()
         print('New connection received')
-        handle_client(client_socket, client_address)
+
+        # Start a new thread to handle the client
+        client_thread = threading.Thread(target=client_handler, args=(client_socket, client_address))
+        client_thread.start()
 
 
 if __name__ == "__main__":

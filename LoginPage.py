@@ -62,6 +62,10 @@ def login(client_sock, username, password):
             customtkinter.CTkInputDialog(text="INVALID INPUT\n WRONG USERNAME OR PASSWORD\nWrite feedback below:",
                                          title="sonis faggot")
 
+        if data == "User_already_connected":
+            customtkinter.CTkInputDialog(text="USER ALREADY CONNECTED\nWrite feedback below:",
+                                         title="sonis faggot")
+
         if data == "Login_successful":
             close_page()
 
@@ -94,11 +98,3 @@ def sign_in(client_sock, username, password):
 
 def close_page():
     app.destroy()
-
-
-def main(client_sock):
-    build_page(client_sock)
-
-
-if __name__ == "__main__":
-    main(1)
