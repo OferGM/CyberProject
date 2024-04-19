@@ -7,7 +7,7 @@ from pyskiplist import SkipList
 UPDATE_RATE = 1            #update the client's positions in the databases every UPDATE_RATEth movement msg from a client
 SERVER_UPDATE_RATE = 1         #update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
 LOOKING_DISTANCE = 20           #the max distance from which you can see other ppl
-CLIENT_ID_LENGTH = 8
+CLIENT_ID_LENGTH = 24
 
 class ClientLister:
     def __init__(self):
@@ -111,13 +111,13 @@ def print_status(ClientList):
 
     print("in first: {}, in second: {}, in third: {}, in fourth: {}".format(in_first, in_second, in_third, in_fourth))'''
 
-def handle_tcp(data, rosie, ClientList, yes_dict, servers_list, udp_socket):
-    if data.startswith("s"):                        #intended for one specific client, not all of them
+def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
+    '''if data.startswith("s"):                        #intended for one specific client, not all of them
         indi = data.find("&")
         clientID = data[(indi+1):(indi+4)]
         clientIP = ClientList.get_ip_dict()[clientID]           #address of client
         client_socket = yes_dict[clientIP]
-        client_socket.send(data.encode())
+        client_socket.send(data.encode())'''
 
     if data.startswith("NEW"):
         print("NEWNEWNEW")
@@ -139,7 +139,24 @@ def handle_tcp(data, rosie, ClientList, yes_dict, servers_list, udp_socket):
         ##server_socket.send(data.encode())
         return rosie
 
-def handle_udp(data, ClientList, servers_list, udp_socket):
+    if data.startswith("JOIN"):
+        for serverIP in servers_list.values():
+            udp_socket.sendto(data.encode(), serverIP)
+        dataArr = data.split('&')
+        clientID = dataArr[1]
+        clientIP = 0        #temp ip
+        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+        ClientList.calc_edges()
+        client_server = ClientList.get_server(clientID)
+        ClientList.get_server_dict()[clientID] = client_server
+
+def handle_udp(data, ClientList, servers_list, udp_socket, addr):
+    if data.startswith("HI"):
+        indi = data.split('&')
+        clientID = int(indi[1])
+        clientIP = addr
+        ClientList.get_ip_dict()[clientID] = clientIP
+
     if data.startswith("g"):                #if data is intended for the gameserver
         indi = data.split('&')
         clientID = int(indi[1])          #find ID by msg
@@ -230,9 +247,20 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
     rosie = 0
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind((host, port))
-    tcp_socket.listen(500)
+    tcp_socket.listen()
     print("TCP Server listening on " + str(host) + ", " + str(port))
-    inputs = [tcp_socket]  # List of input sockets to monitor
+    login_socket, login_address = tcp_socket.accept()
+    while True:
+        try:
+            data = login_socket.recv(9192)
+            if not data:
+                break
+            print(f"Received: {data.decode()}")
+            rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list, udp_socket=udp_socket)
+        except Exception as e:
+            print("error: ", e)
+
+    '''inputs = [tcp_socket]  # List of input sockets to monitor
 
     yes_dict = {}
 
@@ -258,7 +286,7 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
                 else:                   #if !data, then the connection was closed
                     print(f"Connection with {ready_socket.getpeername()} closed")
                     ready_socket.close()
-                    inputs.remove(ready_socket)  # Remove closed socket from the list of monitored inputs
+                    inputs.remove(ready_socket)  # Remove closed socket from the list of monitored inputs'''
 
 # Function to handle UDP connections
 def udp_server(host, port, ClientList, servers_list, udp_socket):
@@ -269,7 +297,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
         data, client_address = udp_socket.recvfrom(9192)
         if data:
             print("New UDP message from " + str(client_address) + ": " + data.decode())
-            handle_udp(data.decode(), ClientList, servers_list,udp_socket)
+            handle_udp(data.decode(), ClientList, servers_list, udp_socket, client_address)
 
 def main():
 

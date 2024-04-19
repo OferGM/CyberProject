@@ -12,7 +12,7 @@ class Server:
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.connections = []
+        self.all_players = {}
         self.coordinates = {}
         self.disconnected = []
         self.mobs = {}
@@ -124,6 +124,10 @@ class Server:
                 data = data.decode()
                 print("received: ", data)
                 dataArr = data.split('&')
+                if dataArr[0] == 'JOIN':
+                    playerID = dataArr[1]
+                    print("new player joined: ", playerID)
+                    self.all_players[playerID] = dataArr[2:]
                 if dataArr[0] == 'gSTATE':
                     msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}'
                     self.socket.sendto(msg.encode(), addr)

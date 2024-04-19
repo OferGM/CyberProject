@@ -11,6 +11,8 @@ import threading
 import time
 import socket
 from queue import Queue
+import LoginPage
+import LobbyUI
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -597,19 +599,30 @@ def input(key):
 
 
 if __name__ == "__main__":
-    app = Ursina(borderless=False)
+
+    my_socket = socket.socket()
+    my_socket.connect(("127.0.0.1", 6969))
+    LoginPage.build_page(my_socket)
+    data = my_socket.recv(9192).decode()
+    print(data)
+    ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
+    LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
+
+    time.sleep(1)
     client = clientfuncs()
+
+    addr = client.get_ip()
+    addr = f'({addr[0]}, {addr[1]})'
+    msg = f'HI&{client.get_id()}&{addr}'
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.sendto(msg.encode(), ('localhost', 9999))
+
+    app = Ursina(borderless=False)
 
     ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
     skill_display = SkillDisplay()
     skill_display.close_skills()
     player = player()
-
-    addr = client.get_ip()
-    addr = f'({addr[0]}, {addr[1]})'
-    msg = f'NEW&{client.get_id()}&{addr}'
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.sendto(msg.encode(), ('localhost', 8989))
 
     thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
     thread.start()
