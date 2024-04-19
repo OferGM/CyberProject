@@ -232,8 +232,8 @@ class Enemy(Entity):
         items.append(loot)
         print(f"Dropped {loot_item} at {loot.position}")
 
-    def enemy_hit(self, gun):
-        self.health -= gun.damage
+    def enemy_hit(self, damage):
+        self.health -= damage
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             invoke(self.self_destroy)
@@ -341,31 +341,74 @@ class Gun(Entity):
             self.scale = 0.05
             player.cursor.visible = False
 
+        if gun_type == 'mp5':
+            self.model = 'mp5.obj'
+            self.texture = 'mp5_tex.png'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 100
+            self.scale = 0.06
+            player.cursor.visible = False
+
+
     def reset_cooldown(self):
         self.on_cooldown = False
 
     def reset_cooldown_scope(self):
         self.on_cooldown_scope = False
 
-    def shoot(self):
-        if gun.on_cooldown:
-            return
+    def spray(self):
+        # Set the bullet's movement direction to the player's forward vector
+        forward_vector = player.forward
+        bullet_dx = forward_vector.x
+        bullet_dz = forward_vector.z
+        # Simulate firing the bullet in the calculated direction
+        self.fire_bullet(bullet_dx, bullet_dz)
 
-        hovered_entity = mouse.hovered_entity
+    def fire_bullet(self, dx, dz) :
+        bullet = Entity(model='cube', scale=(0.05, 0.05, 0.1), color=color.red)
+        # Set the initial position of the bullet
+        bullet.set_y(1.9)
+        bullet.set_x(player.get_x())
+        bullet.set_z(player.get_z()-0.1)
+        bullet.rotation_setter(player.rotation_getter())
 
-        if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
-                                                                                       hovered_entity.position) < 20 or gun.gun_type=='awp'):
-            hovered_entity.enemy_hit(gun)
-        else:
-            pass
 
-        gun.on_cooldown = True
-        invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+        def update_bullet() :
+            bullet.x += dx * time.dt * 10 # Move the bullet in the x direction
+            bullet.z += dz * time.dt * 10
+            hovered_entity = mouse.hovered_entity
+            if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(bullet.position, hovered_entity.position) < 1.0:
+                if gun.on_cooldown :
+                    return
+                if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(bullet.position,
+                                                                                               hovered_entity.position) < 10 and self.gun_type == 'mp5' :
+                    hovered_entity.enemy_hit(35)
+                    destroy(bullet)
+
+                elif hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(bullet.position,
+                                                                                        hovered_entity.position) < 20 :
+                    hovered_entity.enemy_hit(self.damage)
+                    destroy(bullet)
+
+                else :
+                    pass
+                gun.on_cooldown = True
+                invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+
+
+        # Define the update function to be called every frame
+        def update1() :
+            update_bullet()
+
+
+        # Assign the update function to the bullet's update slot
+        bullet.update = update1
 
     def aim(self):
         current_time = time.time()
         if current_time - self.last_toggle_time >= self.cooldown_duration:
-            if self.gun_type == "awp":
+            if self.gun_type == "awp" or self.gun_type == 'mp5':
                 if not self.aiming:
                     camera.fov = 30
                     background.visible = True
@@ -457,12 +500,12 @@ def input(key):
         if arm1.enabled and arm2.enabled:
             melee.punch()
         elif gun.enabled:
-            gun.shoot()
+            gun.spray()
 
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
-        elif gun.gun_type == 'awp' and inv.enabled==False and not arm1.enabled and not arm2.enabled:
+        elif (gun.gun_type == 'awp' or gun.gun_type == 'mp5') and inv.enabled==False and not arm1.enabled and not arm2.enabled:
             gun.aim()
 
     # Check if 'i' is pressed and the chest is open
@@ -573,7 +616,7 @@ if __name__ == "__main__":
     skill_display.close_skills()
     player = player()
 
-    gun = Gun(player, 'awp')
+    gun = Gun(player, 'mp5')
 
     arm1 = Entity(model='cube', parent=camera, position=(.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
                   color=color.white)
