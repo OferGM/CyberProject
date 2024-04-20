@@ -607,42 +607,66 @@ if __name__ == "__main__":
     print(data)
     ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
     LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
+    data = my_socket.recv(9192).decode()
+    client_id = data.split("&")[1]
+    print(client_id)
 
-    time.sleep(1)
-    client = clientfuncs()
+    print("uuuuuuuuuuu")
+    client = clientfuncs(int(client_id))
 
     addr = client.get_ip()
     addr = f'({addr[0]}, {addr[1]})'
     msg = f'HI&{client.get_id()}&{addr}'
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.sendto(msg.encode(), ('localhost', 9999))
+    time.sleep(1)
+
+    print("0")
 
     app = Ursina(borderless=False)
+
+    print("1")
 
     ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
     skill_display = SkillDisplay()
     skill_display.close_skills()
     player = player()
 
+    print("2")
+
     thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
     thread.start()
+
+    print("3")
 
     thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
     thread.start()
 
+    print("4")
+
     thread = threading.Thread(target=stop_rendering_continuosly, args=())
     thread.start()
 
+    print("5")
+
     gun = Gun(player, 'awp')
 
+    print("6")
+
     kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
+
+    print("7")
 
     inv = Inventory(player, 4, 4)
     inv.enabled = False
     inv.add_item("medkit")
     inv.add_item("medkit")
 
+    print("8")
+
     miniInv = MiniInv(inv)
+
+    print("9")
 
     enemies = {}
     items = {}
@@ -667,4 +691,8 @@ if __name__ == "__main__":
     player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
     player_money_bar.value = 100
 
+    print("10")
+
     app.run()
+
+    print("11")

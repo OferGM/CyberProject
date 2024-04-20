@@ -201,8 +201,9 @@ def join_game(data, client_socket, client_address):
     client_socket.send("Joining_game".encode())
 
     money = user_document["money"]
-    lb_socket.send(f"JOIN&{_id}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
+    lb_socket.send(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
 
+    client_socket.send(f"successfully_joined_game&{client_port}".encode())
 
 def handle_client(client_socket, client_address):
     """

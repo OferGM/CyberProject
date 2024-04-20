@@ -1836,9 +1836,6 @@ def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    pygame.init()
-    mixer.music.load('Shmoney.mp3')
-    mixer.music.play(-1)
     MainWindow = QtWidgets.QMainWindow()
 
     ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
