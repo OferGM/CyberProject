@@ -3,12 +3,12 @@ import random
 
 
 class clientfuncs:
-    def __init__(self):
+    def __init__(self, client_id):
         self.server_address = ('localhost', 9999)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.connect(('localhost', 9999))
         self.connected = False
-        self.id =  random.randint(1, 10**8)
+        self.id = client_id
 
     def get_id(self):
         return self.id
