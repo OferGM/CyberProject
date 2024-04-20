@@ -143,7 +143,7 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
         for serverIP in servers_list.values():
             udp_socket.sendto(data.encode(), serverIP)
         dataArr = data.split('&')
-        clientID = dataArr[1]
+        clientID = int(dataArr[1])
         clientIP = 0        #temp ip
         ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
         ClientList.calc_edges()
