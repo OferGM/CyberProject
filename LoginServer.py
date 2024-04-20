@@ -5,6 +5,9 @@ import socket
 from bson.objectid import ObjectId
 import threading
 
+lb_socket = socket.socket()
+lb_socket.connect(("127.0.0.1", 8888))
+
 load_dotenv(find_dotenv())
 
 password = os.environ.get("MONGODB_PWD")
@@ -25,6 +28,10 @@ def change_connection_status(client_address, bool_var):
     update = {"$set": {"connected": bool_var}}
     users_collection.update_one({"_id": _id}, update)
 
+
+
+#send ip, port when join, lb does nothing with id, client join first than server send
+#def disconnect()
 
 def update_user_address(client_ip, client_port, user_id):
     _id = ObjectId(user_id)
@@ -162,6 +169,41 @@ def buy_shit(data, client_socket, client_address):
         client_socket.send("CHEATER".encode())
 
 
+def join_game(data, client_socket, client_address):
+    client_ip, client_port = client_address
+    user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
+    _id = ObjectId(user_document["_id"])
+
+    ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
+
+    # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
+
+    items = {
+        "ak-47": int(ak_count),
+        "m4": int(m4_count),
+        "awp": int(awp_count),
+        "mp5": int(mp5_count),
+        "medkit": int(med_kit_count),
+        "bandage": int(bandage_count),
+        "speed_potion": int(sp_count),
+        "leaping_potion": int(lp_count)
+    }
+
+    for item, count in items.items():
+        if count > 16 or count > user_document.get(item, 0):
+            print("Cheater")
+            client_socket.send("CHEATER".encode())
+            return
+        else:
+            update = {"$inc": {item: -1 * count}}
+            users_collection.update_one({"_id": _id}, update)
+
+    client_socket.send("Joining_game".encode())
+
+    money = user_document["money"]
+    lb_socket.send(f"JOIN&{_id}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
+
+
 def handle_client(client_socket, client_address):
     """
     Handle a client request by parsing the request, determining the appropriate action, and responding accordingly.
@@ -169,8 +211,6 @@ def handle_client(client_socket, client_address):
 
     while True:
         data = client_socket.recv(1024).decode()
-
-        print(data)
 
         # Parse the request data
         method, data = data.split("%")
@@ -180,11 +220,19 @@ def handle_client(client_socket, client_address):
         match method:
             case "Login":
                 login(client_socket, client_address, data)
+
             case "Sign_in":
                 sign_in(client_socket, client_address, data)
+
             case "Buy":
                 print("buy")
                 buy_shit(data, client_socket, client_address)
+
+            case "Play":
+                join_game(data, client_socket, client_address)
+                client_socket.close()
+                return
+
             case "Disconnect":
                 change_connection_status(client_address, False)
                 print(f"{client_address} disconnected")

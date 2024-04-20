@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sys
+
 import pygame
 # Form implementation generated from reading ui file 'untitled.ui'
 #
@@ -9,11 +11,13 @@ import pygame
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import *
 from pygame import mixer
 
-
 class Ui_MainWindow(object):
-    def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+    def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app):
+        self.app = app
+
         # SOCKET
         self.client_socket = client_socket
 
@@ -1740,8 +1744,15 @@ class Ui_MainWindow(object):
 
     def play_butt_pressed(self):
         # send packet to confirm
+        print("tryna join")
+        self.client_socket.send(f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}".encode())
+        data = self.client_socket.recv(1024).decode()
+        if data == "Joining_game":
+            print("joined game")
+            QCoreApplication.quit()
+        else:
+            print("cheater")
 
-        pass
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -1829,7 +1840,8 @@ def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     mixer.music.load('Shmoney.mp3')
     mixer.music.play(-1)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash)
+
+    ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
     ui.setupUi(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
+    app.exec_()

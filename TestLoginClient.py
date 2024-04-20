@@ -10,4 +10,5 @@ print(data)
 ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
 LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
 
+print("ji")
 my_socket.close()
