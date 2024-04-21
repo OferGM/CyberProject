@@ -100,7 +100,10 @@ def close_page():
     app.destroy()
 
 if __name__ == "__main__":
+    import sys
     socket1=socket.socket()
+    socket1.bind(("127.0.0.1", int(sys.argv[1])))
     socket1.connect(("127.0.0.1", 6969))
     build_page(socket1)
+    socket1.close()
     exit()

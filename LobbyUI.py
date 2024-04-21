@@ -1850,10 +1850,14 @@ import resources_rc
 
 
 if __name__ == "__main__":
+    print("im hereeeee")
     socket1=socket.socket()
+    socket1.bind(("127.0.0.1", int(sys.argv[1])))
     socket1.connect(("127.0.0.1", 6969))
     import sys
     import gc
+
+    print("im hereeeee")
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
@@ -1862,6 +1866,7 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
-
+    #data = socket1.recv(9192).decode()
+    #print("data: ", data)
     print("FINISHED")
     exit()

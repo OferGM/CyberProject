@@ -211,28 +211,34 @@ def handle_client(client_socket, client_address):
     """
 
     while True:
-        data = client_socket.recv(1024).decode()
+        try:
+            data = client_socket.recv(1024).decode()
+            print("received: ", data)
+            # Parse the request data
+            if data:
+                method, data = data.split("%")
+                print(data)
+                print(method)
 
-        # Parse the request data
-        method, data = data.split("%")
-        print(data)
-        print(method)
-
-        if method == "Login":
-            login(client_socket, client_address, data)
-        if method == "Sign_in":
-            sign_in(client_socket, client_address, data)
-        if method == "Buy":
-            print("buy")
-            buy_shit(data, client_socket, client_address)
-        if method == "Play":
-            print("thinkinboutit")
-            join_game(data, client_socket, client_address)
-            client_socket.close()
-            return
-        if method == "Disconnect":
-            change_connection_status(client_address, False)
-            print(f"{client_address} disconnected")
+                if method == "Login":
+                    print("received login request")
+                    login(client_socket, client_address, data)
+                if method == "Sign_in":
+                    print("received sign in request")
+                    sign_in(client_socket, client_address, data)
+                if method == "Buy":
+                    print("buy")
+                    buy_shit(data, client_socket, client_address)
+                if method == "Play":
+                    print("received play request")
+                    join_game(data, client_socket, client_address)
+                    client_socket.close()
+                    return
+                if method == "Disconnect":
+                    change_connection_status(client_address, False)
+                    print(f"{client_address} disconnected")
+        except:
+            pass
 
         """match method:
             case "Login":

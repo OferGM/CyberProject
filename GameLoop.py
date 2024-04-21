@@ -610,19 +610,26 @@ def input(key):
 if __name__ == "__main__":
     try:
 
-    my_socket = socket.socket()
-    my_socket.connect(("127.0.0.1", 6969))
-    subprocess.run(['python', 'LoginPage.py'])
-    # data = my_socket.recv(9192).decode()
-    # print(data)
-    # ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
-    subprocess.run(['python', 'LobbyUI.py'])
-    # data = my_socket.recv(9192).decode()
-    # client_id = data.split("&")[1]
-    # print(client_id)
-    client = clientfuncs(int(123123))
+        # Establish connection
 
+        port_yes = random.randint(10000, 65534)
+
+        # Run LoginPage.py subprocess with my_socket as a parameter
+        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode()])
+
+        print("next sub")
+
+        result = subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode()])
+
+        '''my_socket = socket.socket()
+        my_socket.bind(("127.0.0.1", port_yes))
+        my_socket.connect(("127.0.0.1", 6969))
+        data = my_socket.recv(9192).decode()'''
+        client_id = port_yes
+        print(client_id)
         client = clientfuncs(int(client_id))
+
+        #client = clientfuncs(int(client_id))
 
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
