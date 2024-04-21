@@ -4,9 +4,9 @@ import random
 
 class clientfuncs:
     def __init__(self, client_id):
-        self.server_address = ('localhost', 9999)
+        self.server_address = ('127.0.0.1', 9999)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.connect(('localhost', 9999))
+        self.socket.connect(('127.0.0.1', 9999))
         self.connected = False
         self.id = client_id
 
