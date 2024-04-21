@@ -1,3 +1,4 @@
+import faulthandler
 import random
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
@@ -293,15 +294,17 @@ class Enemy(Entity):
 
     def distance_to_ground(self):
         # Cast a ray straight down from the entity
-        ray = raycast(self.world_position, Vec3(0, -1, 0), ignore=(self,))
+        try:
+            ray = raycast(self.world_position, Vec3(0, -1, 0), ignore=(self,))
 
-        if ray.hit:
-            # If the ray hits the ground, calculate the distance
-            return self.world_position.y - ray.world_point.y
-        else:
-            # If the ray doesn't hit anything, return some large number or a default value
-            return float('inf')  # or some large number
-
+            if ray.hit:
+                # If the ray hits the ground, calculate the distance
+                return self.world_position.y - ray.world_point.y
+            else:
+                # If the ray doesn't hit anything, return some large number or a default value
+                return float('inf')  # or some large number
+        except:
+            pass
     def drop_loot(self):
         """ Drops a random loot item at the enemy's position on the ground. """
         # loot_item = choice(LOOT_ITEMS)
@@ -526,44 +529,48 @@ def send_game_data_continuously(player, stop_event):
         time.sleep(0.01)
 
 def recv_game_data_continuosly(player, stop_event):
-    while not stop_event.is_set():
-        a = client.receive_data()
-        aList = a.split('&')
-        if aList[0] == 'STATE':
-            if int(aList[1]) != int(client.get_id()):
+    try:
+        while not stop_event.is_set():
+            a = client.receive_data()
+            print("received: ", a)
+            aList = a.split('&')
+            if aList[0] == 'STATE':
+                if int(aList[1]) != int(client.get_id()):
+                    if int(aList[1]) in players:
+                        rendered_players[int(aList[1])] = 1
+                        p2 = players[int(aList[1])]
+                        p2.x = float(aList[2])
+                        p2.y = float(aList[3]) + 1.2
+                        p2.z = float(aList[4])
+                        p2.rotation_y = float(aList[5]) + 180
+                        p2.health = int(aList[6])
+                    else:
+                        players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
+            if aList[0] == 'aM':
+                separate_mob_string(a.replace('aM', ''))
+            if aList[0] == 'aI':
+                if (a.replace('aI&', '') != ''):
+                    separate_item_string(a.replace('aI', ''))
+            if aList[0] == 'NEW':
+                print("NEW PLAYER")
+                CreateNewPlayer(int(aList[1]))
+            if aList[0] == 'aR':
+                print(f"Zombie removed: {aList[1]}")
+                if int(aList[1]) in mobs:
+                    destroy(mobs[int(aList[1])])
+                    mobs.pop(int(aList[1]))
+            if aList[0] == 'aH':
                 if int(aList[1]) in players:
-                    rendered_players[int(aList[1])] = 1
-                    p2 = players[int(aList[1])]
-                    p2.x = float(aList[2])
-                    p2.y = float(aList[3]) + 1.2
-                    p2.z = float(aList[4])
-                    p2.rotation_y = float(aList[5]) + 180
-                    p2.health = int(aList[6])
-                else:
-                    players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
-        if aList[0] == 'aM':
-            separate_mob_string(a.replace('aM', ''))
-        if aList[0] == 'aI':
-            if (a.replace('aI&', '') != ''):
-                separate_item_string(a.replace('aI', ''))
-        if aList[0] == 'NEW':
-            print("NEW PLAYER")
-            CreateNewPlayer(int(aList[1]))
-        if aList[0] == 'aR':
-            print(f"Zombie removed: {aList[1]}")
-            if int(aList[1]) in mobs:
-                destroy(mobs[int(aList[1])])
-                mobs.pop(int(aList[1]))
-        if aList[0] == 'aH':
-            if int(aList[1]) in players:
-                p = players[int(aList[1])]
-                p.health = int(aList[2])
-            if int(aList[1]) == client.get_id():
-                player.health = int(aList[2])
-                if player.health <= 0:
-                    respawn_screen.show()
-        if aList[0] == 'aPICKED':
-            items[int(aList[1])].enabled = False
+                    p = players[int(aList[1])]
+                    p.health = int(aList[2])
+                if int(aList[1]) == client.get_id():
+                    player.health = int(aList[2])
+                    if player.health <= 0:
+                        respawn_screen.show()
+            if aList[0] == 'aPICKED':
+                items[int(aList[1])].enabled = False
+    except Exception as e:
+        print("error: ", e)
 
 stop_event = threading.Event()
 
@@ -599,100 +606,108 @@ def input(key):
 
 
 if __name__ == "__main__":
+    try:
 
-    my_socket = socket.socket()
-    my_socket.connect(("127.0.0.1", 6969))
-    LoginPage.build_page(my_socket)
-    data = my_socket.recv(9192).decode()
-    print(data)
-    ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
-    LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
-    data = my_socket.recv(9192).decode()
-    client_id = data.split("&")[1]
-    print(client_id)
+        my_socket = socket.socket()
+        my_socket.connect(("127.0.0.1", 6969))
+        LoginPage.build_page(my_socket)
+        data = my_socket.recv(9192).decode()
+        print(data)
+        ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
+        LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
+        data = my_socket.recv(9192).decode()
+        client_id = data.split("&")[1]
+        print(client_id)
+        my_socket.close()
 
-    print("uuuuuuuuuuu")
-    client = clientfuncs(int(client_id))
+        print("uuuuuuuuuuu")
 
-    addr = client.get_ip()
-    addr = f'({addr[0]}, {addr[1]})'
-    msg = f'HI&{client.get_id()}&{addr}'
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.sendto(msg.encode(), ('localhost', 9999))
-    time.sleep(1)
+        client = clientfuncs(int(client_id))
 
-    print("0")
+        addr = client.get_ip()
+        addr = f'({addr[0]}, {addr[1]})'
+        msg = f'HI&{client.get_id()}'
+        client.send_data(msg)
+        print("sending: ", msg)
 
-    app = Ursina(borderless=False)
+        print("0")
 
-    print("1")
+        app = Ursina(borderless=False)
 
-    ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
-    skill_display = SkillDisplay()
-    skill_display.close_skills()
-    player = player()
+        print("1")
 
-    print("2")
+        ground = Entity(model='plane', collider='box', scale=128, texture='grass', texture_scale=(8, 8))
+        skill_display = SkillDisplay()
+        skill_display.close_skills()
+        player = player()
 
-    thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
-    thread.start()
+        print("2")
 
-    print("3")
+        time.sleep(1)
 
-    thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
-    thread.start()
+        thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+        thread.start()
 
-    print("4")
+        print("3")
 
-    thread = threading.Thread(target=stop_rendering_continuosly, args=())
-    thread.start()
+        thread = threading.Thread(target=stop_rendering_continuosly, args=())
+        thread.start()
 
-    print("5")
+        thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
+        thread.start()
 
-    gun = Gun(player, 'awp')
+        print("4")
 
-    print("6")
+        print("5")
 
-    kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
+        gun = Gun(player, 'awp')
 
-    print("7")
+        print("6")
 
-    inv = Inventory(player, 4, 4)
-    inv.enabled = False
-    inv.add_item("medkit")
-    inv.add_item("medkit")
+        kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
 
-    print("8")
+        print("7")
 
-    miniInv = MiniInv(inv)
+        inv = Inventory(player, 4, 4)
+        inv.enabled = False
+        inv.add_item("medkit")
+        inv.add_item("medkit")
 
-    print("9")
+        print("8")
 
-    enemies = {}
-    items = {}
+        miniInv = MiniInv(inv)
 
-    player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
+        print("9")
 
-    # Load the PNG image for the scope
-    scope_texture = load_texture('scope.png')  # Replace 'scope.png' with the path to your scope image
+        enemies = {}
+        items = {}
 
-    # Create a window panel to display the scope image
-    scope_panel = WindowPanel(texture=scope_texture, scale=(0.5, 0.5), enabled=False)
+        player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
-    background = Entity(parent=camera.ui, model='quad', texture='scope.png', scale_x=camera.aspect_ratio, z=1)
-    background.visible = False
+        # Load the PNG image for the scope
+        scope_texture = load_texture('scope.png')  # Replace 'scope.png' with the path to your scope image
 
-    respawn_screen = RespawnScreen()
-    respawn_screen.hide()
+        # Create a window panel to display the scope image
+        scope_panel = WindowPanel(texture=scope_texture, scale=(0.5, 0.5), enabled=False)
 
-    chest = Chest((2, 0, 2))
-    chest.ChestInv = Inventory(None)
+        background = Entity(parent=camera.ui, model='quad', texture='scope.png', scale_x=camera.aspect_ratio, z=1)
+        background.visible = False
 
-    player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
-    player_money_bar.value = 100
+        respawn_screen = RespawnScreen()
+        respawn_screen.hide()
 
-    print("10")
+        chest = Chest((2, 0, 2))
+        chest.ChestInv = Inventory(None)
 
-    app.run()
+        player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
+        player_money_bar.value = 100
 
-    print("11")
+        print("10")
+
+        time.sleep(1)
+
+        app.run()
+
+        print("11")
+    except Exception as e:
+        print("error: ", e)

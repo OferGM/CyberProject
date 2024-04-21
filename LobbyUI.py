@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
-
+import time
 import pygame
+import socket
 # Form implementation generated from reading ui file 'untitled.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
@@ -1745,11 +1746,11 @@ class Ui_MainWindow(object):
     def play_butt_pressed(self):
         # send packet to confirm
         print("tryna join")
-        self.client_socket.send(f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}".encode())
+        self.client_socket.send(f"Play%0&0&0&0&0&0&0&0".encode())
         data = self.client_socket.recv(1024).decode()
         if data == "Joining_game":
             print("joined game")
-            QCoreApplication.quit()
+            QCoreApplication.exit()
         else:
             print("cheater")
 
@@ -1834,11 +1835,30 @@ import resources_rc
 
 def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     import sys
+    import gc
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
     ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    app.exec_()
+    #ui.setupUi(MainWindow)
+    #MainWindow.show()
+    #app.exec_()
+    ui.play_butt_pressed()
+    #del app
+    #del ui
+    #del MainWindow
+    #gc.collect()
+
+    '''print("tryna join")
+    client_socket = socket.socket()
+    client_socket.connect(('127.0.0.1', 6969))
+    data = "Play%0&0&0&0&0&0&0&0&0"
+    client_socket.send(data.encode())
+    data = client_socket.recv(1024).decode()
+    if data == "Joining_game":
+        print("joined game")
+        QCoreApplication.exit()
+    else:
+        print("cheater")
+    print("la finale")'''

@@ -96,8 +96,6 @@ def print_status(ClientList):
     in_third = 0
     in_fourth = 0
 
-    print(ClientList.get_server_dict().items())
-
     '''for client_x in ClientList.get_dict().values():
         ind = sl.index(client_x)
         yas = (ind*4) // length
@@ -146,33 +144,14 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
         print("lllllllll")
         for serverIP in servers_list.values():
             udp_socket.sendto(data.encode(), serverIP)
-        """dataArr = data.split('&')
-        clientID = int(dataArr[1])
-        print(f"clientID = {clientID}")
-        clientIP = 0        #temp ip
-        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-        ClientList.calc_edges()
-        client_server = ClientList.get_server(clientID)
-        ClientList.get_server_dict()[clientID] = client_server"""
-
 
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
     if data.startswith("HI"):
-        print("8===D")
         indi = data.split('&')
         clientID = int(indi[1])
-        clientIP = indi[2]
+        clientIP = f'({addr[0]}, {addr[1]})'
         ClientList.get_ip_dict()[clientID] = clientIP
-        """dataArr = data.split('&')
-                clientID = int(dataArr[1])
-                print(f"clientID = {clientID}")
-                clientIP = 0        #temp ip
-                ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-                ClientList.calc_edges()
-                client_server = ClientList.get_server(clientID)
-                ClientList.get_server_dict()[clientID] = client_server"""
-        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID,
-                                     client_ip=clientIP)  # insert at x, with id and ip from the login server
+        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
         ClientList.calc_edges()
         client_server = ClientList.get_server(clientID)
         ClientList.get_server_dict()[clientID] = client_server
@@ -209,11 +188,11 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
     if data.startswith("a"):  # if data is intended for all clients
         for clientIP in ClientList.get_ip_dict().values():  # for every client:
+            print("poopooooooooo: ", clientIP)
             udp_socket.sendto((data).encode(), clientIP)
         return
 
     if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
-        print(ClientList.get_ip_dict().items())
         dataArr = data.split('&')
         clientID = int(dataArr[1])
         clientX = float(dataArr[2])
@@ -240,7 +219,6 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
                     if ClientList.get_z_dict()[client[1]] >= clientZ - LOOKING_DISTANCE:
                         if ClientList.get_z_dict()[client[1]] <= clientZ + LOOKING_DISTANCE:
-                            print(ClientList.get_ip_dict().items())
                             udp_socket.sendto(data.encode(),
                                               ClientList.get_ip_dict()[int(client[1])])  # then send the client
                         else:
