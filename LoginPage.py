@@ -98,3 +98,9 @@ def sign_in(client_sock, username, password):
 
 def close_page():
     app.destroy()
+
+if __name__ == "__main__":
+    socket1=socket.socket()
+    socket1.connect(("127.0.0.1", 6969))
+    build_page(socket1)
+    exit()

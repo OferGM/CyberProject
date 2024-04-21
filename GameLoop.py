@@ -13,6 +13,8 @@ import socket
 from queue import Queue
 import LoginPage
 import LobbyUI
+import subprocess
+
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -602,17 +604,15 @@ if __name__ == "__main__":
 
     my_socket = socket.socket()
     my_socket.connect(("127.0.0.1", 6969))
-    LoginPage.build_page(my_socket)
-    data = my_socket.recv(9192).decode()
-    print(data)
-    ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
-    LobbyUI.main(my_socket, int(ak), int(m4), int(awp), int(mp5), int(mk), int(bnd), int(sp), int(lp), int(cash))
-    data = my_socket.recv(9192).decode()
-    client_id = data.split("&")[1]
-    print(client_id)
-
-    print("uuuuuuuuuuu")
-    client = clientfuncs(int(client_id))
+    subprocess.run(['python', 'LoginPage.py'])
+    # data = my_socket.recv(9192).decode()
+    # print(data)
+    # ak, m4, awp, mp5, mk, bnd, sp, lp, cash = data.split("&")
+    subprocess.run(['python', 'LobbyUI.py'])
+    # data = my_socket.recv(9192).decode()
+    # client_id = data.split("&")[1]
+    # print(client_id)
+    client = clientfuncs(int(123123))
 
     addr = client.get_ip()
     addr = f'({addr[0]}, {addr[1]})'

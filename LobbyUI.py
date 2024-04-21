@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import socket
 import sys
 
 import pygame
@@ -12,7 +13,7 @@ import pygame
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from pygame import mixer
+import gc
 
 class Ui_MainWindow(object):
     def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app):
@@ -1752,6 +1753,7 @@ class Ui_MainWindow(object):
             QCoreApplication.quit()
         else:
             print("cheater")
+            QCoreApplication.quit()
 
 
     def retranslateUi(self, MainWindow):
@@ -1831,14 +1833,33 @@ class Ui_MainWindow(object):
 
 import resources_rc
 
+# def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+#     import sys
+#
+#     app = QtWidgets.QApplication(sys.argv)
+#     MainWindow = QtWidgets.QMainWindow()
+#
+#     ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     app.exec_()
+#
+#     print("FINISHED")
+#     exit()
 
-def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+
+if __name__ == "__main__":
+    socket1=socket.socket()
+    socket1.connect(("127.0.0.1", 6969))
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
-    ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
+    ui = Ui_MainWindow(socket1, 0, 0, 0, 0, 0, 0, 0, 0, 0, app)
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
+
+    print("FINISHED")
+    exit()

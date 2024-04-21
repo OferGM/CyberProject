@@ -218,25 +218,21 @@ def handle_client(client_socket, client_address):
         print(data)
         print(method)
 
-        match method:
-            case "Login":
-                login(client_socket, client_address, data)
-
-            case "Sign_in":
-                sign_in(client_socket, client_address, data)
-
-            case "Buy":
-                print("buy")
-                buy_shit(data, client_socket, client_address)
-
-            case "Play":
-                join_game(data, client_socket, client_address)
-                client_socket.close()
-                return
-
-            case "Disconnect":
-                change_connection_status(client_address, False)
-                print(f"{client_address} disconnected")
+        if method == "Login":
+            login(client_socket, client_address, data)
+        if method == "Sign_in":
+            sign_in(client_socket, client_address, data)
+        if method == "Buy":
+            print("buy")
+            buy_shit(data, client_socket, client_address)
+        if method == "Play":
+            print("thinkinboutit")
+            join_game(data, client_socket, client_address)
+            client_socket.close()
+            return
+        if method == "Disconnect":
+            change_connection_status(client_address, False)
+            print(f"{client_address} disconnected")
 
 
 def client_handler(client_socket, client_address):
