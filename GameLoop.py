@@ -621,10 +621,8 @@ if __name__ == "__main__":
 
         result = subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode()])
 
-        '''my_socket = socket.socket()
-        my_socket.bind(("127.0.0.1", port_yes))
+        my_socket = socket.socket()
         my_socket.connect(("127.0.0.1", 6969))
-        data = my_socket.recv(9192).decode()'''
         client_id = port_yes
         print(client_id)
         client = clientfuncs(int(client_id))

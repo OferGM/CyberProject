@@ -171,10 +171,11 @@ def buy_shit(data, client_socket, client_address):
 
 
 def join_game(data, client_socket, client_address):
+    print(1)
     client_ip, client_port = client_address
-    user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
-    _id = ObjectId(user_document["_id"])
-
+    #user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
+    #_id = ObjectId(user_document["_id"])
+    print(1)
     ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
 
     # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
@@ -189,22 +190,27 @@ def join_game(data, client_socket, client_address):
         "speed_potion": int(sp_count),
         "leaping_potion": int(lp_count)
     }
+    print(2)
 
-    for item, count in items.items():
-        if count > 16 or count > user_document.get(item, 0):
-            print("Cheater")
-            client_socket.send("CHEATER".encode())
-            return
-        else:
-            update = {"$inc": {item: -1 * count}}
-            users_collection.update_one({"_id": _id}, update)
-
+    #for item, count in items.items():
+    #    if count > 16 or count > user_document.get(item, 0):
+    #        print("Cheater")
+    #        client_socket.send("CHEATER".encode())
+    #        return
+    #    else:
+    #        update = {"$inc": {item: -1 * count}}
+    #        users_collection.update_one({"_id": _id}, update)
+    print(3)
     client_socket.send("Joining_game".encode())
 
-    money = user_document["money"]
+    #money = user_document["money"]
+    money = 1000
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.bind(("127.0.0.1",6969))
     lb_socket.send(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
-
-    client_socket.send(f"successfully_joined_game&{client_port}".encode())
+    print(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}")
+    client_socket.sendall(f"successfully_joined_game&{client_port}".encode())
+    print(4)
 
 def handle_client(client_socket, client_address):
     """

@@ -1854,8 +1854,7 @@ import resources_rc
 if __name__ == "__main__":
     print("im hereeeee")
     socket1=socket.socket()
-    socket1.bind(("127.0.0.1", int(sys.argv[1])))
-    socket1.connect(("127.0.0.1", 8888))
+    socket1.connect(("127.0.0.1", 6969))
     import sys
     import gc
 
