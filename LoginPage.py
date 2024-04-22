@@ -106,5 +106,5 @@ if __name__ == "__main__":
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
     socket1.connect(("127.0.0.1", 6969))
     build_page(socket1)
-    socket1.close()
-    sys.exit()
+    print("finished with login page")
+    exit()
