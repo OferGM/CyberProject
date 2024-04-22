@@ -627,7 +627,7 @@ if __name__ == "__main__":
         print(client_id)
         client = clientfuncs(int(client_id))
 
-        #client = clientfuncs(int(client_id))
+        # client = clientfuncs(int(client_id))
 
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
