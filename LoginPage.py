@@ -89,6 +89,7 @@ def sign_in(client_sock, username, password):
         if data == "Sign_in_successful":
             print("signed in")
             close_page()
+            sys.exit()
 
     else:
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
@@ -106,4 +107,4 @@ if __name__ == "__main__":
     socket1.connect(("127.0.0.1", 6969))
     build_page(socket1)
     socket1.close()
-    exit()
+    sys.exit()

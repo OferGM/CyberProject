@@ -1752,9 +1752,11 @@ class Ui_MainWindow(object):
         if data == "Joining_game":
             print("joined game")
             QCoreApplication.exit()
+            sys.exit()
         else:
             print("cheater")
             QCoreApplication.quit()
+            sys.exit()
 
 
     def retranslateUi(self, MainWindow):
@@ -1853,7 +1855,7 @@ if __name__ == "__main__":
     print("im hereeeee")
     socket1=socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
-    socket1.connect(("127.0.0.1", 6969))
+    socket1.connect(("127.0.0.1", 8888))
     import sys
     import gc
 

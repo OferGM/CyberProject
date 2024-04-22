@@ -77,6 +77,7 @@ def init_lobby(client_socket, user_document):
     money = user_document["money"]
 
     response = f"{ak}&{m4}&{awp}&{mp5}&{med_kit}&{bandage}&{s_potion}&{l_potion}&{money}"
+    print(response)
     client_socket.send(response.encode())
 
 
