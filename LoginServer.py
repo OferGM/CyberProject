@@ -178,7 +178,7 @@ def join_game(data, client_socket, client_address):
     print(1)
     ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
 
-    # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
+        # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
 
     items = {
         "ak-47": int(ak_count),
