@@ -57,10 +57,11 @@ def separate_mob_string(all_mobs_string):
             # Extract the ID and coordinates, converting them to the appropriate types
             try:
                 id = int(parts[0])
-                coords = tuple(map(float, parts[1:4]))
+                coords = tuple(map(float, parts[1:5]))
                 if id in mobs.keys():
                     mobs[id].set_position(coords)
                     mobs[id].rotation_y = float(parts[4])
+                    mobs[id].health = int(parts[5])
                 else:
                     CreateEnemy(coords, id)
             except Exception as e:
@@ -317,13 +318,12 @@ class Enemy(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
+        client.send_data(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}")
+        print("sent")
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             if self.id in mobs:
                 mobs.pop(self.id)
-                client.send_data(f"gDEAD&{client.id}&{self.id}")
-            else:
-                pass
             self.self_destroy()
             player_money_bar.value += 100
 
@@ -670,6 +670,7 @@ def input(key):
     global cursor
     if key == 'escape':
         # Wait for the background thread to finish
+        client.send_data(f"gDisconnect&{client_id}")
         stop_event.set()
         thread.join()
         application.quit()
@@ -698,7 +699,7 @@ def input(key):
 
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
-    #colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=2, position=(0, 6, 0))
+    # colosseum = Entity(model='my_colosseum3_test', collider='sphere', texture='marble', scale=2, position=(0, 6, 0))
     jeep = Entity(model='jeep', collider='sphere', texture='sphere', scale=5, position=(-600, 11, -800))
     helicopter = Entity(model='helicopter', collider='sphere', texture='Huey', scale=5, position=(800, 0, 650),
                         rotation_x=-90)
@@ -837,6 +838,7 @@ if __name__ == "__main__":
         inv.add_item("medkit")
         inv.add_item("medkit")
         inv.add_item("ak-47")
+        inv.add_item("awp")
 
         print("8")
 
