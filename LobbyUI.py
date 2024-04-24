@@ -1863,12 +1863,16 @@ if __name__ == "__main__":
     import sys
     import gc
 
-    print("im hereeeee")
+    socket1.send("GIMME%STATS".encode())
+    data = socket1.recv(9192).decode()
+    print("received: ", data)
+
+    stats = data.split('&')
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
-    ui = Ui_MainWindow(socket1, 0, 0, 0, 0, 0, 0, 0, 0, 0, app)
+    ui = Ui_MainWindow(socket1, int(stats[0]), int(stats[1]), int(stats[2]), int(stats[3]), int(stats[4]), int(stats[5]), int(stats[6]), int(stats[7]), int(stats[8]), app)
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()

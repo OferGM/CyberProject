@@ -146,6 +146,13 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
             udp_socket.sendto(data.encode(), serverIP)
 
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
+    if data.startswith("s"):        #data intended for specific client
+        indi = data.split('&')
+        clientID = int(indi[1])
+        clientIP = ClientList.get_ip_dict()[clientID]
+        udp_socket.sendto(data.encode(), clientIP)
+        print(f"Sent {data}")
+
     if data.startswith("HI"):
         indi = data.split('&')
         clientID = int(indi[1])
@@ -155,6 +162,9 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         ClientList.calc_edges()
         client_server = ClientList.get_server(clientID)
         ClientList.get_server_dict()[clientID] = client_server
+        serverIP = servers_list[client_server[0]]
+        udp_socket.sendto(data.encode(), serverIP)
+        print(f"Sent HI msg: {data} to {serverIP}")
         return
 
     if data.startswith("g"):  # if data is intended for the gameserver

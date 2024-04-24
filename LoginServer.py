@@ -79,7 +79,6 @@ def init_lobby(client_socket, user_document):
     print("Current state: ", response)
     client_socket.send(response.encode())
 
-
 def login(client_socket, client_address, data):
     username, passwrd = data.split("&")
     user_document = users_collection.find_one({"name": username, "password": passwrd})
@@ -237,6 +236,10 @@ def handle_client(client_socket, client_address):
                     print("Received disconnect request")
                     change_connection_status(client_address, False)
                     print(f"{client_address} disconnected")
+                if method == "GIMME":
+                    print("Received gimme request")
+                    user_document = users_collection.find_one({"ip": client_address[0], "port": client_address[1]})
+                    init_lobby(client_socket, user_document)
         except:
             pass
 

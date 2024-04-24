@@ -107,6 +107,7 @@ def sign_in(client_sock, username, password):
 
 def close_page():
     socket1.close()
+    print("Socket closed")
     app.destroy()
 
 if __name__ == "__main__":

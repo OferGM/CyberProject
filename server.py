@@ -299,12 +299,14 @@ class Server:
             try:
                 data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
-                # print("received: ", data)
+                print("Received: ", data)
                 dataArr = data.split('&')
                 if dataArr[0] == 'JOIN':
                     playerID = dataArr[1]
                     print("new player joined: ", playerID)
-                    self.all_players[playerID] = dataArr[2:]
+                    darr = data.split('&', 2)
+                    data = darr[2]
+                    self.all_players[playerID] = data
                 if dataArr[0] == 'gSTATE':
                     msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}'
                     self.socket.sendto(msg.encode(), addr)
@@ -353,6 +355,10 @@ class Server:
                     witch_id = int(dataArr[2])
                     damage_amount = int(dataArr[3])
                     self.handle_damage_witch(witch_id, damage_amount)
+                if dataArr[0] == 'HI':
+                    inv = f"sINV&{dataArr[1]}&{self.all_players[dataArr[1]]}"
+                    self.socket.sendto(inv.encode(), addr)
+                    print("Sending inv: ", inv)
 
 
             except Exception as e:

@@ -891,6 +891,11 @@ if __name__ == "__main__":
         client.send_data(msg)
         print("Sending: ", msg)
 
+        while True:
+            data = client.receive_data()
+            if data.startswith("sINV"):
+                print("Current inv is: ", data)
+                break
 
         app = Ursina(borderless=False)
         skybox_image = load_texture("scattered-clouds-blue-sky.jpg")
