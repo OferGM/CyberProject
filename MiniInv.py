@@ -47,7 +47,6 @@ class MiniInv(Entity):
             self.selected_index = min(len(self.image_entities) - 1, self.selected_index + 1)
             self.update_highlight()
         elif held_keys['right mouse']:
-            print(self.image_children[self.selected_index].texture)
             if str(self.image_entities[self.selected_index].texture) == 'bandage.png' and self.inventory.player.health < 100:
                 items.bandage_player(self.inventory.player,self.image_children[self.selected_index])
             if str(self.image_entities[self.selected_index].texture) == 'medkit.png' and self.inventory.player.health < 100:

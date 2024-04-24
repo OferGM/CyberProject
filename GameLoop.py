@@ -781,6 +781,7 @@ def input(key):
     if key == 'escape':
         # Wait for the background thread to finish
         client.send_data(f"gDisconnect&{client_id}")
+        time.sleep(3)
         stop_event.set()
         thread.join()
         application.quit()
