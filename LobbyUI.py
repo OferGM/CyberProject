@@ -1858,6 +1858,7 @@ import resources_rc
 if __name__ == "__main__":
     socket1=socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    time.sleep(1)
     socket1.connect(("127.0.0.1", 6969))
     print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
     import sys
