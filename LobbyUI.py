@@ -1863,6 +1863,8 @@ if __name__ == "__main__":
     import sys
     import gc
 
+    print("im hereeeee")
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 

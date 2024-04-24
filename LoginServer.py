@@ -187,6 +187,7 @@ def join_game(data, client_socket, client_address):
         "speed_potion": int(sp_count),
         "leaping_potion": int(lp_count)
     }
+    print(2)
 
     for item, count in items.items():
         if count > 16 or count > user_document.get(item, 0):

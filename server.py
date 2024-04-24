@@ -24,7 +24,7 @@ class Server:
         if len(self.mobs) < 10:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
-            random.randint(1, 50), 1, random.randint(1, 50), random.randint(0, 360)]
+            random.randint(1, 50), 1.5, random.randint(1, 50), random.randint(0, 360)]
             self.mobs[id] = random_coordinates
             self.playerChase[id] = 0
 
