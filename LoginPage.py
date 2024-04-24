@@ -96,6 +96,7 @@ def sign_in(client_sock, username, password):
         if data == "Sign_in_successful":
             print("Sign in successful")
             close_page()
+            sys.exit()
 
     else:
         print("Invalid input, USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN % OR &")
@@ -107,8 +108,6 @@ def sign_in(client_sock, username, password):
 def close_page():
     socket1.close()
     app.destroy()
-<<<<<<< Updated upstream
-=======
 
 if __name__ == "__main__":
     import sys
@@ -121,4 +120,3 @@ if __name__ == "__main__":
     print("Finished with login page")
     socket1.close()
     exit()
->>>>>>> Stashed changes

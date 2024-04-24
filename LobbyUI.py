@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import socket
 import sys
 import time
 import pygame
@@ -13,7 +14,7 @@ import socket
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from pygame import mixer
+import gc
 
 class Ui_MainWindow(object):
     def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app):
@@ -1754,15 +1755,12 @@ class Ui_MainWindow(object):
             print("Joining game")
             socket1.close()
             QCoreApplication.exit()
+            sys.exit()
         else:
-<<<<<<< Updated upstream
-            print("cheater")
-=======
             print("Joining attempt failed")
             socket1.close()
             QCoreApplication.quit()
             sys.exit()
->>>>>>> Stashed changes
 
 
     def retranslateUi(self, MainWindow):
@@ -1842,47 +1840,32 @@ class Ui_MainWindow(object):
 
 import resources_rc
 
+# def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+#     import sys
+#
+#     app = QtWidgets.QApplication(sys.argv)
+#     MainWindow = QtWidgets.QMainWindow()
+#
+#     ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     app.exec_()
+#
+#     print("FINISHED")
+#     exit()
 
-<<<<<<< Updated upstream
-def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
-=======
 
 if __name__ == "__main__":
     socket1=socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
     socket1.connect(("127.0.0.1", 6969))
     print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
->>>>>>> Stashed changes
     import sys
     import gc
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
-<<<<<<< Updated upstream
-    ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
-    #ui.setupUi(MainWindow)
-    #MainWindow.show()
-    #app.exec_()
-    ui.play_butt_pressed()
-    #del app
-    #del ui
-    #del MainWindow
-    #gc.collect()
-
-    '''print("tryna join")
-    client_socket = socket.socket()
-    client_socket.connect(('127.0.0.1', 6969))
-    data = "Play%0&0&0&0&0&0&0&0&0"
-    client_socket.send(data.encode())
-    data = client_socket.recv(1024).decode()
-    if data == "Joining_game":
-        print("joined game")
-        QCoreApplication.exit()
-    else:
-        print("cheater")
-    print("la finale")'''
-=======
     ui = Ui_MainWindow(socket1, 0, 0, 0, 0, 0, 0, 0, 0, 0, app)
     ui.setupUi(MainWindow)
     MainWindow.show()
@@ -1892,4 +1875,3 @@ if __name__ == "__main__":
     socket1.close()
     print("Finished with LobbyUI")
     exit()
->>>>>>> Stashed changes

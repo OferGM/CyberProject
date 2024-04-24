@@ -76,10 +76,7 @@ def init_lobby(client_socket, user_document):
     money = user_document["money"]
 
     response = f"{ak}&{m4}&{awp}&{mp5}&{med_kit}&{bandage}&{s_potion}&{l_potion}&{money}"
-<<<<<<< Updated upstream
-=======
     print("Current state: ", response)
->>>>>>> Stashed changes
     client_socket.send(response.encode())
 
 
@@ -172,20 +169,13 @@ def buy_shit(data, client_socket, client_address):
 
 
 def join_game(data, client_socket, client_address):
-<<<<<<< Updated upstream
-    client_ip, client_port = client_address
-    user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
-    _id = ObjectId(user_document["_id"])
-
-=======
     print("Inside join_game")
     client_ip, client_port = client_address
     user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
     _id = ObjectId(user_document["_id"])
->>>>>>> Stashed changes
     ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
 
-    # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
+        # if ak_count <= 16 and ak_count <= user_document["ak-47"] and m4_count <= 16 and m4_count <= user_document["m4"] and awp_count <= 16 and awp_count <= user_document["awp"] and mp5_count <= 16 and mp5_count <= user_document["mp5"] and med_kit_count <= 16 and med_kit_count <= user_document["medkit"] and bandage_count <= 16 and bandage_count <= user_document["bandage"] and sp_count <= 16 and sp_count <= user_document["speed_potion"] and lp_count <= 16 and lp_count <= user_document["leaping_potion"]:
 
     items = {
         "ak-47": int(ak_count),
@@ -206,15 +196,6 @@ def join_game(data, client_socket, client_address):
         else:
             update = {"$inc": {item: -1 * count}}
             users_collection.update_one({"_id": _id}, update)
-<<<<<<< Updated upstream
-
-    client_socket.send("Joining_game".encode())
-
-    money = user_document["money"]
-    lb_socket.send(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
-
-    client_socket.send(f"successfully_joined_game&{client_port}".encode())
-=======
     client_socket.send("Joining_game".encode())
 
     #money = user_document["money"]
@@ -224,7 +205,6 @@ def join_game(data, client_socket, client_address):
     lb_socket.send(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
     print(f"Sending: JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}")
     print("Successfully joined the game")
->>>>>>> Stashed changes
 
 def handle_client(client_socket, client_address):
     """
@@ -232,30 +212,6 @@ def handle_client(client_socket, client_address):
     """
 
     while True:
-<<<<<<< Updated upstream
-        data = client_socket.recv(1024).decode()
-
-        # Parse the request data
-        method, data = data.split("%")
-        print(data)
-        print(method)
-
-        if method == "Login":
-            login(client_socket, client_address, data)
-        if method == "Sign_in":
-            sign_in(client_socket, client_address, data)
-        if method == "Buy":
-            print("buy")
-            buy_shit(data, client_socket, client_address)
-        if method == "Play":
-            print("thinkinboutit")
-            join_game(data, client_socket, client_address)
-            client_socket.close()
-            return
-        if method == "Disconnect":
-            change_connection_status(client_address, False)
-            print(f"{client_address} disconnected")
-=======
         try:
             data = client_socket.recv(9192).decode()
             print("Received: ", data)
@@ -282,7 +238,6 @@ def handle_client(client_socket, client_address):
                     print(f"{client_address} disconnected")
         except:
             pass
->>>>>>> Stashed changes
 
         """match method:
             case "Login":
