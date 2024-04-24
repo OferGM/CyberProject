@@ -29,6 +29,11 @@ def change_connection_status(client_address, bool_var):
     users_collection.update_one({"_id": _id}, update)
 
 
+def change_connection_status_by_ID(ID, bool_var):
+    user_document = users_collection.find_one({"_id": ID})
+    update = {"$set": {"connected": bool_var}}
+    users_collection.update_one({"_id": ID}, update)
+    pass
 
 #send ip, port when join, lb does nothing with id, client join first than server send
 #def disconnect()
@@ -206,6 +211,7 @@ def join_game(data, client_socket, client_address):
     print(f"Sending: JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}")
     print("Successfully joined the game")
 
+
 def handle_client(client_socket, client_address):
     """
     Handle a client request by parsing the request, determining the appropriate action, and responding accordingly.
@@ -234,8 +240,9 @@ def handle_client(client_socket, client_address):
                     return
                 if method == "Disconnect":
                     print("Received disconnect request")
-                    change_connection_status(client_address, False)
+                    change_connection_status_by_ID(data, False)
                     print(f"{client_address} disconnected")
+                    client_socket.close()
                 if method == "GIMME":
                     print("Received gimme request")
                     user_document = users_collection.find_one({"ip": client_address[0], "port": client_address[1]})

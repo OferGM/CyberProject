@@ -346,9 +346,15 @@ class Server:
                             self.playerChase.pop(mob_id)
                             self.socket.sendto(f"aR&{mob_id}".encode(), addr)
                 if dataArr[0] == 'gDisconnect':
+                    print(f"Disconnecting: ", dataArr[1])
                     self.all_players.pop(dataArr[1], None)
                     self.coordinates.pop(dataArr[1], None)
                     self.playerChase.pop(dataArr[1], None)
+                    self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
+                    login_socket = socket.socket()
+                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.send(f"Disconnect%{dataArr[1]}".encode())
+                    login_socket.close()
 
                 if dataArr[0] == 'gDAMAGEWITCH':
                     # Example data: "gDAMAGEWITCH&witch_id&damage"

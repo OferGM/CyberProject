@@ -235,15 +235,15 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                             return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
         return
 
-    if data.startswith("REM"):
-        indi = data.find("&")
-        clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])
+    if data.startswith("DISCONNECT"):
+        indi = data.split("&")
+        clientID = int(indi[1])
+        print("Disconnecting: ", clientID)
         ClientList.remove_client(clientID)
         del ClientList.get_server_dict()[clientID]
-        print_status(ClientList)
-        udp_socket.sendto(data.encode(), servers_list['login'])
-        for clientIP in ClientList.get_ip_dict().values():
-            udp_socket.sendto(data.encode(), clientIP)
+        #udp_socket.sendto(data.encode(), servers_list['login'])
+        #for clientIP in ClientList.get_ip_dict().values():
+        #    udp_socket.sendto(data.encode(), clientIP)
         return
 
     indi = data.find("&")

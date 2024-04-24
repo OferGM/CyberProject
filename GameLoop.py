@@ -456,7 +456,7 @@ class Enemy(Entity):
     def attack(self):
         player.health = player.health - 10
         if player.health <= 0:
-            respawn_screen.show()
+            death()
 
 
 class MultiPlayer(Entity):
@@ -768,7 +768,7 @@ def recv_game_data_continuosly(player, stop_event):
                 if int(aList[1]) == client.get_id():
                     player.health = int(aList[2])
                     if player.health <= 0:
-                        respawn_screen.show()
+                        death()
             if aList[0] == 'aPICKED':
                 items[int(aList[1])].enabled = False
             if aList[0] == 'aO':
@@ -788,11 +788,15 @@ def recv_game_data_continuosly(player, stop_event):
 
 stop_event = threading.Event()
 
+def death():
+    respawn_screen.show()
+
 def input(key):
     global cursor
     if key == 'escape':
         # Wait for the background thread to finish
         client.send_data(f"gDisconnect&{client_id}")
+        time.sleep(3)
         stop_event.set()
         thread.join()
         application.quit()
