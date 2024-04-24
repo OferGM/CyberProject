@@ -23,7 +23,10 @@ LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 running = 1
 
 mobs = {}
+witches = {}
 players = {}
+orbs = {}
+destroyed_orbs=[]
 rendered_players = {}
 update_queue = Queue()
 
@@ -38,6 +41,22 @@ def CreateEnemy(coords, id):
             return
     enemy = Enemy(position=coords, id=id)
     mobs[id] = enemy
+
+def CreateWitch(coords, id):
+    if id in witches:
+        if witches[id].position == coords:
+            return
+    witch_ = Witch(position=coords, id=id)
+    witches[id] = witch_
+
+def CreateOrb(coords, id):
+    if id in orbs:
+        if orbs[id].position == coords:
+            return
+    if id not in destroyed_orbs:
+        orb_ = orb(position=coords, id=id)
+        orbs[id] = orb_
+        print("orb created!!")
 
 def CreateItem(coords, id,type):
     if id in items:
@@ -68,6 +87,51 @@ def separate_mob_string(all_mobs_string):
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {entry} to mob data: ", e)
 
+def separate_Witch_string(all_mobs_string):
+    # Split the string by semicolons to get individual mob data strings
+    mob_entries = all_mobs_string.split(';')
+
+    for entry in mob_entries:
+        if entry and entry != '&':  # Check if entry is not empty
+            parts = entry.split('&')
+            # Extract the ID and coordinates, converting them to the appropriate types
+            try:
+                id = int(parts[0])
+                coords = tuple(map(float, parts[1:5]))
+                if id in witches.keys():
+                    witches[id].set_position(coords)
+                    witches[id].rotation_y = float(parts[4])
+                    witches[id].health = int(parts[5])
+                else:
+                    CreateWitch(coords, id)
+            except Exception as e:
+                # Handle the case where conversion to int fails
+                print(f"Could not convert {entry} to witch data: ", e)
+
+def separate_orb_string(all_orbs_string):
+    # Split the string by semicolons to get individual orb data strings
+    orb_entries = all_orbs_string.split(';')
+
+    for entry in orb_entries:
+        if entry and entry != '&':  # Check if entry is not empty
+            parts = entry.split('&')
+            # Extract the ID and coordinates, converting them to the appropriate types
+            try:
+                orb_id = int(parts[0])
+                coords = tuple(map(float, parts[1:4]))  # x, y, z coordinates
+                if orb_id in orbs.keys():
+                    orbs[orb_id].set_position(coords)
+                    # If there are additional attributes like speed or target player
+                    if len(parts) > 4:
+                        orbs[orb_id].target_player_id = int(parts[4])
+                        orbs[orb_id].velocity = float(parts[5]) if len(parts) > 5 else orbs[orb_id].velocity
+                else:
+                    # If the orb does not exist, create a new one (adapt parameters as needed)
+                    CreateOrb(coords, orb_id)
+            except Exception as e:
+                # Handle the case where conversion to int or float fails
+                print(f"Could not convert {entry} to orb data: ", e)
+
 def separate_item_string(all_items_string):
     # Split the string by semicolons to get individual mob data strings
     item_entries = all_items_string.split(';')
@@ -90,6 +154,20 @@ def separate_item_string(all_items_string):
                     # Handle the case where conversion to int fails
                     print(f"Could not convert {parts} to item data: ", e)
 
+
+class orb(Entity):
+    def __init__(self, position, id):
+        super().__init__(
+            model='sphere',
+            position=position,
+            scale=0.4,
+            on_cooldown=False,
+            id=id
+        )
+        self.color = color.pink
+
+    def self_destroy(self):
+        destroy(self)
 
 def seperateInv(inv3):
     inv1 = Inventory(player, 4, 4)
@@ -278,6 +356,30 @@ class Item(Entity):
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
 
+class Witch(Entity):
+    def __init__(self, position, id):
+        super().__init__(
+            model='witch.glb',
+            position=position,
+            health=100,
+            collider='box',
+            scale=0.10,
+            on_cooldown=False,
+            id=id
+        )
+
+    def self_destroy(self):
+        kill_count_ui.increment_kill_count()
+        destroy(self)
+
+    def enemy_hit(self, gun):
+        self.health -= gun.damage
+        client.send_data(f"gDAMAGEWITCH&{client.id}&{self.id}&{gun.damage}")
+        if self.health <= 0:
+            if self.id in mobs:
+                witches.pop(self.id)
+            self.self_destroy()
+            player_money_bar.value += 100
 
 class Enemy(Entity):
     def __init__(self, position, id):
@@ -319,7 +421,6 @@ class Enemy(Entity):
     def enemy_hit(self, gun):
         self.health -= gun.damage
         client.send_data(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}")
-        print("sent")
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             if self.id in mobs:
@@ -370,7 +471,6 @@ class MultiPlayer(Entity):
     def damage(self,amount):
         self.health -= amount
         client.send_data(f"gDAMAGE&{self.id}&{self.health}")
-        print(f"DAMAGED {self.id}")
 
 
 
@@ -469,17 +569,20 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        print("shooting")
         print(self.on_cooldown,self.canShoot)
         if self.on_cooldown or self.canShoot == False:
             return
-        print("Shooting 2")
         hovered_entity = mouse.hovered_entity
         print(type(hovered_entity))
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             hovered_entity.enemy_hit(self)
+
+        if hovered_entity and isinstance(hovered_entity, Witch) and (calculate_distance(player.position,
+                                                                                        hovered_entity.position) < 20 or gun.gun_type == 'awp'):
+            hovered_entity.enemy_hit(self)
+
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             print("HIT PLAYER")
@@ -519,10 +622,7 @@ def calculate_distance(vector1, vector2):
 
 def Hold_gun():
     held_item = miniInv.HeldItem()
-    print(held_item)
-    print(gun.gun_type)
     if held_item == 'awp.png'and gun.gun_type != "awp":
-        print("switched to awp")
         awp.enabled = True
         ak.enabled = False
         mp4.enabled = False
@@ -542,7 +642,6 @@ def Hold_gun():
         gun.damage = 30
         return
     if held_item == 'ak-47.png' and gun.gun_type != "ak-47":
-        print("switched")
         selectedGun = ak
         awp.enabled = False
         ak.enabled = True
@@ -552,7 +651,6 @@ def Hold_gun():
         gun.damage = 20
         return
     if held_item != "awp.png" and held_item != "mp5.png" and held_item != "ak-47.png":
-        print("switched to None")
         awp.enabled = False
         ak.enabled = False
         mp4.enabled = False
@@ -607,7 +705,6 @@ def setup_inventory():
 def stop_rendering_continuosly():
     while True:
         for ID in rendered_players.keys():
-            print("sdklsdkl")
             if rendered_players[ID] == 1:
                 players[ID].enabled = True
                 rendered_players[ID] = 0
@@ -624,7 +721,6 @@ def recv_game_data_continuosly(player, stop_event):
     try:
         while not stop_event.is_set():
             a = client.receive_data()
-            print("received: ", a)
             aList = a.split('&')
             if aList[0] == 'STATE':
                 if int(aList[1]) != int(client.get_id()):
@@ -640,6 +736,8 @@ def recv_game_data_continuosly(player, stop_event):
                         players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
             if aList[0] == 'aM':
                 separate_mob_string(a.replace('aM', ''))
+            if aList[0] == 'aW':
+                separate_Witch_string(a.replace('aW', ''))
             if aList[0] == 'aI':
                 if a.replace('aI&', '') != '':
                     separate_item_string(a.replace('aI', ''))
@@ -661,7 +759,19 @@ def recv_game_data_continuosly(player, stop_event):
                         respawn_screen.show()
             if aList[0] == 'aPICKED':
                 items[int(aList[1])].enabled = False
-    except Exception as e:
+            if aList[0] == 'aO':
+                separate_orb_string(a.replace('aO', ''))
+            if aList[0] == 'aRemoveOrb':
+                orb_id = int(aList[1])  # Parse the orb ID safely
+                if orb_id in orbs:  # Check if the orb actually exists
+                    orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
+                    destroy(orbToDestroy)  # Safely destroy the orb entity
+                    destroyed_orbs.append(orb_id)
+                    print("Removed Orb")
+                    print(len(orbs))
+                else:
+                    print(f"Orb with ID {orb_id} not found")
+    except Exception as  e:
         print("error: ", e)
 
 stop_event = threading.Event()
@@ -781,26 +891,21 @@ if __name__ == "__main__":
         client.send_data(msg)
         print("Sending: ", msg)
 
-        print("0")
 
         app = Ursina(borderless=False)
         skybox_image = load_texture("scattered-clouds-blue-sky.jpg")
         Sky(texture=skybox_image)
         build_map()
 
-        print("1")
 
         ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
         skill_display = SkillDisplay()
         skill_display.close_skills()
         player = player()
 
-        print("2")
 
         thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
         thread.start()
-
-        print("3")
 
         thread = threading.Thread(target=stop_rendering_continuosly, args=())
         thread.start()
@@ -808,9 +913,6 @@ if __name__ == "__main__":
         thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
         thread.start()
 
-        print("4")
-
-        print("5")
 
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
@@ -862,6 +964,10 @@ if __name__ == "__main__":
 
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
+
+
+        orbb = orb((1,4,1),2234)
+        witch = Witch((0,3,0),1)
 
         print("10")
 
