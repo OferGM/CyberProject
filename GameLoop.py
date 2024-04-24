@@ -491,10 +491,11 @@ class Gun(Entity):
             aiming=False,
             on_cooldown_scope=False,
             last_toggle_time=0,
-            cooldown_duration=0.5,  # Cooldown duration in seconds
             canShoot=False,
+            cooldown=0,
 
         )
+        self.on_cooldown = False
         self.gun_type = gun_type
 
         # Additional gun type configuration
@@ -506,6 +507,7 @@ class Gun(Entity):
             self.rotation_y = 0
             self.damage = 35
             self.scale = 0.01
+            self.cooldown = 0.5
             player.cursor.visible = True
 
         if gun_type == 'm4':
@@ -514,6 +516,7 @@ class Gun(Entity):
             self.texture = 'm4_tex'
             self.position = (0.5, 1.5, 1)
             self.scale = 0.25
+            self.cooldown = 0.25
             player.cursor.visible = True
 
         if gun_type == 'awp':
@@ -524,6 +527,7 @@ class Gun(Entity):
             self.rotation_y = 0
             self.damage = 100
             self.scale = 0.05
+            self.cooldown = 2
             player.cursor.visible = False
     def switchType(self,type):
         if type == 'ak-47':
@@ -535,6 +539,7 @@ class Gun(Entity):
             self.rotation_y = 0
             self.damage = 35
             self.scale = 0.01
+            self.cooldown = 0.5
             player.cursor.visible = True
 
         if type == 'm4':
@@ -545,6 +550,7 @@ class Gun(Entity):
             self.position = (0.5, 1.5, 1)
             self.scale = 0.25
             player.cursor.visible = True
+            self.cooldown = 0.25
 
         if type == 'awp':
             self.gun_type = "awp"
@@ -556,7 +562,8 @@ class Gun(Entity):
             self.damage = 100
             self.scale = 0.05
             player.cursor.visible = False
-            m=load_model('awp.obj',reload=True)
+            # m=load_model('awp.obj',reload=True)
+            self.cooldown = 0.2
         if type == "None":
             self.gun_type = "None"
             self.canShoot = False
@@ -570,8 +577,10 @@ class Gun(Entity):
 
     def shoot(self):
         print(self.on_cooldown,self.canShoot)
-        if self.on_cooldown or self.canShoot == False:
+        if self.on_cooldown == True or self.canShoot == False:
             return
+        self.on_cooldown = True
+        print("Shooting")
         hovered_entity = mouse.hovered_entity
         print(type(hovered_entity))
 
@@ -587,12 +596,12 @@ class Gun(Entity):
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             print("HIT PLAYER")
             hovered_entity.damage(20)
-        self.on_cooldown = True
-        invoke(self.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+        print(self.cooldown)
+        invoke(self.reset_cooldown, delay=self.cooldown)  # Set the cooldown duration (0.5 seconds in this example)
 
     def aim(self):
         current_time = time.time()
-        if current_time - self.last_toggle_time >= self.cooldown_duration:
+        if current_time - self.last_toggle_time >= self.cooldown:
             if self.gun_type == "awp":
                 if not self.aiming:
                     camera.fov = 30
@@ -630,6 +639,7 @@ def Hold_gun():
         gun.gun_type = 'awp'
         gun.canShoot = True
         gun.damage = 100
+        gun.cooldown = 2
         return
     if held_item == 'mp5.png':
         gun.switchType("mp4")
@@ -640,6 +650,7 @@ def Hold_gun():
         gun.gun_type = 'mp4'
         gun.canShoot = True
         gun.damage = 30
+        gun.cooldown = 0.25
         return
     if held_item == 'ak-47.png' and gun.gun_type != "ak-47":
         selectedGun = ak
@@ -649,6 +660,7 @@ def Hold_gun():
         gun.gun_type = 'ak-47'
         gun.canShoot = True
         gun.damage = 20
+        gun.cooldown = 0.5
         return
     if held_item != "awp.png" and held_item != "mp5.png" and held_item != "ak-47.png":
         awp.enabled = False
@@ -944,6 +956,7 @@ if __name__ == "__main__":
         build_map()
 
 
+
         ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
         skill_display = SkillDisplay()
         skill_display.close_skills()
@@ -979,8 +992,8 @@ if __name__ == "__main__":
         inv.enabled = False
         # inv.add_item("medkit")
         # inv.add_item("medkit")
-        # inv.add_item("ak-47")
-        # inv.add_item("awp")
+        inv.add_item("ak-47")
+        inv.add_item("awp")
         addItems(invdata)
 
 
