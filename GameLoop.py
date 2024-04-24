@@ -806,6 +806,41 @@ def input(key):
                 skill_display.show_skills()
                 inv.openInv(player)
 
+def addItems(data):
+    packet_values = data.split('&')
+    print(packet_values)
+    ak47_count = int(packet_values[3])
+    mp5_count = int(packet_values[4])
+    awp_count = int(packet_values[5])
+    gun4_count = int(packet_values[6])
+    medkit_count = int(packet_values[7])
+    bandage_count = int(packet_values[8])
+    potion_swiftness_count = int(packet_values[9])
+    potion_leaping_count = int(packet_values[10])
+    if ak47_count > 0:
+        for _ in range(ak47_count):
+            inv.add_item("ak-47")
+    if mp5_count > 0:
+        for _ in range(mp5_count):
+            inv.add_item("mp5")
+    if awp_count > 0:
+        for _ in range(awp_count):
+            inv.add_item("awp")
+    if gun4_count > 0:
+        for _ in range(gun4_count):
+            pass
+    if medkit_count > 0:
+        for _ in range(medkit_count):
+            inv.add_item("medkit")
+    if bandage_count > 0:
+        for _ in range(bandage_count):
+            inv.add_item("bandage")
+    if potion_swiftness_count > 0:
+        for _ in range(potion_swiftness_count):
+            inv.add_item("potion of swiftness")
+    if potion_leaping_count > 0:
+        for _ in range(potion_leaping_count):
+            inv.add_item("potion of leaping")
 
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
@@ -891,10 +926,12 @@ if __name__ == "__main__":
         client.send_data(msg)
         print("Sending: ", msg)
 
+        invdata=0
+
         while True:
-            data = client.receive_data()
-            if data.startswith("sINV"):
-                print("Current inv is: ", data)
+            invdata = client.receive_data()
+            if invdata.startswith("sINV"):
+                print("Current inv is: ", invdata)
                 break
 
         app = Ursina(borderless=False)
@@ -936,10 +973,12 @@ if __name__ == "__main__":
 
         inv = Inventory(player, 4, 4)
         inv.enabled = False
-        inv.add_item("medkit")
-        inv.add_item("medkit")
-        inv.add_item("ak-47")
-        inv.add_item("awp")
+        # inv.add_item("medkit")
+        # inv.add_item("medkit")
+        # inv.add_item("ak-47")
+        # inv.add_item("awp")
+        addItems(invdata)
+
 
         print("8")
 
