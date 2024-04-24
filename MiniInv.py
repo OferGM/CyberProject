@@ -26,6 +26,9 @@ class MiniInv(Entity):
         self.input = self.check_input
         self.update_inventory()  # Initial inventory update
 
+    def HeldItem(self):
+        return str(self.image_entities[self.selected_index].texture)
+
     def arrange_images(self):
         for i, e in enumerate(self.image_entities):
             e.y = -0.4

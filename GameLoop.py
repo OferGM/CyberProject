@@ -57,10 +57,11 @@ def separate_mob_string(all_mobs_string):
             # Extract the ID and coordinates, converting them to the appropriate types
             try:
                 id = int(parts[0])
-                coords = tuple(map(float, parts[1:4]))
+                coords = tuple(map(float, parts[1:5]))
                 if id in mobs.keys():
                     mobs[id].set_position(coords)
                     mobs[id].rotation_y = float(parts[4])
+                    mobs[id].health = int(parts[5])
                 else:
                     CreateEnemy(coords, id)
             except Exception as e:
@@ -317,13 +318,12 @@ class Enemy(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
+        client.send_data(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}")
+        print("sent")
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             if self.id in mobs:
                 mobs.pop(self.id)
-                client.send_data(f"gDEAD&{client.id}&{self.id}")
-            else:
-                pass
             self.self_destroy()
             player_money_bar.value += 100
 
@@ -382,6 +382,7 @@ class Gun(Entity):
             origin_y=0,
             on_cooldown=False,
             scale=0.006,
+            gun_type=gun_type,
             parent=parent_entity,
             position=position,
             rotation_y=180,
@@ -390,13 +391,15 @@ class Gun(Entity):
             aiming=False,
             on_cooldown_scope=False,
             last_toggle_time=0,
-            cooldown_duration=0.5  # Cooldown duration in seconds
+            cooldown_duration=0.5,  # Cooldown duration in seconds
+            canShoot=False,
 
         )
         self.gun_type = gun_type
 
         # Additional gun type configuration
         if gun_type == 'ak-47':
+            self.canShoot = True
             self.model = 'Ak-47.obj'
             self.texture = 'Ak-47_tex'
             self.position = (0.5, 1.5, 1)
@@ -406,6 +409,7 @@ class Gun(Entity):
             player.cursor.visible = True
 
         if gun_type == 'm4':
+            self.canShoot = True
             self.model = 'M4a1.obj'
             self.texture = 'm4_tex'
             self.position = (0.5, 1.5, 1)
@@ -413,6 +417,7 @@ class Gun(Entity):
             player.cursor.visible = True
 
         if gun_type == 'awp':
+            self.canShoot = True
             self.model = 'awp.obj'
             self.texture = 'awp_tex.png'
             self.position = (0.5, 1.4, 0.2)
@@ -420,6 +425,42 @@ class Gun(Entity):
             self.damage = 100
             self.scale = 0.05
             player.cursor.visible = False
+    def switchType(self,type):
+        if type == 'ak-47':
+            self.gun_type = "ak-47"
+            self.canShoot = True
+            self.model = 'Ak-47.obj'
+            self.texture = 'Ak-47_tex'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 35
+            self.scale = 0.01
+            player.cursor.visible = True
+
+        if type == 'm4':
+            self.gun_type = "m4"
+            self.canShoot = True
+            self.model = 'M4a1.obj'
+            self.texture = 'm4_tex'
+            self.position = (0.5, 1.5, 1)
+            self.scale = 0.25
+            player.cursor.visible = True
+
+        if type == 'awp':
+            self.gun_type = "awp"
+            self.canShoot = True
+            self.model = 'awp.obj'
+            self.texture = 'awp_tex.png'
+            self.position = (0.5, 1.4, 0.2)
+            self.rotation_y = 0
+            self.damage = 100
+            self.scale = 0.05
+            player.cursor.visible = False
+            m=load_model('awp.obj',reload=True)
+        if type == "None":
+            self.gun_type = "None"
+            self.canShoot = False
+            self.enabled = False
 
     def reset_cooldown(self):
         self.on_cooldown = False
@@ -428,21 +469,23 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        if gun.on_cooldown:
+        print("shooting")
+        print(self.on_cooldown,self.canShoot)
+        if self.on_cooldown or self.canShoot == False:
             return
-
+        print("Shooting 2")
         hovered_entity = mouse.hovered_entity
         print(type(hovered_entity))
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
-            hovered_entity.enemy_hit(gun)
+            hovered_entity.enemy_hit(self)
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             print("HIT PLAYER")
             hovered_entity.damage(20)
-        gun.on_cooldown = True
-        invoke(gun.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
+        self.on_cooldown = True
+        invoke(self.reset_cooldown, delay=0.1)  # Set the cooldown duration (0.5 seconds in this example)
 
     def aim(self):
         current_time = time.time()
@@ -474,6 +517,51 @@ def calculate_distance(vector1, vector2):
 
     return distance
 
+def Hold_gun():
+    held_item = miniInv.HeldItem()
+    print(held_item)
+    print(gun.gun_type)
+    if held_item == 'awp.png'and gun.gun_type != "awp":
+        print("switched to awp")
+        awp.enabled = True
+        ak.enabled = False
+        mp4.enabled = False
+        selectedGun = awp
+        gun.gun_type = 'awp'
+        gun.canShoot = True
+        gun.damage = 100
+        return
+    if held_item == 'mp5.png':
+        gun.switchType("mp4")
+        selectedGun = mp4
+        awp.enabled = False
+        ak.enabled = False
+        mp4.enabled = True
+        gun.gun_type = 'mp4'
+        gun.canShoot = True
+        gun.damage = 30
+        return
+    if held_item == 'ak-47.png' and gun.gun_type != "ak-47":
+        print("switched")
+        selectedGun = ak
+        awp.enabled = False
+        ak.enabled = True
+        mp4.enabled = False
+        gun.gun_type = 'ak-47'
+        gun.canShoot = True
+        gun.damage = 20
+        return
+    if held_item != "awp.png" and held_item != "mp5.png" and held_item != "ak-47.png":
+        print("switched to None")
+        awp.enabled = False
+        ak.enabled = False
+        mp4.enabled = False
+        gun.switchType("None")
+        gun.canShoot = False
+
+
+
+
 
 def update():
     while not update_queue.empty():
@@ -488,6 +576,8 @@ def update():
         mob = mobs[zombie_id]
         if calculate_distance(player.position,mob.position) < 2:
             player.health -= 10
+
+    Hold_gun()
 
     player_health_bar.value = player.health
 
@@ -576,21 +666,21 @@ def recv_game_data_continuosly(player, stop_event):
 
 stop_event = threading.Event()
 
-
 def input(key):
     global cursor
     if key == 'escape':
         # Wait for the background thread to finish
+        client.send_data(f"gDisconnect&{client_id}")
         stop_event.set()
         thread.join()
         application.quit()
         exit()
     if held_keys['left mouse']:
-        gun.shoot()
+        selectedGun.shoot()
     if held_keys['right mouse']:
         if chest.Check():
             chest.OpenChest()
-        elif gun.gun_type == 'awp' and inv.enabled == False:
+        elif selectedGun.gun_type == 'awp' and inv.enabled == False:
             gun.aim()
 
     # Check if 'i' is pressed and the chest is open
@@ -609,7 +699,7 @@ def input(key):
 
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
-    #colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=2, position=(0, 6, 0))
+    # colosseum = Entity(model='my_colosseum3_test', collider='sphere', texture='marble', scale=2, position=(0, 6, 0))
     jeep = Entity(model='jeep', collider='sphere', texture='sphere', scale=5, position=(-600, 11, -800))
     helicopter = Entity(model='helicopter', collider='sphere', texture='Huey', scale=5, position=(800, 0, 650),
                         rotation_x=-90)
@@ -722,7 +812,14 @@ if __name__ == "__main__":
 
         print("5")
 
-        gun = Gun(player, 'awp')
+        awp = Gun(player, 'awp')
+        ak = Gun(player, 'ak-47')
+        mp4 = Gun(player, 'mp4')
+        gun = Gun(player,'None')
+        awp.enabled = False
+        ak.enabled = False
+        mp4.enabled = False
+        selectedGun = gun
 
         print("6")
 
@@ -734,6 +831,8 @@ if __name__ == "__main__":
         inv.enabled = False
         inv.add_item("medkit")
         inv.add_item("medkit")
+        inv.add_item("ak-47")
+        inv.add_item("awp")
 
         print("8")
 

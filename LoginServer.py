@@ -199,8 +199,8 @@ def join_game(data, client_socket, client_address):
             users_collection.update_one({"_id": _id}, update)
     client_socket.send("Joining_game".encode())
 
-    #money = user_document["money"]
-    money = 1000
+    money = user_document["money"]
+    #money = 1000
     #client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #client_socket.bind(("127.0.0.1",6969))
     lb_socket.send(f"JOIN&{client_port}&{money}&{int(ak_count)}&{int(m4_count)}&{int(awp_count)}&{int(mp5_count)}&{int(med_kit_count)}&{int(bandage_count)}&{int(sp_count)}&{int(lp_count)}".encode())
