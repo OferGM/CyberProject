@@ -12,10 +12,13 @@ import threading
 import time
 import socket
 from queue import Queue
-import LoginPage
-import LobbyUI
 import subprocess
 
+last_skill_activation = {
+    'cooldown': 0,
+    'speed': 0,
+    'strength': 0
+}
 
 # Define possible loot items
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
@@ -670,9 +673,6 @@ def Hold_gun():
         gun.canShoot = False
 
 
-
-
-
 def update():
     while not update_queue.empty():
         task = update_queue.get()
@@ -804,6 +804,12 @@ def input(key):
             chest.OpenChest()
         elif selectedGun.gun_type == 'awp' and inv.enabled == False:
             gun.aim()
+    if key == 'j':
+        ActivateStrengthSkill()
+    if key == 'k':
+        ActivateCoolDownSkill()
+    if key == 'l':
+        ActivateSpeedSkill()
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and chest.isopen:
@@ -812,11 +818,10 @@ def input(key):
         # Check if 'i' is pressed and the inventory button is enabled
         if key == 'i':
             if inv.enabled:
-                skill_display.close_skills()
                 inv.closeInv(player)
             else:
-                skill_display.show_skills()
                 inv.openInv(player)
+
 
 def addItems(data):
     packet_values = data.split('&')
@@ -853,6 +858,7 @@ def addItems(data):
     if potion_leaping_count > 0:
         for _ in range(potion_leaping_count):
             inv.add_item("potion of leaping")
+
 
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
@@ -914,6 +920,69 @@ def build_map():
         Entity(model='rocks2', collider='box', texture='grey', scale=3, position=(x_array[i], 0, z_array[i]))
 
     return
+
+def deactivate_cooldown_skill():
+    skill_display.changeToWhite('cooldown')
+    if gun.gun_type == 'awp':
+        gun.cooldown = 2
+    if gun.gun_type == 'mp5':
+        gun.cooldown = 0.25
+    if gun.gun_type == 'ak-47':
+        gun.cooldown = 0.5
+    print("Cooldown skill deactivated!")
+
+def deactivate_speed_skill():
+    skill_display.changeToWhite('speed')
+    player.speed = 8  # Reset speed to default or previous value
+    print("Speed skill deactivated!")
+
+def deactivate_strength_skill():
+    skill_display.changeToWhite('strength')
+    if gun.gun_type == 'awp':
+        gun.damage = 100
+    if gun.gun_type == 'mp5':
+        gun.damage = 20
+    if gun.gun_type == 'ak-47':
+        gun.damage = 20
+    print("Strength skill deactivated!")
+
+def can_activate_skill(skill_name):
+    cooldown_seconds = 60  # 30 seconds cooldown
+    current_time = time.time()
+    last_activation_time = last_skill_activation.get(skill_name, 0)
+    return (current_time - last_activation_time) >= cooldown_seconds
+
+def ActivateCoolDownSkill():
+    skill_display.changeToRed('cooldown')
+    if can_activate_skill('cooldown'):
+        gun.cooldown = 0
+        last_skill_activation['cooldown'] = time.time()
+        print("Cooldown skill activated!")
+        invoke(deactivate_cooldown_skill, delay=15)  # Deactivate after 15 seconds
+    else:
+        print("Cooldown skill is still on cooldown!")
+
+def ActivateSpeedSkill():
+    skill_display.changeToRed('speed')
+    if can_activate_skill('speed'):
+        player.speed = 15
+        last_skill_activation['speed'] = time.time()
+        print("Speed skill activated!")
+        invoke(deactivate_speed_skill, delay=15)  # Deactivate after 15 seconds
+    else:
+        print("Speed skill is still on cooldown!")
+
+def ActivateStrengthSkill():
+    skill_display.changeToRed('strength')
+    if can_activate_skill('strength'):
+        gun.damage = 100
+        last_skill_activation['strength'] = time.time()
+        print("Strength skill activated!")
+        invoke(deactivate_strength_skill, delay=15)  # Deactivate after 15 seconds
+    else:
+        print("Strength skill is still on cooldown!")
+
+
 if __name__ == "__main__":
     try:
 
@@ -955,7 +1024,7 @@ if __name__ == "__main__":
 
         ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
         skill_display = SkillDisplay()
-        skill_display.close_skills()
+        # skill_display.close_skills()
         player = player()
 
 

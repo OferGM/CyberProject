@@ -58,7 +58,7 @@ def insert_new_user(username, user_password, client_ip, client_port):
         "bandage": 0,
         "speed_potion": 0,
         "leaping_potion": 0,
-        "connected": True
+        "connected": True,
     }
 
     users_collection.insert_one(user_document)
