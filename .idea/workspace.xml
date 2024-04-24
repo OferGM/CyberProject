@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
 <<<<<<< Updated upstream
     <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="trying to merge">
+<<<<<<< Updated upstream
       <change beforePath="$PROJECT_DIR$/.idea/CyberProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CyberProject.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -14,6 +15,13 @@
       <change beforePath="$PROJECT_DIR$/LoginServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginServer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/clientfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/clientfuncs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/yes.py" beforeDir="false" afterPath="$PROJECT_DIR$/yes.py" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameLoop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LobbyUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/LobbyUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LoginPage.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginPage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LoginServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginServer.py" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
 =======
     <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="trying to merge" />
@@ -43,9 +51,12 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< Updated upstream
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
+=======
+>>>>>>> Stashed changes
   <component name="RunDashboard">
     <option name="ruleStates">
       <list>
@@ -66,7 +77,11 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
+<<<<<<< Updated upstream
       <option name="SDK_HOME" value="C:\Networks\Python3.9.13\python.exe" />
+=======
+      <option name="SDK_HOME" value="" />
+>>>>>>> Stashed changes
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -122,7 +137,12 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+<<<<<<< Updated upstream
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+=======
+    <configuration name="inventory" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CyberProject" />
+>>>>>>> Stashed changes
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>

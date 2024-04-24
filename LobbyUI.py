@@ -1745,14 +1745,24 @@ class Ui_MainWindow(object):
 
     def play_butt_pressed(self):
         # send packet to confirm
-        print("tryna join")
-        self.client_socket.send(f"Play%0&0&0&0&0&0&0&0".encode())
-        data = self.client_socket.recv(1024).decode()
+        request = f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}"
+        print("Sending play request: ", request)
+        self.client_socket.send(request.encode())
+        data = self.client_socket.recv(9192).decode()
+        print("Received: ", data)
         if data == "Joining_game":
-            print("joined game")
+            print("Joining game")
+            socket1.close()
             QCoreApplication.exit()
         else:
+<<<<<<< Updated upstream
             print("cheater")
+=======
+            print("Joining attempt failed")
+            socket1.close()
+            QCoreApplication.quit()
+            sys.exit()
+>>>>>>> Stashed changes
 
 
     def retranslateUi(self, MainWindow):
@@ -1833,13 +1843,23 @@ class Ui_MainWindow(object):
 import resources_rc
 
 
+<<<<<<< Updated upstream
 def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
+=======
+
+if __name__ == "__main__":
+    socket1=socket.socket()
+    socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    socket1.connect(("127.0.0.1", 6969))
+    print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
+>>>>>>> Stashed changes
     import sys
     import gc
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
+<<<<<<< Updated upstream
     ui = Ui_MainWindow(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app)
     #ui.setupUi(MainWindow)
     #MainWindow.show()
@@ -1862,3 +1882,14 @@ def main(client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash):
     else:
         print("cheater")
     print("la finale")'''
+=======
+    ui = Ui_MainWindow(socket1, 0, 0, 0, 0, 0, 0, 0, 0, 0, app)
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    app.exec_()
+    #data = socket1.recv(9192).decode()
+    #print("data: ", data)
+    socket1.close()
+    print("Finished with LobbyUI")
+    exit()
+>>>>>>> Stashed changes
