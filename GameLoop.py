@@ -466,6 +466,9 @@ class MultiPlayer(Entity):
             model=model,
             scale=scale,
             collider='box',
+            heldItem='',
+            item_entity=0,
+            last_held = 0,
             **kwargs
         )
         self.id = id
@@ -474,6 +477,33 @@ class MultiPlayer(Entity):
     def damage(self,amount):
         self.health -= amount
         client.send_data(f"gDAMAGE&{self.id}&{self.health}")
+    def UpdateItem(self,Item):
+        print("UPDATED ITEM",Item)
+        if Item == 'ak-47' and self.last_held != 'ak-47':
+            destroy(self.item_entity)
+            print("UPDATED ITEM AK")
+            self.last_held = 'ak-47'
+            self.item_entity = Entity(parent=self, model='Ak-47.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 0.06
+            self.item_entity.rotation_y+=180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
+        if Item == 'awp' and self.last_held != 'awp':
+            print("UPDATED ITEM AWP")
+            destroy(self.item_entity)
+            self.last_held = 'awp'
+            self.item_entity = Entity(parent=self, model='awp.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 0.5  # Adjust scale to fit the scene
+            self.item_entity.rotation_y+=180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
+
+        if Item == "None" and self.item_entity and self.last_held != 'None':
+            self.last_held = 'None'
+            destroy(self.item_entity)
+
 
 
 
@@ -634,6 +664,7 @@ def calculate_distance(vector1, vector2):
 
 def Hold_gun():
     held_item = miniInv.HeldItem()
+    client.send_data(f"gHELD&{client.id}&{held_item}")
     if held_item == 'awp.png'and gun.gun_type != "awp":
         awp.enabled = True
         ak.enabled = False
@@ -726,8 +757,21 @@ def stop_rendering_continuosly():
 
 def send_game_data_continuously(player, stop_event):
     while not stop_event.is_set():
-        client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
-        time.sleep(0.01)
+        try:
+            client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
+            time.sleep(0.01)
+        except AssertionError as e:
+            print(e)
+
+def updatePlayer(id,x,y,z,rotation,health,item):
+    if int(id) in players:
+        p = players[int(id)]
+        p.x = float(x)
+        p.y = float(y)+1.2
+        p.z = float(z)
+        p.rotation_y = float(rotation)+180
+        p.health = int(health)
+        p.UpdateItem(item)
 
 def recv_game_data_continuosly(player, stop_event):
     try:
@@ -736,14 +780,18 @@ def recv_game_data_continuosly(player, stop_event):
             aList = a.split('&')
             if aList[0] == 'STATE':
                 if int(aList[1]) != int(client.get_id()):
-                    if int(aList[1]) in players:
+                    if int(aList[1]) in players and len(aList) >= 7:
                         rendered_players[int(aList[1])] = 1
-                        p2 = players[int(aList[1])]
-                        p2.x = float(aList[2])
-                        p2.y = float(aList[3]) + 1.2
-                        p2.z = float(aList[4])
-                        p2.rotation_y = float(aList[5]) + 180
-                        p2.health = int(aList[6])
+                        id = aList[1]
+                        x = aList[2]
+                        y = aList[3]
+                        z = aList[4]
+                        rotation = aList[5]
+                        health = aList[6]
+                        item = aList[7].replace('.png','')
+                        update_task = lambda: updatePlayer(id, x, y, z, rotation, health,item)
+                        update_queue.put(update_task)
+                        pass
                     else:
                         players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
             if aList[0] == 'aM':
@@ -1035,8 +1083,8 @@ if __name__ == "__main__":
         thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
         thread.start()
 
-        thread = threading.Thread(target=stop_rendering_continuosly, args=())
-        thread.start()
+        # thread = threading.Thread(target=stop_rendering_continuosly, args=())
+        # thread.start()
 
         thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
         thread.start()

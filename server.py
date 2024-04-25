@@ -23,6 +23,7 @@ class Server:
         self.items = {}
         self.chat_messages = []
         self.orbs = {}
+        self.heldItems = {}
 
     def GenerateMobs(self):
         if len(self.mobs) < 10:
@@ -236,10 +237,10 @@ class Server:
 
     def start_server(self):
         try:
-            for i in range(10):
-                self.GenerateMobs()
-            for i in range(5):
-                self.GenerateWitches()
+            # for i in range(10):
+            #     self.GenerateMobs()
+            # for i in range(5):
+            #     self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
@@ -286,8 +287,8 @@ class Server:
                     )
     def update_zombies(self):
         while (True):
-            if len(self.mobs) < 30:
-                self.GenerateMobs()
+            # if len(self.mobs) < 30:
+            #     self.GenerateMobs()
             for zombieID in self.mobs.keys():
                 self.find_closest_player(zombieID)
             self.update_positions()
@@ -308,7 +309,10 @@ class Server:
                     data = darr[2]
                     self.all_players[playerID] = data
                 if dataArr[0] == 'gSTATE':
-                    msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}'
+                    if dataArr[1] in self.heldItems:
+                        msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&{self.heldItems[dataArr[1]]}'
+                    else:
+                        msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
                     self.socket.sendto(msg.encode(), addr)
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'gDEAD':
@@ -365,6 +369,10 @@ class Server:
                     inv = f"sINV&{dataArr[1]}&{self.all_players[dataArr[1]]}"
                     self.socket.sendto(inv.encode(), addr)
                     print("Sending inv: ", inv)
+                if dataArr[0] == 'gHELD':
+                    ID_CLIENT = dataArr[1]
+                    ITEM_HELD = dataArr[2]
+                    self.heldItems[ID_CLIENT] = ITEM_HELD
 
 
             except Exception as e:
