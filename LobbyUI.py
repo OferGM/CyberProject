@@ -16,6 +16,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 import gc
 
+
 class Ui_MainWindow(object):
     def __init__(self, client_socket, ak, m4, awp, mp5, mk, bnd, sp, lp, cash, app):
         self.app = app
@@ -1681,68 +1682,100 @@ class Ui_MainWindow(object):
                 self.label_12.setText(_translate("MainWindow", f"{str(self.money)}$"))
 
     def ak_slided(self, value):
-        self.label_23.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0 or self.ak_count == 0:
+            return
         if max < self.ak_count:
             self.horizontalSlider.setMaximum(max)
         else:
             self.horizontalSlider.setMaximum(self.ak_count)
 
+        self.label_23.setText(str(value))
+
     def m4_slided(self, value):
-        self.label_22.setText(str(value))
         max = 16 - self.horizontalSlider.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0 or self.m4_count == 0:
+            return
         if max < self.m4_count:
             self.horizontalSlider_2.setMaximum(max)
         else:
             self.horizontalSlider_2.setMaximum(self.m4_count)
 
+        self.label_22.setText(str(value))
+
     def awp_slided(self, value):
-        self.label_21.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0:
+            return
         if max < self.awp_count:
             self.horizontalSlider_3.setMaximum(max)
         else:
             self.horizontalSlider_3.setMaximum(self.awp_count)
 
+        self.label_21.setText(str(value))
+
     def mp5_slided(self, value):
-        self.label_20.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0:
+            return
         if max < self.mp5_count:
             self.horizontalSlider_4.setMaximum(max)
         else:
             self.horizontalSlider_4.setMaximum(self.mp5_count)
 
+        self.label_20.setText(str(value))
+
     def med_kit_slided(self, value):
-        self.label_15.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0:
+            return
         if max < self.med_kit_count:
             self.horizontalSlider_5.setMaximum(max)
         else:
             self.horizontalSlider_5.setMaximum(self.med_kit_count)
 
+        self.label_15.setText(str(value))
+
     def bandage_slided(self, value):
-        self.label_19.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
+
+        if max == 0:
+            return
         if max < self.bandage_count:
             self.horizontalSlider_6.setMaximum(max)
         else:
             self.horizontalSlider_6.setMaximum(self.bandage_count)
 
+        self.label_19.setText(str(value))
+
     def swiftness_potion_slided(self, value):
-        self.label_17.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider.value() - self.horizontalSlider_8.value()
+
+        if max == 0:
+            return
         if max < self.sPotion_count:
             self.horizontalSlider_7.setMaximum(max)
         else:
             self.horizontalSlider_7.setMaximum(self.sPotion_count)
 
+        self.label_17.setText(str(value))
+
     def leaping_potion_slided(self, value):
-        self.label_18.setText(str(value))
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider.value()
+
+        if max == 0:
+            return
         if max < self.lPotion_count:
             self.horizontalSlider_8.setMaximum(max)
         else:
             self.horizontalSlider_8.setMaximum(self.lPotion_count)
+
+        self.label_18.setText(str(value))
 
     def play_butt_pressed(self):
         # send packet to confirm
@@ -1761,7 +1794,6 @@ class Ui_MainWindow(object):
             socket1.close()
             QCoreApplication.quit()
             sys.exit()
-
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -1856,7 +1888,7 @@ import resources_rc
 
 
 if __name__ == "__main__":
-    socket1=socket.socket()
+    socket1 = socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
     time.sleep(1)
     socket1.connect(("127.0.0.1", 6969))
@@ -1873,12 +1905,13 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
-    ui = Ui_MainWindow(socket1, int(stats[0]), int(stats[1]), int(stats[2]), int(stats[3]), int(stats[4]), int(stats[5]), int(stats[6]), int(stats[7]), int(stats[8]), app)
+    ui = Ui_MainWindow(socket1, int(stats[0]), int(stats[1]), int(stats[2]), int(stats[3]), int(stats[4]),
+                       int(stats[5]), int(stats[6]), int(stats[7]), int(stats[8]), app)
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
-    #data = socket1.recv(9192).decode()
-    #print("data: ", data)
+    # data = socket1.recv(9192).decode()
+    # print("data: ", data)
     socket1.close()
     print("Finished with LobbyUI")
     exit()

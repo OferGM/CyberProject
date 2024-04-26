@@ -837,6 +837,7 @@ def recv_game_data_continuosly(player, stop_event):
 stop_event = threading.Event()
 
 def death():
+    login_sock.send("Disconnect%".encode())
     respawn_screen.show()
 
 def input(key):
@@ -1107,10 +1108,6 @@ if __name__ == "__main__":
 
         inv = Inventory(player, 4, 4)
         inv.enabled = False
-        # inv.add_item("medkit")
-        # inv.add_item("medkit")
-        inv.add_item("ak-47")
-        inv.add_item("awp")
         addItems(invdata)
 
 
