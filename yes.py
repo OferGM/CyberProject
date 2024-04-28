@@ -176,6 +176,21 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         print(f"Sent HI msg: {data} to {serverIP}")
         return
 
+    if data.startswith("HELD"):
+        print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+        indi = data.split('&')
+        clientID = indi[1]
+        for serverID in servers_list.keys():
+            print("server ID: ", serverID)
+            print("server IP: ", servers_list[serverID])
+            udp_socket.sendto(data.encode(), servers_list[serverID])
+            #if serverID == ClientList.get_server_dict()[clientID][0]:
+            #    print("KAKKKKKKKKK")
+            #    udp_socket.sendto((data + '&1').encode(), servers_list[serverID])
+            #else:
+            #    print("KOKKKKKKKKKKKKKKKK")
+            #    udp_socket.sendto(data.encode(), servers_list[serverID])
+
     if data.startswith("g"):  # if data is intended for the gameserver
         indi = data.split('&')
         clientID = int(indi[1])  # find ID by msg
@@ -318,7 +333,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
         try:
             data, client_address = udp_socket.recvfrom(9192)
             if data:
-                #print("New UDP message from " + str(client_address) + ": " + data.decode())
+                print("New UDP message from " + str(client_address) + ": " + data.decode())
                 handle_udp(data.decode(), ClientList, servers_list, udp_socket, client_address)
         except:
             pass
