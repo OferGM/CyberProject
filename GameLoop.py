@@ -29,15 +29,18 @@ mobs = {}
 witches = {}
 players = {}
 orbs = {}
-destroyed_orbs=[]
+destroyed_orbs = []
 rendered_players = {}
 update_queue = Queue()
+
 
 def CreateNewPlayer(id):
     if id not in players:
         print(f"CREATED NEW PLAYER {id}")
         pn = MultiPlayer(id=id)
         players[id] = pn
+
+
 def CreateEnemy(coords, id):
     if id in mobs:
         if mobs[id].position == coords:
@@ -45,12 +48,14 @@ def CreateEnemy(coords, id):
     enemy = Enemy(position=coords, id=id)
     mobs[id] = enemy
 
+
 def CreateWitch(coords, id):
     if id in witches:
         if witches[id].position == coords:
             return
     witch_ = Witch(position=coords, id=id)
     witches[id] = witch_
+
 
 def CreateOrb(coords, id):
     if id in orbs:
@@ -61,7 +66,8 @@ def CreateOrb(coords, id):
         orbs[id] = orb_
         print("orb created!!")
 
-def CreateItem(coords, id,type):
+
+def CreateItem(coords, id, type):
     if id in items:
         if items[id].position == coords:
             return
@@ -90,6 +96,7 @@ def separate_mob_string(all_mobs_string):
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {entry} to mob data: ", e)
 
+
 def separate_Witch_string(all_mobs_string):
     # Split the string by semicolons to get individual mob data strings
     mob_entries = all_mobs_string.split(';')
@@ -110,6 +117,7 @@ def separate_Witch_string(all_mobs_string):
             except Exception as e:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {entry} to witch data: ", e)
+
 
 def separate_orb_string(all_orbs_string):
     # Split the string by semicolons to get individual orb data strings
@@ -135,6 +143,7 @@ def separate_orb_string(all_orbs_string):
                 # Handle the case where conversion to int or float fails
                 print(f"Could not convert {entry} to orb data: ", e)
 
+
 def separate_item_string(all_items_string):
     # Split the string by semicolons to get individual mob data strings
     item_entries = all_items_string.split(';')
@@ -143,7 +152,7 @@ def separate_item_string(all_items_string):
         if entry:  # Check if entry is not empty
             parts = entry.split('&')
             if parts != ['', '']:
-            # Extract the ID and coordinates, converting them to the appropriate types
+                # Extract the ID and coordinates, converting them to the appropriate types
                 try:
                     id = int(parts[0])
                     type = parts[1]
@@ -171,6 +180,7 @@ class orb(Entity):
 
     def self_destroy(self):
         destroy(self)
+
 
 def seperateInv(inv3):
     inv1 = Inventory(player, 4, 4)
@@ -328,14 +338,14 @@ class player(FirstPersonController):
 
 
 class Item(Entity):
-    def __init__(self, position, id,ttype): #DONT CHANGE ttype NAME
+    def __init__(self, position, id, ttype):  # DONT CHANGE ttype NAME
         super().__init__(
             model=ttype,  # Replace 'cube' with a suitable model for your loot
             position=position,  # Consider specifying an actual texture if available
             collider='box',
-            ttype = ttype,
+            ttype=ttype,
             id=id,
-            scale = 1
+            scale=1
         )
         if ttype == "potion of leaping":
             self.scale = 0.001
@@ -358,6 +368,7 @@ class Item(Entity):
             inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
+
 
 class Witch(Entity):
     def __init__(self, position, id):
@@ -383,6 +394,7 @@ class Witch(Entity):
                 witches.pop(self.id)
             self.self_destroy()
             player_money_bar.value += 100
+
 
 class Enemy(Entity):
     def __init__(self, position, id):
@@ -413,6 +425,7 @@ class Enemy(Entity):
                 return float('inf')  # or some large number
         except:
             pass
+
     def drop_loot(self):
         """ Drops a random loot item at the enemy's position on the ground. """
         # loot_item = choice(LOOT_ITEMS)
@@ -460,7 +473,7 @@ class Enemy(Entity):
 
 
 class MultiPlayer(Entity):
-    def __init__(self, id, position=(0,0,0), health=100, model='minecraft_steve.glb', scale=0.08, **kwargs):
+    def __init__(self, id, position=(0, 0, 0), health=100, model='minecraft_steve.glb', scale=0.08, **kwargs):
         super().__init__(
             position=position,
             model=model,
@@ -468,17 +481,18 @@ class MultiPlayer(Entity):
             collider='box',
             heldItem='',
             item_entity=0,
-            last_held = 0,
+            last_held=0,
             **kwargs
         )
         self.id = id
         self.health = health
 
-    def damage(self,amount):
+    def damage(self, amount):
         self.health -= amount
         client.send_data(f"gDAMAGE&{self.id}&{self.health}")
-    def UpdateItem(self,Item):
-        print("UPDATED ITEM",Item)
+
+    def UpdateItem(self, Item):
+        print("UPDATED ITEM", Item)
         if Item == 'ak-47' and self.last_held != 'ak-47':
             destroy(self.item_entity)
             print("UPDATED ITEM AK")
@@ -486,7 +500,7 @@ class MultiPlayer(Entity):
             self.item_entity = Entity(parent=self, model='Ak-47.obj', texture=f'{Item}_tex.png')
             self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
             self.item_entity.scale = 0.06
-            self.item_entity.rotation_y+=180
+            self.item_entity.rotation_y += 180
             self.item_entity.x += 4
             self.item_entity.z += 4
         if Item == 'awp' and self.last_held != 'awp':
@@ -496,15 +510,13 @@ class MultiPlayer(Entity):
             self.item_entity = Entity(parent=self, model='awp.obj', texture=f'{Item}_tex.png')
             self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
             self.item_entity.scale = 0.5  # Adjust scale to fit the scene
-            self.item_entity.rotation_y+=180
+            self.item_entity.rotation_y += 180
             self.item_entity.x += 4
             self.item_entity.z += 4
 
         if Item == "None" and self.item_entity and self.last_held != 'None':
             self.last_held = 'None'
             destroy(self.item_entity)
-
-
 
 
 class Gun(Entity):
@@ -562,7 +574,8 @@ class Gun(Entity):
             self.scale = 0.05
             self.cooldown = 2
             player.cursor.visible = False
-    def switchType(self,type):
+
+    def switchType(self, type):
         if type == 'ak-47':
             self.gun_type = "ak-47"
             self.canShoot = True
@@ -609,7 +622,7 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        print(self.on_cooldown,self.canShoot)
+        print(self.on_cooldown, self.canShoot)
         if self.on_cooldown == True or self.canShoot == False:
             return
         self.on_cooldown = True
@@ -626,7 +639,7 @@ class Gun(Entity):
             hovered_entity.enemy_hit(self)
 
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
-                                                                                        hovered_entity.position) < 20 or gun.gun_type == 'awp'):
+                                                                                              hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             print("HIT PLAYER")
             hovered_entity.damage(20)
         print(self.cooldown)
@@ -662,10 +675,11 @@ def calculate_distance(vector1, vector2):
 
     return distance
 
+
 def Hold_gun():
     held_item = miniInv.HeldItem()
     client.send_data(f"gHELD&{client.id}&{held_item}")
-    if held_item == 'awp.png'and gun.gun_type != "awp":
+    if held_item == 'awp.png' and gun.gun_type != "awp":
         awp.enabled = True
         ak.enabled = False
         m4.enabled = False
@@ -715,7 +729,7 @@ def update():
 
     for zombie_id in list(mobs.keys()):
         mob = mobs[zombie_id]
-        if calculate_distance(player.position,mob.position) < 2:
+        if calculate_distance(player.position, mob.position) < 2:
             player.health -= 10
 
     Hold_gun()
@@ -745,6 +759,7 @@ def setup_inventory():
     # Create an instance of MiniInv and set it to be a child of camera.ui for UI purposes
     inventory = MiniInv.MiniInv(inv, image_paths=image_paths, parent=camera.ui)
 
+
 def stop_rendering_continuosly():
     while True:
         for ID in rendered_players.keys():
@@ -755,6 +770,7 @@ def stop_rendering_continuosly():
                 players[ID].enabled = False
         time.sleep(0.2)
 
+
 def send_game_data_continuously(player, stop_event):
     while not stop_event.is_set():
         try:
@@ -763,15 +779,17 @@ def send_game_data_continuously(player, stop_event):
         except AssertionError as e:
             print(e)
 
-def updatePlayer(id,x,y,z,rotation,health,item):
+
+def updatePlayer(id, x, y, z, rotation, health, item):
     if int(id) in players:
         p = players[int(id)]
         p.x = float(x)
-        p.y = float(y)+1.2
+        p.y = float(y) + 1.2
         p.z = float(z)
-        p.rotation_y = float(rotation)+180
+        p.rotation_y = float(rotation) + 180
         p.health = int(health)
         p.UpdateItem(item)
+
 
 def recv_game_data_continuosly(player, stop_event):
     try:
@@ -788,8 +806,8 @@ def recv_game_data_continuosly(player, stop_event):
                         z = aList[4]
                         rotation = aList[5]
                         health = aList[6]
-                        item = aList[7].replace('.png','')
-                        update_task = lambda: updatePlayer(id, x, y, z, rotation, health,item)
+                        item = aList[7].replace('.png', '')
+                        update_task = lambda: updatePlayer(id, x, y, z, rotation, health, item)
                         update_queue.put(update_task)
                         pass
                     else:
@@ -831,20 +849,23 @@ def recv_game_data_continuosly(player, stop_event):
                     print(len(orbs))
                 else:
                     print(f"Orb with ID {orb_id} not found")
-    except Exception as  e:
+    except Exception as e:
         print("error: ", e)
+
 
 stop_event = threading.Event()
 
+
 def death():
-    login_sock.send("Disconnect%".encode())
     respawn_screen.show()
+
 
 def input(key):
     global cursor
     if key == 'escape':
         # Wait for the background thread to finish
-        client.send_data(f"gDisconnect&{client_id}")
+        client.send_data(f"gDisconnect&{client_id}&{player_money_bar.value}&{ak47_count}&{m4_count}&{awp_count}"
+                         f"&{mp5_count}&{medkit_count}&{bandage_count}&{potion_swiftness_count}&{potion_leaping_count}")
         time.sleep(3)
         stop_event.set()
         thread.join()
@@ -914,7 +935,7 @@ def addItems(data):
 
 
 def build_map():
-    #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
+    # ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
     # colosseum = Entity(model='my_colosseum3_test', collider='sphere', texture='marble', scale=2, position=(0, 6, 0))
     jeep = Entity(model='jeep', collider='sphere', texture='sphere', scale=5, position=(-600, 11, -800))
     helicopter = Entity(model='helicopter', collider='sphere', texture='Huey', scale=5, position=(800, 0, 650),
@@ -974,6 +995,7 @@ def build_map():
 
     return
 
+
 def deactivate_cooldown_skill():
     skill_display.changeToWhite('cooldown')
     if gun.gun_type == 'awp':
@@ -984,10 +1006,12 @@ def deactivate_cooldown_skill():
         gun.cooldown = 0.5
     print("Cooldown skill deactivated!")
 
+
 def deactivate_speed_skill():
     skill_display.changeToWhite('speed')
     player.speed = 8  # Reset speed to default or previous value
     print("Speed skill deactivated!")
+
 
 def deactivate_strength_skill():
     skill_display.changeToWhite('strength')
@@ -999,11 +1023,13 @@ def deactivate_strength_skill():
         gun.damage = 36
     print("Strength skill deactivated!")
 
+
 def can_activate_skill(skill_name):
     cooldown_seconds = 60  # 30 seconds cooldown
     current_time = time.time()
     last_activation_time = last_skill_activation.get(skill_name, 0)
     return (current_time - last_activation_time) >= cooldown_seconds
+
 
 def ActivateCoolDownSkill():
     skill_display.changeToRed('cooldown')
@@ -1015,6 +1041,7 @@ def ActivateCoolDownSkill():
     else:
         print("Cooldown skill is still on cooldown!")
 
+
 def ActivateSpeedSkill():
     skill_display.changeToRed('speed')
     if can_activate_skill('speed'):
@@ -1024,6 +1051,7 @@ def ActivateSpeedSkill():
         invoke(deactivate_speed_skill, delay=15)  # Deactivate after 15 seconds
     else:
         print("Speed skill is still on cooldown!")
+
 
 def ActivateStrengthSkill():
     skill_display.changeToRed('strength')
@@ -1036,10 +1064,29 @@ def ActivateStrengthSkill():
         print("Strength skill is still on cooldown!")
 
 
+def close_game():
+    login_sock = socket.socket()
+    login_sock.bind(("127.0.0.1", port_yes))
+    login_sock.connect(("127.0.0.1", 6969))
+    login_sock.send(f"Disconnect%{player_money_bar.value()}%{ak47_count}%{m4_count}%{awp_count}%{mp5_count}"
+                    f"%{medkit_count}%{bandage_count}%{potion_swiftness_count}%{potion_leaping_count}".encode())
+
+    application.quit()
+
+
 if __name__ == "__main__":
     try:
 
         # Establish connection
+
+        ak47_count = 0
+        m4_count = 0
+        awp_count = 0
+        mp5_count = 0
+        medkit_count = 0
+        bandage_count = 0
+        potion_swiftness_count = 0
+        potion_leaping_count = 0
 
         port_yes = random.randint(50000, 65534)
         print("Port generated is: ", port_yes)
@@ -1060,7 +1107,7 @@ if __name__ == "__main__":
         client.send_data(msg)
         print("Sending: ", msg)
 
-        invdata=0
+        invdata = 0
 
         while True:
             invdata = client.receive_data()
@@ -1073,13 +1120,10 @@ if __name__ == "__main__":
         Sky(texture=skybox_image)
         build_map()
 
-
-
         ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
         skill_display = SkillDisplay()
         # skill_display.close_skills()
         player = player()
-
 
         thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
         thread.start()
@@ -1090,11 +1134,10 @@ if __name__ == "__main__":
         thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
         thread.start()
 
-
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
         m4 = Gun(player, 'm4')
-        gun = Gun(player,'None')
+        gun = Gun(player, 'None')
         awp.enabled = False
         ak.enabled = False
         m4.enabled = False
@@ -1109,7 +1152,6 @@ if __name__ == "__main__":
         inv = Inventory(player, 4, 4)
         inv.enabled = False
         addItems(invdata)
-
 
         print("8")
 
@@ -1140,9 +1182,8 @@ if __name__ == "__main__":
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
 
-
-        orbb = orb((1,4,1),2234)
-        witch = Witch((0,3,0),1)
+        orbb = orb((1, 4, 1), 2234)
+        witch = Witch((0, 3, 0), 1)
 
         print("10")
 

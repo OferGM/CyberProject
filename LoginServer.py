@@ -154,7 +154,7 @@ def update_user(data, client_address, shmoney):
     Update user data in the database.
 
     Args:
-        data (str): Data containing inventory counts separated by '&'.
+        data (list[str]): Data containing inventory counts.
         client_address (tuple): IP address and port of the client.
         shmoney (int): Amount of money to be updated.
 
@@ -162,7 +162,14 @@ def update_user(data, client_address, shmoney):
     ip, port = client_address
     user_document = users_collection.find_one({"ip": ip, "port": port})
     _id = ObjectId(user_document["_id"])
-    ak_count, m4_count, awp_count, mp5_count, med_kit_count, bandage_count, sp_count, lp_count = data.split('&')
+    ak_count = data[0]
+    m4_count = data[1]
+    awp_count = data[2]
+    mp5_count = data[3]
+    med_kit_count = data[4]
+    bandage_count = data[5]
+    sp_count = data[6]
+    lp_count = data[7]
     print(int(ak_count))
     updates = {
         "$inc": {"ak-47": int(ak_count),
@@ -196,7 +203,7 @@ def buy_shit(data, client_socket, client_address):
     buy_sum = sum(
         count * price for count, price in zip(inventory_counts, [2700, 3100, 4750, 1500, 1000, 650, 1800, 1200]))
     if buy_sum < user_document["money"]:
-        update_user(data, client_address, -1 * buy_sum)
+        update_user(data.split("&"), client_address, -1 * buy_sum)
         client_socket.send("successful buy".encode())
     else:
         client_socket.send("CHEATER".encode())
@@ -228,7 +235,7 @@ def join_game(data, client_socket, client_address):
     lb_socket.send(f"JOIN&{client_port}&{money}&{data}".encode())
 
 
-def disconnect_from_game(client_socket, client_address, data):
+def disconnect_from_game(client_socket, data):
     """
     Handle user disconnecting from a game.
 
@@ -238,8 +245,9 @@ def disconnect_from_game(client_socket, client_address, data):
         data (str): Data containing updated money amount.
 
     """
-    shmoney = int(data.split("&")[0])
-    update_user(data, client_address, shmoney)
+    port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
+    client_address = ("127.0.0.1", port)
+    update_user(data.split("&")[2:], client_address, shmoney)
     ip, port = client_address
     user_document = users_collection.find_one({"ip": ip, "port": port})
     init_lobby(client_socket, user_document)
