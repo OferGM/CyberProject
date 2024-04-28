@@ -1,3 +1,4 @@
+import math
 import socket
 import threading
 import time
@@ -70,9 +71,12 @@ class ClientLister:
 
     def calc_edges(self):
         num_clients = len(self.client_dict)
-        self.edges_arr[0] = self.sl[num_clients // 4 * 1][0]
-        self.edges_arr[1] = self.sl[num_clients // 4 * 2][0]
-        self.edges_arr[2] = self.sl[num_clients // 4 * 3][0]
+        print("yas")
+        self.edges_arr[0] = self.sl[int(num_clients / 4 * 1)][0]
+        print("yassos")
+        self.edges_arr[1] = self.sl[int(num_clients / 4 * 2)][0]
+        self.edges_arr[2] = self.sl[int(num_clients / 4 * 3)][0]
+        print(f"The edges are: {self.edges_arr[0]}, {self.edges_arr[1]}, {self.edges_arr[2]}")
 
     def get_server(self, client_id):
         client_x = self.client_dict[int(client_id)]
@@ -154,13 +158,18 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         print(f"Sent {data}")
 
     if data.startswith("HI"):
+        print("Received HI MSG: ", data)
         indi = data.split('&')
         clientID = int(indi[1])
+        print("Client ID is: ", clientID)
         clientIP = f'({addr[0]}, {addr[1]})'
+        print("Client IP is: ",clientIP)
         ClientList.get_ip_dict()[clientID] = clientIP
         ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+        print("Calculating edges")
         ClientList.calc_edges()
         client_server = ClientList.get_server(clientID)
+        print("Client server is: ", client_server)
         ClientList.get_server_dict()[clientID] = client_server
         serverIP = servers_list[client_server[0]]
         udp_socket.sendto(data.encode(), serverIP)
@@ -170,7 +179,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
     if data.startswith("g"):  # if data is intended for the gameserver
         indi = data.split('&')
         clientID = int(indi[1])  # find ID by msg
-        print(f"kakaikakikaki{clientID}")
+        #print(f"kakaikakikaki{clientID}")
         ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
         clientServer = ClientList.get_server_dict()[clientID]
         udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
@@ -198,7 +207,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
     if data.startswith("a"):  # if data is intended for all clients
         for clientIP in ClientList.get_ip_dict().values():  # for every client:
-            print("poopooooooooo: ", clientIP)
+            #print("poopooooooooo: ", clientIP)
             udp_socket.sendto((data).encode(), clientIP)
         return
 
@@ -265,15 +274,12 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
     print("TCP Server listening on " + str(host) + ", " + str(port))
     login_socket, login_address = tcp_socket.accept()
     while True:
-        try:
-            data = login_socket.recv(9192)
-            if not data:
-                break
-            print(f"Received: {data.decode()}")
-            rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list,
-                               udp_socket=udp_socket)
-        except Exception as e:
-            print("error: ", e)
+        data = login_socket.recv(9192)
+        if not data:
+            break
+        print(f"Received: {data.decode()}")
+        rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list,
+                           udp_socket=udp_socket)
 
     '''inputs = [tcp_socket]  # List of input sockets to monitor
 
@@ -312,7 +318,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
         try:
             data, client_address = udp_socket.recvfrom(9192)
             if data:
-                print("New UDP message from " + str(client_address) + ": " + data.decode())
+                #print("New UDP message from " + str(client_address) + ": " + data.decode())
                 handle_udp(data.decode(), ClientList, servers_list, udp_socket, client_address)
         except:
             pass
@@ -325,7 +331,7 @@ def main():
     udp_host = '127.0.0.1'
     udp_port = 9999
 
-    servers_dict = {1: ('127.0.0.1', 12345), 2: ('127.0.0.1', 12345), 3: ('127.0.0.1', 12345), 4: ('127.0.0.1', 12345),
+    servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
                     'login': ('127.0.0.1', 12345)}
 
     ClientList = ClientLister()
