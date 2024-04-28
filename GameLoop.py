@@ -664,7 +664,7 @@ def calculate_distance(vector1, vector2):
 
 def Hold_gun():
     held_item = miniInv.HeldItem()
-    client.send_data(f"gHELD&{client.id}&{held_item}")
+    client.send_data(f"HELD&{client.id}&{held_item}")
     if held_item == 'awp.png'and gun.gun_type != "awp":
         awp.enabled = True
         ak.enabled = False
