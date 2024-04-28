@@ -1481,25 +1481,18 @@ class Ui_MainWindow(object):
         self.horizontalSlider.valueChanged.connect(self.ak_slided)
 
         self.horizontalSlider_2.valueChanged.connect(self.m4_slided)
-        self.horizontalSlider_2.setMaximum(self.m4_count)
 
         self.horizontalSlider_3.valueChanged.connect(self.awp_slided)
-        self.horizontalSlider_3.setMaximum(self.awp_count)
 
         self.horizontalSlider_4.valueChanged.connect(self.mp5_slided)
-        self.horizontalSlider_4.setMaximum(self.mp5_count)
 
         self.horizontalSlider_5.valueChanged.connect(self.med_kit_slided)
-        self.horizontalSlider_5.setMaximum(self.med_kit_count)
 
         self.horizontalSlider_6.valueChanged.connect(self.bandage_slided)
-        self.horizontalSlider_6.setMaximum(self.bandage_count)
 
         self.horizontalSlider_7.valueChanged.connect(self.swiftness_potion_slided)
-        self.horizontalSlider_7.setMaximum(self.sPotion_count)
 
         self.horizontalSlider_8.valueChanged.connect(self.leaping_potion_slided)
-        self.horizontalSlider_8.setMaximum(self.lPotion_count)
 
         # play_butt
         self.pushButton_4.clicked.connect(self.play_butt_pressed)
@@ -1708,7 +1701,7 @@ class Ui_MainWindow(object):
     def awp_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
 
-        if max == 0:
+        if max == 0 or self.awp_count == 0:
             return
         if max < self.awp_count:
             self.horizontalSlider_3.setMaximum(max)
@@ -1720,7 +1713,7 @@ class Ui_MainWindow(object):
     def mp5_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
 
-        if max == 0:
+        if max == 0 or self.mp5_count == 0:
             return
         if max < self.mp5_count:
             self.horizontalSlider_4.setMaximum(max)
@@ -1732,7 +1725,7 @@ class Ui_MainWindow(object):
     def med_kit_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
 
-        if max == 0:
+        if max == 0 or self.med_kit_count == 0:
             return
         if max < self.med_kit_count:
             self.horizontalSlider_5.setMaximum(max)
@@ -1744,7 +1737,7 @@ class Ui_MainWindow(object):
     def bandage_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider.value() - self.horizontalSlider_7.value() - self.horizontalSlider_8.value()
 
-        if max == 0:
+        if max == 0 or self.bandage_count == 0:
             return
         if max < self.bandage_count:
             self.horizontalSlider_6.setMaximum(max)
@@ -1756,7 +1749,7 @@ class Ui_MainWindow(object):
     def swiftness_potion_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider.value() - self.horizontalSlider_8.value()
 
-        if max == 0:
+        if max == 0 or self.sPotion_count == 0:
             return
         if max < self.sPotion_count:
             self.horizontalSlider_7.setMaximum(max)
@@ -1768,7 +1761,7 @@ class Ui_MainWindow(object):
     def leaping_potion_slided(self, value):
         max = 16 - self.horizontalSlider_2.value() - self.horizontalSlider_3.value() - self.horizontalSlider_4.value() - self.horizontalSlider_5.value() - self.horizontalSlider_6.value() - self.horizontalSlider_7.value() - self.horizontalSlider.value()
 
-        if max == 0:
+        if max == 0 or self.lPotion_count == 0:
             return
         if max < self.lPotion_count:
             self.horizontalSlider_8.setMaximum(max)

@@ -668,20 +668,20 @@ def Hold_gun():
     if held_item == 'awp.png'and gun.gun_type != "awp":
         awp.enabled = True
         ak.enabled = False
-        mp4.enabled = False
+        m4.enabled = False
         selectedGun = awp
         gun.gun_type = 'awp'
         gun.canShoot = True
         gun.damage = 100
         gun.cooldown = 2
         return
-    if held_item == 'mp5.png':
-        gun.switchType("mp4")
-        selectedGun = mp4
+    if held_item == 'm4.png':
+        gun.switchType("m4")
+        selectedGun = m4
         awp.enabled = False
         ak.enabled = False
-        mp4.enabled = True
-        gun.gun_type = 'mp4'
+        m4.enabled = True
+        gun.gun_type = 'm4'
         gun.canShoot = True
         gun.damage = 30
         gun.cooldown = 0.25
@@ -690,16 +690,16 @@ def Hold_gun():
         selectedGun = ak
         awp.enabled = False
         ak.enabled = True
-        mp4.enabled = False
+        m4.enabled = False
         gun.gun_type = 'ak-47'
         gun.canShoot = True
         gun.damage = 20
         gun.cooldown = 0.5
         return
-    if held_item != "awp.png" and held_item != "mp5.png" and held_item != "ak-47.png":
+    if held_item != "awp.png" and held_item != "m4.png" and held_item != "ak-47.png":
         awp.enabled = False
         ak.enabled = False
-        mp4.enabled = False
+        m4.enabled = False
         gun.switchType("None")
         gun.canShoot = False
 
@@ -880,9 +880,9 @@ def addItems(data):
     packet_values = data.split('&')
     print(packet_values)
     ak47_count = int(packet_values[3])
-    mp5_count = int(packet_values[4])
+    m4_count = int(packet_values[4])
     awp_count = int(packet_values[5])
-    gun4_count = int(packet_values[6])
+    mp5_count = int(packet_values[6])
     medkit_count = int(packet_values[7])
     bandage_count = int(packet_values[8])
     potion_swiftness_count = int(packet_values[9])
@@ -890,14 +890,14 @@ def addItems(data):
     if ak47_count > 0:
         for _ in range(ak47_count):
             inv.add_item("ak-47")
-    if mp5_count > 0:
-        for _ in range(mp5_count):
-            inv.add_item("mp5")
+    if m4_count > 0:
+        for _ in range(m4_count):
+            inv.add_item("m4")
     if awp_count > 0:
         for _ in range(awp_count):
             inv.add_item("awp")
-    if gun4_count > 0:
-        for _ in range(gun4_count):
+    if mp5_count > 0:
+        for _ in range(mp5_count):
             pass
     if medkit_count > 0:
         for _ in range(medkit_count):
@@ -978,7 +978,7 @@ def deactivate_cooldown_skill():
     skill_display.changeToWhite('cooldown')
     if gun.gun_type == 'awp':
         gun.cooldown = 2
-    if gun.gun_type == 'mp5':
+    if gun.gun_type == 'm4':
         gun.cooldown = 0.25
     if gun.gun_type == 'ak-47':
         gun.cooldown = 0.5
@@ -993,10 +993,10 @@ def deactivate_strength_skill():
     skill_display.changeToWhite('strength')
     if gun.gun_type == 'awp':
         gun.damage = 100
-    if gun.gun_type == 'mp5':
-        gun.damage = 20
+    if gun.gun_type == 'm4':
+        gun.damage = 33
     if gun.gun_type == 'ak-47':
-        gun.damage = 20
+        gun.damage = 36
     print("Strength skill deactivated!")
 
 def can_activate_skill(skill_name):
@@ -1093,11 +1093,11 @@ if __name__ == "__main__":
 
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
-        mp4 = Gun(player, 'mp4')
+        m4 = Gun(player, 'm4')
         gun = Gun(player,'None')
         awp.enabled = False
         ak.enabled = False
-        mp4.enabled = False
+        m4.enabled = False
         selectedGun = gun
 
         print("6")

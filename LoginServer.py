@@ -67,7 +67,7 @@ def insert_new_user(username, user_password, client_ip, client_port):
         "password": user_password,
         "ip": client_ip,
         "port": client_port,
-        "money": 0,
+        "money": 99999,
         "ak-47": 0,
         "m4": 0,
         "awp": 0,
