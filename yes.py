@@ -186,12 +186,6 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 print("server ID: ", serverID)
                 print("server IP: ", servers_list[serverID])
                 udp_socket.sendto(data.encode(), servers_list[serverID])
-                #if serverID == ClientList.get_server_dict()[clientID][0]:
-                #    print("KAKKKKKKKKK")
-                #    udp_socket.sendto((data + '&1').encode(), servers_list[serverID])
-                #else:
-                #    print("KOKKKKKKKKKKKKKKKK")
-                #    udp_socket.sendto(data.encode(), servers_list[serverID])
 
         if data.startswith("g"):  # if data is intended for the gameserver
             indi = data.split('&')

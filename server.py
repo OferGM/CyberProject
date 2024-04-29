@@ -371,7 +371,7 @@ class Server:
                     inv = f"sINV&{dataArr[1]}&{self.all_players[dataArr[1]]}"
                     self.socket.sendto(inv.encode(), addr)
                     print("Sending inv: ", inv)
-                if dataArr[0] == 'HELD':
+                if dataArr[0] == 'gHELD':
                     ID_CLIENT = dataArr[1]
                     ITEM_HELD = dataArr[2]
                     self.heldItems[ID_CLIENT] = ITEM_HELD
