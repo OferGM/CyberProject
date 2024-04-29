@@ -1,11 +1,13 @@
+import math
 import socket
+import queue
 import threading
 import time
 import select
 from pyskiplist import SkipList
 
-UPDATE_RATE = 1  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
-SERVER_UPDATE_RATE = 1  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
+UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
+SERVER_UPDATE_RATE = 10  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
 LOOKING_DISTANCE = 20  # the max distance from which you can see other ppl
 CLIENT_ID_LENGTH = 5
 
@@ -70,9 +72,12 @@ class ClientLister:
 
     def calc_edges(self):
         num_clients = len(self.client_dict)
-        self.edges_arr[0] = self.sl[num_clients // 4 * 1][0]
-        self.edges_arr[1] = self.sl[num_clients // 4 * 2][0]
-        self.edges_arr[2] = self.sl[num_clients // 4 * 3][0]
+        print("yas")
+        self.edges_arr[0] = self.sl[int(num_clients / 4 * 1)][0]
+        print("yassos")
+        self.edges_arr[1] = self.sl[int(num_clients / 4 * 2)][0]
+        self.edges_arr[2] = self.sl[int(num_clients / 4 * 3)][0]
+        print(f"The edges are: {self.edges_arr[0]}, {self.edges_arr[1]}, {self.edges_arr[2]}")
 
     def get_server(self, client_id):
         client_x = self.client_dict[int(client_id)]
@@ -146,115 +151,136 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
             udp_socket.sendto(data.encode(), serverIP)
 
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
-    if data.startswith("s"):        #data intended for specific client
-        indi = data.split('&')
-        clientID = int(indi[1])
-        clientIP = ClientList.get_ip_dict()[clientID]
-        udp_socket.sendto(data.encode(), clientIP)
-        print(f"Sent {data}")
+    try:
+        if data.startswith("s"):        #data intended for specific client
+            indi = data.split('&')
+            clientID = int(indi[1])
+            clientIP = ClientList.get_ip_dict()[clientID]
+            udp_socket.sendto(data.encode(), clientIP)
+            print(f"Sent {data}")
 
-    if data.startswith("HI"):
-        indi = data.split('&')
-        clientID = int(indi[1])
-        clientIP = f'({addr[0]}, {addr[1]})'
-        ClientList.get_ip_dict()[clientID] = clientIP
-        ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-        ClientList.calc_edges()
-        client_server = ClientList.get_server(clientID)
-        ClientList.get_server_dict()[clientID] = client_server
-        serverIP = servers_list[client_server[0]]
-        udp_socket.sendto(data.encode(), serverIP)
-        print(f"Sent HI msg: {data} to {serverIP}")
-        return
+        if data.startswith("HI"):
+            print("Received HI MSG: ", data)
+            indi = data.split('&')
+            clientID = int(indi[1])
+            print("Client ID is: ", clientID)
+            clientIP = f'({addr[0]}, {addr[1]})'
+            print("Client IP is: ",clientIP)
+            ClientList.get_ip_dict()[clientID] = clientIP
+            ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+            print("Calculating edges")
+            ClientList.calc_edges()
+            client_server = ClientList.get_server(clientID)
+            print("Client server is: ", client_server)
+            ClientList.get_server_dict()[clientID] = client_server
+            serverIP = servers_list[client_server[0]]
+            udp_socket.sendto(data.encode(), serverIP)
+            print(f"Sent HI msg: {data} to {serverIP}")
+            return
 
-    if data.startswith("g"):  # if data is intended for the gameserver
-        indi = data.split('&')
-        clientID = int(indi[1])  # find ID by msg
-        print(f"kakaikakikaki{clientID}")
+        if data.startswith("HELD"):
+            print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+            indi = data.split('&')
+            clientID = indi[1]
+            for serverID in servers_list.keys():
+                print("server ID: ", serverID)
+                print("server IP: ", servers_list[serverID])
+                udp_socket.sendto(data.encode(), servers_list[serverID])
+                #if serverID == ClientList.get_server_dict()[clientID][0]:
+                #    print("KAKKKKKKKKK")
+                #    udp_socket.sendto((data + '&1').encode(), servers_list[serverID])
+                #else:
+                #    print("KOKKKKKKKKKKKKKKKK")
+                #    udp_socket.sendto(data.encode(), servers_list[serverID])
+
+        if data.startswith("g"):  # if data is intended for the gameserver
+            indi = data.split('&')
+            clientID = int(indi[1])  # find ID by msg
+            #print(f"kakaikakikaki{clientID}")
+            ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
+            clientServer = ClientList.get_server_dict()[clientID]
+            udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
+            ##if clientServer[1] != 0:
+            ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
+            return
+
+        if data.startswith("l"):  # if data is intended for login server
+            udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
+            return
+
+        if data.startswith("c"):  # if data is intended for clients
+            indi = data.split("&")
+            clientID = int(indi[1])
+            clientX = int(ClientList.get_dict()[clientID])
+
+            for client in ClientList.get_sl().items():  # for every client:
+                if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
+                    if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
+                        udp_socket.sendto((data).encode(), ClientList.get_ip_dict()[clientID])  # then send the client
+                    else:
+                        return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+            return
+
+        if data.startswith("a"):  # if data is intended for all clients
+            for clientIP in ClientList.get_ip_dict().values():  # for every client:
+                #print("poopooooooooo: ", clientIP)
+                udp_socket.sendto((data).encode(), clientIP)
+            return
+
+        if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
+            dataArr = data.split('&')
+            clientID = int(dataArr[1])
+            clientX = float(dataArr[2])
+            clientZ = float(dataArr[4])
+            '''indi = data.find("&")
+            clientID = int(data[indi+1:indi+CLIENT_ID_LENGTH+1])
+            indi = indi+CLIENT_ID_LENGTH+1
+            finale = data[indi+1:].find("&") + indi + 1
+            clientX = int(data[indi : finale])'''
+
+            if ClientList.get_update_dict()[
+                clientID] % UPDATE_RATE == 0:  # every UPDATE_RATEth move ack from a specific client, update the client list with his current values
+                ClientList.update_client(clientX, clientZ, clientID)
+
+            if ClientList.get_update_dict()[
+                'total'] % SERVER_UPDATE_RATE == 0:  # every SERVER_UPDATE_RATEth move ack, calculate the edges again by the values currently in the client list
+                ClientList.calc_edges()
+
+            ClientList.get_update_dict()[clientID] += 1
+            ClientList.get_update_dict()['total'] += 1
+
+            for client in ClientList.get_sl().items():  # for every client:
+                if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
+                    if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
+                        if ClientList.get_z_dict()[client[1]] >= clientZ - LOOKING_DISTANCE:
+                            if ClientList.get_z_dict()[client[1]] <= clientZ + LOOKING_DISTANCE:
+                                udp_socket.sendto(data.encode(),
+                                                  ClientList.get_ip_dict()[int(client[1])])  # then send the client
+                            else:
+                                return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+            return
+
+        if data.startswith("DISCONNECT"):
+            indi = data.split("&")
+            clientID = int(indi[1])
+            print("Disconnecting: ", clientID)
+            ClientList.remove_client(clientID)
+            del ClientList.get_server_dict()[clientID]
+            #udp_socket.sendto(data.encode(), servers_list['login'])
+            #for clientIP in ClientList.get_ip_dict().values():
+            #    udp_socket.sendto(data.encode(), clientIP)
+            return
+
+        indi = data.find("&")
+        clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
         ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
         clientServer = ClientList.get_server_dict()[clientID]
         udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
         ##if clientServer[1] != 0:
         ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
         return
-
-    if data.startswith("l"):  # if data is intended for login server
-        udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
-        return
-
-    if data.startswith("c"):  # if data is intended for clients
-        indi = data.find("&")
-        clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])
-        indi = data[indi + 1:].find("&")
-        clientX = int(ClientList.get_dict()[clientID])
-
-        for client in ClientList.get_sl().items():  # for every client:
-            if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
-                if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
-                    udp_socket.sendto((data).encode(), ClientList.get_ip_dict()[clientID])  # then send the client
-                else:
-                    return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
-        return
-
-    if data.startswith("a"):  # if data is intended for all clients
-        for clientIP in ClientList.get_ip_dict().values():  # for every client:
-            print("poopooooooooo: ", clientIP)
-            udp_socket.sendto((data).encode(), clientIP)
-        return
-
-    if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
-        dataArr = data.split('&')
-        clientID = int(dataArr[1])
-        clientX = float(dataArr[2])
-        clientZ = float(dataArr[4])
-        '''indi = data.find("&")
-        clientID = int(data[indi+1:indi+CLIENT_ID_LENGTH+1])
-        indi = indi+CLIENT_ID_LENGTH+1
-        finale = data[indi+1:].find("&") + indi + 1
-        clientX = int(data[indi : finale])'''
-
-        if ClientList.get_update_dict()[
-            clientID] % UPDATE_RATE == 0:  # every UPDATE_RATEth move ack from a specific client, update the client list with his current values
-            ClientList.update_client(clientX, clientZ, clientID)
-
-        if ClientList.get_update_dict()[
-            'total'] % SERVER_UPDATE_RATE == 0:  # every SERVER_UPDATE_RATEth move ack, calculate the edges again by the values currently in the client list
-            ClientList.calc_edges()
-
-        ClientList.get_update_dict()[clientID] += 1
-        ClientList.get_update_dict()['total'] += 1
-
-        for client in ClientList.get_sl().items():  # for every client:
-            if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
-                if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
-                    if ClientList.get_z_dict()[client[1]] >= clientZ - LOOKING_DISTANCE:
-                        if ClientList.get_z_dict()[client[1]] <= clientZ + LOOKING_DISTANCE:
-                            udp_socket.sendto(data.encode(),
-                                              ClientList.get_ip_dict()[int(client[1])])  # then send the client
-                        else:
-                            return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
-        return
-
-    if data.startswith("DISCONNECT"):
-        indi = data.split("&")
-        clientID = int(indi[1])
-        print("Disconnecting: ", clientID)
-        ClientList.remove_client(clientID)
-        del ClientList.get_server_dict()[clientID]
-        #udp_socket.sendto(data.encode(), servers_list['login'])
-        #for clientIP in ClientList.get_ip_dict().values():
-        #    udp_socket.sendto(data.encode(), clientIP)
-        return
-
-    indi = data.find("&")
-    clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
-    ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
-    clientServer = ClientList.get_server_dict()[clientID]
-    udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
-    ##if clientServer[1] != 0:
-    ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
-    return
-
+    except:
+        pass
 
 # Function to handle multiple TCP connections
 def tcp_server(host, port, ClientList, servers_list, udp_socket):
@@ -265,15 +291,12 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
     print("TCP Server listening on " + str(host) + ", " + str(port))
     login_socket, login_address = tcp_socket.accept()
     while True:
-        try:
-            data = login_socket.recv(9192)
-            if not data:
-                break
-            print(f"Received: {data.decode()}")
-            rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list,
-                               udp_socket=udp_socket)
-        except Exception as e:
-            print("error: ", e)
+        data = login_socket.recv(9192)
+        if not data:
+            break
+        print(f"Received: {data.decode()}")
+        rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list,
+                           udp_socket=udp_socket)
 
     '''inputs = [tcp_socket]  # List of input sockets to monitor
 
@@ -308,15 +331,33 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
 def udp_server(host, port, ClientList, servers_list, udp_socket):
     print("UDP Server listening on " + str(host) + ", " + str(port))
 
+    message_queue = queue.Queue()
+
+    def process_messages():
+        while True:
+            try:
+                data, client_address = message_queue.get(timeout=1)
+                handle_udp(data, ClientList, servers_list, udp_socket, client_address)
+                #print("Handling UDP message from " + str(client_address) + ": " + message)
+                # Call your handle_udp function here with appropriate arguments
+                # handle_udp(message, ClientList, servers_list, udp_socket, client_address)
+            except queue.Empty:
+                pass
+
+    pool_size = 10
+    threads = []
+    for _ in range(pool_size):
+        thread = threading.Thread(target=process_messages)
+        thread.start()
+        threads.append(thread)
+
     while True:
         try:
             data, client_address = udp_socket.recvfrom(9192)
             if data:
-                print("New UDP message from " + str(client_address) + ": " + data.decode())
-                handle_udp(data.decode(), ClientList, servers_list, udp_socket, client_address)
-        except:
-            pass
-
+                message_queue.put((data.decode(), client_address))
+        except Exception as e:
+            print("error: ", e)
 
 def main():
     tcp_host = '127.0.0.1'
@@ -325,7 +366,7 @@ def main():
     udp_host = '127.0.0.1'
     udp_port = 9999
 
-    servers_dict = {1: ('127.0.0.1', 12345), 2: ('127.0.0.1', 12345), 3: ('127.0.0.1', 12345), 4: ('127.0.0.1', 12345),
+    servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
                     'login': ('127.0.0.1', 12345)}
 
     ClientList = ClientLister()

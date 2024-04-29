@@ -7,11 +7,13 @@ import queue
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
 LOAD_BALANCER_UDP_ADDR = ('127.0.0.1', 9999)
+servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
+                    'login': ('127.0.0.1', 12345)}
 
 class Server:
-    def __init__(self, host='localhost', port=12345):
-        self.host = host
-        self.port = port
+    def __init__(self, addr):
+        self.host = addr[0]
+        self.port = addr[1]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.all_players = {}
         self.coordinates = {}
@@ -369,7 +371,7 @@ class Server:
                     inv = f"sINV&{dataArr[1]}&{self.all_players[dataArr[1]]}"
                     self.socket.sendto(inv.encode(), addr)
                     print("Sending inv: ", inv)
-                if dataArr[0] == 'gHELD':
+                if dataArr[0] == 'HELD':
                     ID_CLIENT = dataArr[1]
                     ITEM_HELD = dataArr[2]
                     self.heldItems[ID_CLIENT] = ITEM_HELD
@@ -381,5 +383,7 @@ class Server:
 
 # Example usage
 if __name__ == "__main__":
-    server = Server()
+    serverNum = int(input("Enter server number: "))
+    serverAddress = servers_dict[serverNum]
+    server = Server(serverAddress)
     server.start_server()
