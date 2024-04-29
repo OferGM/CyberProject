@@ -414,6 +414,10 @@ class Server:
                     items = [dataArr[i] for i in range(5, len(dataArr))]
                     print(items)
                     self.GenerateChest(x,y,z,items)
+                    login_socket = socket.socket()
+                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.send(f"Disconnect%{dataArr[1]}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}".encode())
+                    login_socket.close()
                 if dataArr[0] == 'gREMOVECHEST':
                     self.RemoveChest(dataArr[1],dataArr[2])
 
