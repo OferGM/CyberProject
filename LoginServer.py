@@ -244,12 +244,12 @@ def disconnect_from_game(client_socket, client_address, data):
         data (str): Data containing updated money amount.
 
     """
-    shmoney = int(data.split("&")[0])
-    update_user(data, client_address, shmoney)
-    update_user(data.split("&")[1:], client_address, shmoney)
-    ip, port = client_address
-    user_document = users_collection.find_one({"ip": ip, "port": port})
-    init_lobby(client_socket, user_document)
+    print("disconnect")
+    port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
+    client_address = ("127.0.0.1", port)
+    update_user(data.split("&")[2:], client_address, shmoney)
+    print("sending disconnect")
+    client_socket.send("successfully_disconnected".encode())
 
 
 def handle_client(client_socket, client_address):
@@ -266,6 +266,7 @@ def handle_client(client_socket, client_address):
             data = client_socket.recv(9192).decode()
             if data:
                 method, data = data.split("%")
+                print(method)
                 if method == "Login":
                     login(client_socket, client_address, data)
                 if method == "Sign_in":

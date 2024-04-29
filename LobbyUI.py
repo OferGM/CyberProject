@@ -1779,7 +1779,7 @@ class Ui_MainWindow(object):
         print("Received: ", data)
         if data == "Joining_game":
             print("Joining game")
-            socket1.close()
+            self.client_socket.close()
             QCoreApplication.exit()
             sys.exit()
         else:

@@ -930,10 +930,14 @@ stop_event = threading.Event()
 
 
 def death():
+<<<<<<< Updated upstream
     items = inv.get_inventory_items()
     print(items)
     client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
     respawn_screen.show()
+=======
+    close_game()
+>>>>>>> Stashed changes
 
 activeChest = 0
 
@@ -1145,11 +1149,135 @@ def ActivateStrengthSkill():
         print("Strength skill is still on cooldown!")
 
 
+def restart(port):
+    ak47_count = 0
+    m4_count = 0
+    awp_count = 0
+    mp5_count = 0
+    medkit_count = 0
+    bandage_count = 0
+    potion_swiftness_count = 0
+    potion_leaping_count = 0
+
+    subprocess.run(['python', 'LobbyUI.py', str(port).encode()])
+
+    client_id = port
+
+    client = clientfuncs(int(client_id))
+
+    # client = clientfuncs(int(client_id))
+
+    addr = client.get_ip()
+    addr = f'({addr[0]}, {addr[1]})'
+    msg = f'HI&{client.get_id()}'
+    client.send_data(msg)
+    print("Sending: ", msg)
+
+    invdata = 0
+
+    while True:
+        invdata = client.receive_data()
+        if invdata.startswith("sINV"):
+            print("Current inv is: ", invdata)
+            break
+
+    app = Ursina(borderless=False)
+    skybox_image = load_texture("scattered-clouds-blue-sky.jpg")
+    Sky(texture=skybox_image)
+    build_map()
+
+    ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
+    skill_display = SkillDisplay()
+    # skill_display.close_skills()
+    player = player()
+
+    thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+    thread.start()
+
+    # thread = threading.Thread(target=stop_rendering_continuosly, args=())
+    # thread.start()
+
+    thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
+    thread.start()
+
+    awp = Gun(player, 'awp')
+    ak = Gun(player, 'ak-47')
+    m4 = Gun(player, 'm4')
+    gun = Gun(player, 'None')
+    awp.enabled = False
+    ak.enabled = False
+    m4.enabled = False
+    selectedGun = gun
+
+    print("6")
+
+    kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
+
+    print("7")
+
+    inv = Inventory(player, 4, 4)
+    inv.enabled = False
+    addItems(invdata)
+
+    print("8")
+
+    miniInv = MiniInv(inv)
+
+    print("9")
+
+    enemies = {}
+    items = {}
+
+    player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
+
+    # Load the PNG image for the scope
+    scope_texture = load_texture('scope.png')  # Replace 'scope.png' with the path to your scope image
+
+    # Create a window panel to display the scope image
+    scope_panel = WindowPanel(texture=scope_texture, scale=(0.5, 0.5), enabled=False)
+
+    background = Entity(parent=camera.ui, model='quad', texture='scope.png', scale_x=camera.aspect_ratio, z=1)
+    background.visible = False
+
+    respawn_screen = RespawnScreen()
+    respawn_screen.hide()
+
+    chest = Chest((2, 0, 2))
+    chest.ChestInv = Inventory(None)
+
+    player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
+    player_money_bar.value = 100
+
+    print("10")
+
+    time.sleep(1)
+
+    app.run()
+
+    print("11")
+
+
+def close_game():
+    login_sock = socket.socket()
+
+    print("hi")
+    time.sleep(1)
+    print("hi2")
+    login_sock.connect(("127.0.0.1", 6969))
+    print("hi3")
+    login_sock.send(f"Disconnect%{port_yes}&{player_money_bar.value}&{ak47_count}&{m4_count}&{awp_count}&{mp5_count}"
+                    f"&{medkit_count}&{bandage_count}&{potion_swiftness_count}&{potion_leaping_count}".encode())
+    data = login_sock.recv(9192).decode()
+    if data == "successfully_disconnected":
+        print("hi")
+        login_sock.close()
+        stop_event.set()
+        application.quit()
+        restart(port_yes)
+
+
 if __name__ == "__main__":
     try:
-
-        # Establish connection
-
         ak47_count = 0
         m4_count = 0
         awp_count = 0
@@ -1255,8 +1383,6 @@ if __name__ == "__main__":
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
 
-        orbb = orb((1, 4, 1), 2234)
-        witch = Witch((0, 3, 0), 1)
 
         print("10")
 
