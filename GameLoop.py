@@ -941,8 +941,7 @@ def input(key):
     global cursor,inv,activeChest
     if key == 'escape':
         # Wait for the background thread to finish
-        client.send_data(f"gDisconnect&{client_id}&{player_money_bar.value}&{ak47_count}&{m4_count}&{awp_count}"
-                         f"&{mp5_count}&{medkit_count}&{bandage_count}&{potion_swiftness_count}&{potion_leaping_count}")
+        client.send_data(f"gDisconnect&{client_id}")
         time.sleep(3)
         stop_event.set()
         thread.join()
@@ -1144,16 +1143,6 @@ def ActivateStrengthSkill():
         invoke(deactivate_strength_skill, delay=15)  # Deactivate after 15 seconds
     else:
         print("Strength skill is still on cooldown!")
-
-
-def close_game():
-    login_sock = socket.socket()
-    login_sock.bind(("127.0.0.1", port_yes))
-    login_sock.connect(("127.0.0.1", 6969))
-    login_sock.send(f"Disconnect%{player_money_bar.value()}%{ak47_count}%{m4_count}%{awp_count}%{mp5_count}"
-                    f"%{medkit_count}%{bandage_count}%{potion_swiftness_count}%{potion_leaping_count}".encode())
-
-    application.quit()
 
 
 if __name__ == "__main__":

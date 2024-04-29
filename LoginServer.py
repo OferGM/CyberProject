@@ -170,7 +170,6 @@ def update_user(data, client_address, shmoney):
     bandage_count = data[5]
     sp_count = data[6]
     lp_count = data[7]
-    print(int(ak_count))
     updates = {
         "$inc": {"ak-47": int(ak_count),
                  "m4": int(m4_count),
@@ -235,7 +234,7 @@ def join_game(data, client_socket, client_address):
     lb_socket.send(f"JOIN&{client_port}&{money}&{data}".encode())
 
 
-def disconnect_from_game(client_socket, data):
+def disconnect_from_game(client_socket, client_address, data):
     """
     Handle user disconnecting from a game.
 
@@ -245,9 +244,9 @@ def disconnect_from_game(client_socket, data):
         data (str): Data containing updated money amount.
 
     """
-    port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = ("127.0.0.1", port)
-    update_user(data.split("&")[2:], client_address, shmoney)
+    shmoney = int(data.split("&")[0])
+    update_user(data, client_address, shmoney)
+    update_user(data.split("&")[1:], client_address, shmoney)
     ip, port = client_address
     user_document = users_collection.find_one({"ip": ip, "port": port})
     init_lobby(client_socket, user_document)
@@ -278,8 +277,11 @@ def handle_client(client_socket, client_address):
                 if method == "Disconnect":
                     disconnect_from_game(client_socket, client_address, data)
                 if method == "Rape_Disconnect":
-                    change_connection_status(client_address, False)
+                    print(data)
+                    client_address1 = ("127.0.0.1", int(data))
+                    change_connection_status(client_address1, False)
                 if method == "GIMME":
+                    print("gimme")
                     ip, port = client_address
                     user_document = users_collection.find_one({"ip": ip, "port": port})
                     init_lobby(client_socket, user_document)

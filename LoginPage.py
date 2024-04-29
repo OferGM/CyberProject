@@ -110,9 +110,11 @@ def close_page():
     print("Socket closed")
     app.destroy()
 
+
 if __name__ == "__main__":
     import sys
-    socket1=socket.socket()
+
+    socket1 = socket.socket()
     print("Parameter gotten is: ", sys.argv[1])
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
     socket1.connect(("127.0.0.1", 6969))
