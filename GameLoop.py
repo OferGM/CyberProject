@@ -15,7 +15,6 @@ from queue import Queue
 import subprocess
 import psd_tools
 
-
 last_skill_activation = {
     'cooldown': 0,
     'speed': 0,
@@ -37,6 +36,7 @@ destroyed_orbs = []
 rendered_players = {}
 update_queue = Queue()
 
+
 def RemoveChest(chest_id):
     """
     Removes a chest from the game world and the internal tracking dictionary based on its ID.
@@ -55,6 +55,7 @@ def RemoveChest(chest_id):
         print(f"Chest with ID {chest_id} has been removed.")
     else:
         print(f"No chest found with ID {chest_id}.")
+
 
 def CreateNewPlayer(id):
     if id not in players:
@@ -96,18 +97,20 @@ def CreateItem(coords, id, type):
     item = Item(position=coords, id=id, ttype=type)
     items[id] = item
 
+
 def CreateChest(coords, id, items):
     if id in chests:
         return
     print(coords)
     print(items)
-    chest = Chest(coords,id=id)
-    new_inv = Inventory(None, 4, 4) # Create a new inventory for each chest
+    chest = Chest(coords, id=id)
+    new_inv = Inventory(None, 4, 4)  # Create a new inventory for each chest
     for item in items:
         print(f"{item} is the item")
         new_inv.add_item(item)
     chest._ChestInv = new_inv
     chests[id] = chest  # Store the chest in a dictionary
+
 
 def separate_chest_string(all_chest_string):
     chest_entries = all_chest_string.split(';')
@@ -122,11 +125,12 @@ def separate_chest_string(all_chest_string):
                 if id in chests.keys():
                     pass
                 else:
-                    items = list(map(str,parts[4:]))
-                    CreateChest(coords, id,items)
+                    items = list(map(str, parts[4:]))
+                    CreateChest(coords, id, items)
             except Exception as e:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {entry} to mob data: ", e)
+
 
 def separate_mob_string(all_mobs_string):
     # Split the string by semicolons to get individual mob data strings
@@ -242,7 +246,7 @@ def seperateInv(inv3):
         if item.sloty <= 4:
             inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
         else:
-            inv2.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty-4)
+            inv2.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty - 4)
     return inv1, inv2
 
 
@@ -265,7 +269,7 @@ class Chest(Entity):
             collider='box',
             scale=4,
             _ChestInv=0,
-            id = id,
+            id=id,
         )
         self.isopen = False
         # Ensure a new Inventory instance is created if not provided
@@ -279,7 +283,7 @@ class Chest(Entity):
         return self._ChestInv
 
     def CloseChest(self):
-        global inv, inv3,miniInv
+        global inv, inv3, miniInv
         inv, self._ChestInv = seperateInv(inv3)
         inv3.closeInv(player)
         self.isopen = False
@@ -930,19 +934,17 @@ stop_event = threading.Event()
 
 
 def death():
-<<<<<<< Updated upstream
     items = inv.get_inventory_items()
     print(items)
     client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
-    respawn_screen.show()
-=======
     close_game()
->>>>>>> Stashed changes
+
 
 activeChest = 0
 
+
 def input(key):
-    global cursor,inv,activeChest
+    global cursor, inv, activeChest
     if key == 'escape':
         # Wait for the background thread to finish
         client.send_data(f"gDisconnect&{client_id}")
@@ -1382,7 +1384,6 @@ if __name__ == "__main__":
 
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
-
 
         print("10")
 
