@@ -14,7 +14,9 @@ class Inventory(Entity):
             color=color.color(0, 0, .1, .9),
             button_enabled=False,
             enabled=False,
-            player = player
+            player = player,
+            width = width,
+            height = height,
         )
 
         self.width = width
@@ -27,7 +29,6 @@ class Inventory(Entity):
             x=-.5,
             color=color.lime.tint(-.25),
             text='+',
-            tooltip=Tooltip('Add random item'),
             on_click=self.add_item,
             enabled=self.button_enabled
         )
@@ -82,8 +83,6 @@ class Inventory(Entity):
         )
         name = item.replace('_', ' ').title()
 
-        icon.tooltip = Tooltip(name)
-        icon.tooltip.background.color = color.color(0, 0, 0, .8)
 
         def drag():
             icon.org_pos = (icon.x, icon.y)
@@ -161,6 +160,9 @@ class Inventory(Entity):
         Cursor.enabled = True
         destroy(cursor)
 
+    def get_inventory_items(self):
+        return [str(item.texture).replace('.png','') for item in self.children]
+
 
 if __name__ == '__main__':
     app = Ursina()
@@ -177,7 +179,6 @@ if __name__ == '__main__':
         x=-.5,
         color=color.lime.tint(-.25),
         text='+',
-        tooltip=Tooltip('Add random item'),
         on_click=add_item
     )
 

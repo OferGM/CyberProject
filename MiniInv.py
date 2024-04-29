@@ -69,9 +69,10 @@ class MiniInv(Entity):
             j.texture = 'KillCount.png'
         for item in self.inventory.children:
             if item.sloty == 0:
-                slotx[round(item.slotx)] = 1
-                self.image_entities[math.ceil(item.slotx)].texture = item.texture
-                self.image_children[i] = item
+                if round(item.slotx) < len(slotx):
+                    slotx[round(item.slotx)] = 1
+                    self.image_entities[math.ceil(item.slotx)].texture = item.texture
+                    self.image_children[i] = item
             i += 1
             if (i == 4):
                 for i in range(4):

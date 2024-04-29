@@ -13,6 +13,8 @@ import time
 import socket
 from queue import Queue
 import subprocess
+import psd_tools
+
 
 last_skill_activation = {
     'cooldown': 0,
@@ -24,15 +26,35 @@ last_skill_activation = {
 LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
 running = 1
+DEAD = 0
 
 mobs = {}
 witches = {}
 players = {}
 orbs = {}
+chests = {}
 destroyed_orbs = []
 rendered_players = {}
 update_queue = Queue()
 
+def RemoveChest(chest_id):
+    """
+    Removes a chest from the game world and the internal tracking dictionary based on its ID.
+
+    Args:
+    chest_id (int): The unique identifier of the chest to be removed.
+    """
+    # Check if the chest with the given ID exists in the dictionary
+    if chest_id in chests:
+        # Retrieve the chest entity
+        chest = chests[chest_id]
+        # Safely remove the chest entity from the scene
+        destroy(chest)
+        # Remove the chest from the dictionary to prevent future access
+        del chests[chest_id]
+        print(f"Chest with ID {chest_id} has been removed.")
+    else:
+        print(f"No chest found with ID {chest_id}.")
 
 def CreateNewPlayer(id):
     if id not in players:
@@ -74,6 +96,37 @@ def CreateItem(coords, id, type):
     item = Item(position=coords, id=id, ttype=type)
     items[id] = item
 
+def CreateChest(coords, id, items):
+    if id in chests:
+        return
+    print(coords)
+    print(items)
+    chest = Chest(coords,id=id)
+    new_inv = Inventory(None, 4, 4) # Create a new inventory for each chest
+    for item in items:
+        print(f"{item} is the item")
+        new_inv.add_item(item)
+    chest._ChestInv = new_inv
+    chests[id] = chest  # Store the chest in a dictionary
+
+def separate_chest_string(all_chest_string):
+    chest_entries = all_chest_string.split(';')
+
+    for entry in chest_entries:
+        if entry and entry != '&':
+            parts = entry.split('&')
+
+            try:
+                id = int(parts[0])
+                coords = tuple(map(float, parts[1:4]))
+                if id in chests.keys():
+                    pass
+                else:
+                    items = list(map(str,parts[4:]))
+                    CreateChest(coords, id,items)
+            except Exception as e:
+                # Handle the case where conversion to int fails
+                print(f"Could not convert {entry} to mob data: ", e)
 
 def separate_mob_string(all_mobs_string):
     # Split the string by semicolons to get individual mob data strings
@@ -184,17 +237,17 @@ class orb(Entity):
 
 def seperateInv(inv3):
     inv1 = Inventory(player, 4, 4)
-    inv2 = Inventory(None, 4, 1)
+    inv2 = Inventory(None, 4, 4)
     for item in inv3.children:
         if item.sloty <= 4:
             inv1.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty)
         else:
-            inv2.append(str(item.texture).replace('.png', ''), item.slotx, 0)
+            inv2.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty-4)
     return inv1, inv2
 
 
 def combineInv(inv1, inv2):
-    inv3 = Inventory(None, 4, 5)
+    inv3 = Inventory(None, 4, 8)
     for item in inv1.children:
         inv3.append(str(item.texture).replace('.png', ''), item.slotx, item.sloty + 4)
 
@@ -205,16 +258,18 @@ def combineInv(inv1, inv2):
 
 
 class Chest(Entity):
-    def __init__(self, position, chest_inventory=None):
+    def __init__(self, position, id, chest_inventory=None):
         super().__init__(
             model='Suitcase_for_tools.glb',
             position=position,
             collider='box',
             scale=4,
+            _ChestInv=0,
+            id = id,
         )
-        # Initialize ChestInv with the provided inventory or a new one if not provided
         self.isopen = False
-        self._ChestInv = chest_inventory if chest_inventory is not None else Inventory(None)
+        # Ensure a new Inventory instance is created if not provided
+        self._ChestInv = Inventory(None) if chest_inventory is None else chest_inventory
 
     @property
     def ChestInv(self):
@@ -224,19 +279,23 @@ class Chest(Entity):
         return self._ChestInv
 
     def CloseChest(self):
-        global inv, inv3
+        global inv, inv3,miniInv
         inv, self._ChestInv = seperateInv(inv3)
         inv3.closeInv(player)
         self.isopen = False
         del inv3  # Delete inv3 after it's no longer needed
+        miniInv.inventory = inv
+        RemoveChest(self.id)
 
     def OpenChest(self):
         global inv3
         # Ensure that conditions are right to open the chest (e.g., resources are loaded)
         if not self.isopen:
             self.isopen = True
-            inv3 = combineInv(self.ChestInv, inv)  # Combine inventories
+            inv3 = combineInv(self._ChestInv, inv)  # Combine inventories
             inv3.openInv(player)
+            client.send_data(f"gREMOVECHEST&{client.id}&{self.id}")
+
         else:
             # Handle situation where chest can't be opened (show message, etc.)
             print("Chest can't be opened right now.")
@@ -300,6 +359,9 @@ class RespawnScreen(Entity):
 
         self.visible = False
 
+    def GetVisible(self):
+        return self.visible
+
     def show(self):
         self.enabled = True
 
@@ -307,9 +369,11 @@ class RespawnScreen(Entity):
         self.enabled = False
 
     def on_respawn_button_click(self):
+        global DEAD
         player.respawn(screen=self)
         player.health = 100
         player_health_bar.value = 100
+        DEAD = 0
         self.hide()
 
 
@@ -792,6 +856,7 @@ def updatePlayer(id, x, y, z, rotation, health, item):
 
 
 def recv_game_data_continuosly(player, stop_event):
+    global DEAD
     try:
         while not stop_event.is_set():
             a = client.receive_data()
@@ -819,6 +884,13 @@ def recv_game_data_continuosly(player, stop_event):
             if aList[0] == 'aI':
                 if a.replace('aI&', '') != '':
                     separate_item_string(a.replace('aI', ''))
+            if aList[0] == 'aC':
+                if a.replace('aC&', '') != '':
+                    separate_chest_string(a.replace('aC', ''))
+            if aList[0] == 'aREMOVECHEST':
+                if int(aList[1]) != int(client.id):
+                    print("Chest Removed")
+                    RemoveChest(int(aList[2]))
             if aList[0] == 'NEW':
                 print("NEW PLAYER")
                 CreateNewPlayer(int(aList[1]))
@@ -833,7 +905,8 @@ def recv_game_data_continuosly(player, stop_event):
                     p.health = int(aList[2])
                 if int(aList[1]) == client.get_id():
                     player.health = int(aList[2])
-                    if player.health <= 0:
+                    if player.health <= 0 and DEAD == 0:
+                        DEAD = 1
                         death()
             if aList[0] == 'aPICKED':
                 items[int(aList[1])].enabled = False
@@ -857,11 +930,15 @@ stop_event = threading.Event()
 
 
 def death():
+    items = inv.get_inventory_items()
+    print(items)
+    client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
     respawn_screen.show()
 
+activeChest = 0
 
 def input(key):
-    global cursor
+    global cursor,inv,activeChest
     if key == 'escape':
         # Wait for the background thread to finish
         client.send_data(f"gDisconnect&{client_id}&{player_money_bar.value}&{ak47_count}&{m4_count}&{awp_count}"
@@ -874,8 +951,11 @@ def input(key):
     if held_keys['left mouse']:
         selectedGun.shoot()
     if held_keys['right mouse']:
-        if chest.Check():
-            chest.OpenChest()
+        hoveredEntity = mouse.hovered_entity
+        if isinstance(hoveredEntity, Chest):
+            if hoveredEntity.Check():
+                hoveredEntity.OpenChest()
+                activeChest = hoveredEntity
         elif selectedGun.gun_type == 'awp' and inv.enabled == False:
             gun.aim()
     if key == 'j':
@@ -886,8 +966,10 @@ def input(key):
         ActivateSpeedSkill()
 
     # Check if 'i' is pressed and the chest is open
-    if key == 'i' and chest.isopen:
-        chest.CloseChest()
+    if key == 'i' and activeChest != 0:
+        if activeChest.isopen:
+            activeChest.CloseChest()
+            activeChest = 0
     else:
         # Check if 'i' is pressed and the inventory button is enabled
         if key == 'i':
@@ -1152,6 +1234,7 @@ if __name__ == "__main__":
         inv = Inventory(player, 4, 4)
         inv.enabled = False
         addItems(invdata)
+        inv.add_item("awp")
 
         print("8")
 
@@ -1176,8 +1259,9 @@ if __name__ == "__main__":
         respawn_screen = RespawnScreen()
         respawn_screen.hide()
 
-        chest = Chest((2, 0, 2))
-        chest.ChestInv = Inventory(None)
+        # chest = Chest((2, 0, 2))
+        # chest._ChestInv = Inventory(None,4,4)
+        # chest._ChestInv.add_item("ak-47")
 
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
