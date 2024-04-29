@@ -357,8 +357,7 @@ class Server:
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
                     login_socket.connect(("127.0.0.1", 6969))
-                    login_socket.send(f"Disconnect%{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}"
-                                      f"&{dataArr[6]}&{dataArr[7]}&{dataArr[8]}&{dataArr[9]}&{dataArr[10]}".encode())
+                    login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
 
                 if dataArr[0] == 'gDAMAGEWITCH':
