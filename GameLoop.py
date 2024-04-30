@@ -233,6 +233,7 @@ class Enemy(Entity):
         print(f"Dropped {loot_item} at {loot.position}")
 
     def enemy_hit(self, damage):
+        print(damage)
         self.health -= damage
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
@@ -570,7 +571,7 @@ class Melee:
     def hit(self):
         hovered_entity = mouse.hovered_entity
         if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
-            hovered_entity.enemy_hit(self)
+            hovered_entity.enemy_hit(self.damage)
 
     def deactivate(self):
         # Animate the arms to a deactivated position (putting them down)
