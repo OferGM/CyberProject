@@ -1,9 +1,6 @@
-import math
 import socket
 import queue
 import threading
-import time
-import select
 from pyskiplist import SkipList
 
 UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
@@ -354,14 +351,14 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
             print("error: ", e)
 
 def main():
-    tcp_host = '127.0.0.1'
+    tcp_host = '0.0.0.0'
     tcp_port = 8888
 
-    udp_host = '127.0.0.1'
+    udp_host = '0.0.0.0'
     udp_port = 9999
 
-    servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
-                    'login': ('127.0.0.1', 12345)}
+    servers_dict = {1: ('0.0.0.0', 12341), 2: ('0.0.0.0', 12342), 3: ('0.0.0.0', 12343), 4: ('0.0.0.0', 12344),
+                    'login': ('0.0.0.0', 12345)}
 
     ClientList = ClientLister()
 

@@ -2,16 +2,15 @@ import random
 import socket
 import threading
 import time
-import queue
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
-LOAD_BALANCER_UDP_ADDR = ('127.0.0.1', 9999)
-servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
-                    'login': ('127.0.0.1', 12345)}
+servers_dict = {1: 12341, 2: 12342, 3: 12343, 4: 12344}
+
 
 class Server:
     def __init__(self, addr):
+        self.machine_IP = get_ip_address()
         self.host = addr[0]
         self.port = addr[1]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -26,34 +25,32 @@ class Server:
         self.chat_messages = []
         self.orbs = {}
         self.heldItems = {}
-        self.chests = {} # chests[id] = [x,y,z,item1,item2,...,item[n]]
+        self.chests = {}  # chests[id] = [x,y,z,item1,item2,...,item[n]]
 
-
-    def GenerateChest(self,x,y,z,items):
+    def GenerateChest(self, x, y, z, items):
         id = random.randint(10000000, 99999999)
-        list = [x,y,z]
+        list = [x, y, z]
         for item in items:
             list.append(item)
         self.chests[id] = list
         print("hi")
         packet = self.CreateChestString()
-        self.socket.sendto(packet.encode(), LOAD_BALANCER_UDP_ADDR)
-
-
+        self.socket.sendto(packet.encode(), (self.machine_IP, 9999))
 
     def GenerateMobs(self):
         if len(self.mobs) < 10:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
-            random.randint(1, 50), 1.5, random.randint(1, 50), random.randint(0, 360) ,100]
+                random.randint(1, 50), 1.5, random.randint(1, 50), random.randint(0, 360), 100]
             self.mobs[id] = random_coordinates
             self.playerChase[id] = 0
 
-    def GenerateOrbs(self,x,y,z,playerToChase):
+    def GenerateOrbs(self, x, y, z, playerToChase):
         id = random.randint(10000000, 99999999)
-        random_coordinates = [x,y,z]
+        random_coordinates = [x, y, z]
         self.orbs[id] = random_coordinates
         self.playerChaseOrbs[id] = playerToChase
+
     def GenerateWitches(self):
         if len(self.witches) < 10:
             id = random.randint(10000000, 99999999)
@@ -64,14 +61,14 @@ class Server:
             self.witches[id] = random_coordinates
             self.playerChaseWitches[id] = 0
 
-    def GenerateItem(self,x,z):
+    def GenerateItem(self, x, z):
         id = random.randint(10000000, 99999999)
         random_coordinates = [x, 1, z, random.randint(0, 360)]
         self.items[id] = random_coordinates
 
-    def RemoveChest(self,clientID,id):
+    def RemoveChest(self, clientID, id):
         self.chests.pop(int(id))
-        self.socket.sendto(f"aREMOVECHEST&{clientID}&{id}".encode(), LOAD_BALANCER_UDP_ADDR)
+        self.socket.sendto(f"aREMOVECHEST&{clientID}&{id}".encode(), (self.machine_IP, 9999))
 
     def CreateChestString(self):
         chest_strings = ["aC&"]
@@ -106,7 +103,7 @@ class Server:
                 # Handle additional cleanup or game logic, like spawning items
                 self.GenerateItem(witch[0], witch[2])
                 # Notify clients
-                self.socket.sendto(f"aWDEAD&{witch_id}".encode(), LOAD_BALANCER_UDP_ADDR)
+                self.socket.sendto(f"aWDEAD&{witch_id}".encode(), (self.machine_IP, 9999))
             else:
                 # Update witch's health in the dictionary
                 self.witches[witch_id] = (
@@ -125,7 +122,10 @@ class Server:
         # Check if enough time has elapsed since the last orb was shot
         if current_time - self.witches[witch_id][5] > orb_cooldown:
             # Update the last orb shot time
-            self.witches[witch_id] = (self.witches[witch_id][0],self.witches[witch_id][1],self.witches[witch_id][2],self.witches[witch_id][3],self.witches[witch_id][4],current_time)
+            self.witches[witch_id] = (
+                self.witches[witch_id][0], self.witches[witch_id][1], self.witches[witch_id][2],
+                self.witches[witch_id][3],
+                self.witches[witch_id][4], current_time)
             # Generate the orb
             self.GenerateOrbs(self.witches[witch_id][0], self.witches[witch_id][1], self.witches[witch_id][2], playerID)
         else:
@@ -155,7 +155,7 @@ class Server:
                         player_x = float(player_coords[0])
                         player_z = float(player_coords[2])
                         distance = ((current_witch_data[0] - player_x) ** 2 + (
-                                    current_witch_data[2] - player_z) ** 2) ** 0.5
+                                current_witch_data[2] - player_z) ** 2) ** 0.5
 
                         if distance > 14:
                             # Update position towards the player
@@ -222,10 +222,10 @@ class Server:
             player_health
         )
         # Inform client about the new health
-        self.socket.sendto(f"aH&{player_id}&{player_health}".encode(), LOAD_BALANCER_UDP_ADDR)
+        self.socket.sendto(f"aH&{player_id}&{player_health}".encode(), (self.machine_IP, 9999))
         # Remove the orb after it hits a player
         print("ORB EXPLODED")
-        self.socket.sendto(f"aRemoveOrb&{orb_id}".encode(), LOAD_BALANCER_UDP_ADDR)
+        self.socket.sendto(f"aRemoveOrb&{orb_id}".encode(), (self.machine_IP, 9999))
         self.orbs.pop(orb_id, None)
         pass
 
@@ -257,7 +257,7 @@ class Server:
         data = self.CreateItemString()
         self.socket.sendto(data.encode(), addr)
         data = self.CreateWitchString()
-        self.socket.sendto(data.encode(),addr)
+        self.socket.sendto(data.encode(), addr)
         orb_data = self.createOrbString()
         if orb_data != 'a0&':
             self.socket.sendto(orb_data.encode(), addr)  # Send orb data to clients
@@ -312,6 +312,7 @@ class Server:
                         current_zombie_data[3],
                         current_zombie_data[4]  # Preserve existing health
                     )
+
     def update_zombies(self):
         while (True):
             # if len(self.mobs) < 30:
@@ -319,11 +320,11 @@ class Server:
             for zombieID in self.mobs.keys():
                 self.find_closest_player(zombieID)
             self.update_positions()
-            self.SendPositions(addr=LOAD_BALANCER_UDP_ADDR)
+            self.SendPositions(addr=(self.machine_IP, 9999))
             time.sleep(SEARCH_CLOSEST_PLAYER_RATE)
 
     def handle_client(self):
-        while(True):
+        while (True):
             try:
                 data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
@@ -343,7 +344,7 @@ class Server:
                     self.socket.sendto(msg.encode(), addr)
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'gDEAD':
-                    self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])
+                    self.GenerateItem(self.mobs[int(dataArr[2])][0], self.mobs[int(dataArr[2])][2])
                     self.mobs.pop(int(dataArr[2]))
                     self.playerChase.pop(int(dataArr[2]))
                     self.socket.sendto(f"aR&{int(dataArr[2])}".encode(), addr)
@@ -351,7 +352,10 @@ class Server:
                     self.items.pop(int(dataArr[2]))
                     self.socket.sendto(f"aPICKED&{dataArr[2]}".encode(), addr)
                 if dataArr[0] == 'gDAMAGE':
-                    self.coordinates[dataArr[1]] = (self.coordinates[dataArr[1]][0], self.coordinates[dataArr[1]][1], self.coordinates[dataArr[1]][2], self.coordinates[dataArr[1]][3], dataArr[2])
+                    self.coordinates[dataArr[1]] = (
+                        self.coordinates[dataArr[1]][0], self.coordinates[dataArr[1]][1],
+                        self.coordinates[dataArr[1]][2],
+                        self.coordinates[dataArr[1]][3], dataArr[2])
                     print(f"Player {int(dataArr[1])} hurt and his health is {dataArr[2]}")
 
                     self.socket.sendto(f"aH&{int(dataArr[1])}&{dataArr[2]}".encode(), addr)
@@ -359,7 +363,7 @@ class Server:
                     print("DAMAGED MOB")
                     mob_id = int(dataArr[2])  # Ensuring that the mob ID is an integer
                     damage = int(dataArr[3])  # Ensuring that the damage is an integer
-                    print("damage:",damage)
+                    print("damage:", damage)
                     print(self.mobs[mob_id][4])
 
                     if mob_id in self.mobs:
@@ -367,8 +371,8 @@ class Server:
                         print(f"Before damage: Zombie {mob_id} health is {current_health}")
                         new_health = current_health - damage
                         self.mobs[mob_id] = (
-                        self.mobs[mob_id][0], self.mobs[mob_id][1], self.mobs[mob_id][2], self.mobs[mob_id][3],
-                        new_health)
+                            self.mobs[mob_id][0], self.mobs[mob_id][1], self.mobs[mob_id][2], self.mobs[mob_id][3],
+                            new_health)
                         print(f"After damage: Zombie {mob_id} health is {self.mobs[mob_id][4]}")
 
                         if new_health <= 0:
@@ -384,7 +388,7 @@ class Server:
                     self.playerChase.pop(dataArr[1], None)
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
-                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.connect((self.machine_IP, 6969))
                     login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
 
@@ -404,31 +408,51 @@ class Server:
                 if dataArr[0] == 'gREMOVEITEM':
                     CHEST_ID = dataArr[1]
                     item = dataArr[2]
-                    self.RemoveItemFromChest(CHEST_ID,item)
+                    self.RemoveItemFromChest(CHEST_ID, item)
 
-                if dataArr[0] == 'gPLAYERDEATH': #gPLAYERDEATH&x&y&z&item1&item2&...&item[n]
+                if dataArr[0] == 'gPLAYERDEATH':  # gPLAYERDEATH&x&y&z&item1&item2&...&item[n]
                     print("PLAYER DIED")
                     x = dataArr[2]
                     y = dataArr[3]
                     z = dataArr[4]
                     items = [dataArr[i] for i in range(5, len(dataArr))]
                     print(items)
-                    self.GenerateChest(x,y,z,items)
+                    self.GenerateChest(x, y, z, items)
                     login_socket = socket.socket()
-                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.connect((self.machine_IP, 6969))
                     login_socket.send(f"Disconnect%{dataArr[1]}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}".encode())
                     login_socket.close()
                 if dataArr[0] == 'gREMOVECHEST':
-                    self.RemoveChest(dataArr[1],dataArr[2])
+                    self.RemoveChest(dataArr[1], dataArr[2])
 
 
             except Exception as e:
                 print(f"Error handling client: {e}")
 
 
+def get_ip_address():
+    # Create a socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # Connect to a remote server (doesn't matter which one)
+        s.connect(("8.8.8.8", 80))
+
+        # Get the socket's local address, which is the local IP address
+        ip_address = s.getsockname()[0]
+    except Exception as e:
+        print(f"Error getting IP address: {e}")
+        ip_address = None
+    finally:
+        # Close the socket
+        s.close()
+
+    return ip_address
+
+
 # Example usage
 if __name__ == "__main__":
     serverNum = int(input("Enter server number: "))
     serverAddress = servers_dict[serverNum]
-    server = Server(serverAddress)
+    server = Server((get_ip_address(), serverAddress))
     server.start_server()

@@ -5,9 +5,30 @@ import socket
 from bson.objectid import ObjectId
 import threading
 
+
+def get_ip_address():
+    # Create a socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # Connect to a remote server (doesn't matter which one)
+        s.connect(("8.8.8.8", 80))
+
+        # Get the socket's local address, which is the local IP address
+        ip_address = s.getsockname()[0]
+    except Exception as e:
+        print(f"Error getting IP address: {e}")
+        ip_address = None
+    finally:
+        # Close the socket
+        s.close()
+
+    return ip_address
+
+
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect(("127.0.0.1", 8888))
+lb_socket.connect((get_ip_address(), 8888))
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -314,9 +335,9 @@ def main():
 
     """
     server_socket = socket.socket()
-    server_socket.bind(("127.0.0.1", 6969))
+    server_socket.bind(("0.0.0.0", 6969))
     server_socket.listen()
-    print("Server up and running, listening at: 127.0.0.1, 6969")
+    print("Server up and running, listening at: 0.0.0.0, 6969")
 
     while True:
         client_socket, client_address = server_socket.accept()

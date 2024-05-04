@@ -2,11 +2,31 @@ import socket
 import random
 
 
+def get_ip_address():
+    # Create a socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # Connect to a remote server (doesn't matter which one)
+        s.connect(("8.8.8.8", 80))
+
+        # Get the socket's local address, which is the local IP address
+        ip_address = s.getsockname()[0]
+    except Exception as e:
+        print(f"Error getting IP address: {e}")
+        ip_address = None
+    finally:
+        # Close the socket
+        s.close()
+
+    return ip_address
+
+
 class clientfuncs:
     def __init__(self, client_id):
-        self.server_address = ('127.0.0.1', 9999)
+        self.server_address = (get_ip_address(), 9999)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.connect(('127.0.0.1', 9999))
+        self.socket.connect((get_ip_address(), 9999))
         self.connected = False
         self.id = client_id
 
@@ -43,7 +63,6 @@ class clientfuncs:
 
         except Exception as e:
             print(f"Failed to receive data from server: {e}")
-
 
 
 # Example usage
