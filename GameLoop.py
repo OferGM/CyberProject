@@ -1023,8 +1023,8 @@ def addItems(data):
 def build_map():
     #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
     #colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=2, position=(0, 6, 0))
-    jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=5, position=(-600, 11, -800))
-    helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=5, position=(800, 0, 650),
+    jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=1, position=(-600, 2, -800))
+    helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=2, position=(800, 0, 650),
                         rotation_x=-90)
     wall1 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, -1250))
     wall2 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, 1250),
@@ -1190,9 +1190,9 @@ if __name__ == "__main__":
         app = Ursina(borderless=False)
         skybox_image = load_texture("scattered-clouds-blue-sky.jpg")
         Sky(texture=skybox_image)
-        build_map()
 
-        ground = Entity(model='plane', collider='box', scale=512, texture='grass', texture_scale=(8, 8))
+        ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
+        build_map()
         skill_display = SkillDisplay()
         # skill_display.close_skills()
         player = player()
