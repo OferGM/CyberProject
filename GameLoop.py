@@ -1021,10 +1021,10 @@ def addItems(data):
 
 
 def build_map():
-    # ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
-    # colosseum = Entity(model='my_colosseum3_test', collider='sphere', texture='marble', scale=2, position=(0, 6, 0))
-    jeep = Entity(model='jeep', collider='sphere', texture='sphere', scale=5, position=(-600, 11, -800))
-    helicopter = Entity(model='helicopter', collider='sphere', texture='Huey', scale=5, position=(800, 0, 650),
+    #ground = Entity(model='plane', collider='mesh', scale=(2500, 0, 2500), texture='grass')
+    #colosseum = Entity(model='my_colosseum3_test', collider='mesh', texture='marble', scale=2, position=(0, 6, 0))
+    jeep = Entity(model='jeep', collider='mesh', texture='jeep', scale=5, position=(-600, 11, -800))
+    helicopter = Entity(model='helicopter', collider='mesh', texture='Huey', scale=5, position=(800, 0, 650),
                         rotation_x=-90)
     wall1 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, -1250))
     wall2 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(0, 0, 1250),
@@ -1033,7 +1033,7 @@ def build_map():
                    rotation_y=90)
     wall4 = Entity(model='wall', collider='box', scale=(5, 1, 1), texture='wall_texture', position=(1250, 0, 0),
                    rotation_y=-90)
-    Entity(model='forest_trunk', collider='sphere', texture='brown', scale=2, position=(0, 0, 0))
+    Entity(model='forest_trunk', collider='mesh', texture='brown', scale=2, position=(0, 0, 0))
     Entity(model='forest_head', texture='dark_green', scale=2, position=(0, 0, 0))
 
     tree_scale = 3
@@ -1043,7 +1043,7 @@ def build_map():
                -535, -114]
     angle_array = [162, 53, 105, 223, 156, 175, 236, 212, 288, 308, 262, 290, 294, 334, 343, 180, 276, 253, 104, 266]
     for i in range(0, 20):
-        Entity(model='tree_trunk2', collider='sphere', texture='brown', scale=tree_scale,
+        Entity(model='tree_trunk2', collider='mesh', texture='brown', scale=tree_scale,
                position=(x_array[i], 0, z_array[i]), rotation_y=angle_array[i])
         Entity(model='tree_head2', texture='med_gren', scale=tree_scale, position=(x_array[i], 0, z_array[i]),
                rotation_y=angle_array[i])
@@ -1054,7 +1054,7 @@ def build_map():
                221]
     angle_array = [40, 135, 200, 278, 318, 231, 269, 84, 310, 165, 201, 74, 28, 256, 352, 206, 249, 56, 30, 360]
     for i in range(0, 20):
-        Entity(model='tree_trunk4', collider='sphere', texture='brown', scale=tree_scale,
+        Entity(model='tree_trunk4', collider='mesh', texture='brown', scale=tree_scale,
                position=(x_array[i], 0, z_array[i]), rotation_y=angle_array[i])
         Entity(model='tree_head4', texture='dark_green', scale=tree_scale, position=(x_array[i], 0, z_array[i]),
                rotation_y=angle_array[i])
