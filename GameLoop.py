@@ -839,7 +839,7 @@ def stop_rendering_continuosly():
         time.sleep(0.2)
 
 
-def send_game_data_continuously(player, stop_event):
+def send_game_data_continuously(player, stop_event, secret):
     while not stop_event.is_set():
         try:
             client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
@@ -858,12 +858,25 @@ def updatePlayer(id, x, y, z, rotation, health, item):
         p.health = int(health)
         p.UpdateItem(item)
 
+def decrypt(data, shared_key):
+    # Convert key to bytes (using 4 bytes and little endian byteorder)
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
 
-def recv_game_data_continuosly(player, stop_event):
-    global DEAD
-    try:
+    # Perform XOR operation between each byte of the encrypted message and the key
+    decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
+    print(decrypted_bytes)
+    # Convert the decrypted bytes back to a string
+    decrypted_message = decrypted_bytes.decode()
+
+    return decrypted_message
+
+def recv_game_data_continuosly(player, stop_event, shared_key):
+        global DEAD
+    #try:
         while not stop_event.is_set():
             a = client.receive_data()
+            print("Received: ", a)
+            a = decrypt(a, shared_key)
             aList = a.split('&')
             if aList[0] == 'STATE':
                 if int(aList[1]) != int(client.get_id()):
@@ -926,8 +939,8 @@ def recv_game_data_continuosly(player, stop_event):
                     print(len(orbs))
                 else:
                     print(f"Orb with ID {orb_id} not found")
-    except Exception as e:
-        print("error: ", e)
+    #except Exception as e:
+    #    print("error: ", e)
 
 
 stop_event = threading.Event()
@@ -1186,7 +1199,7 @@ def client_program(port_yes):
     return shared_secret, public_key_client, private_key_client
 
 if __name__ == "__main__":
-    try:
+    #try:
         port_yes = random.randint(50000, 65534)
 
         secret, client_public_key, client_private_key = client_program(port_yes)
@@ -1214,6 +1227,7 @@ if __name__ == "__main__":
 
         while True:
             invdata = client.receive_data()
+            invdata = decrypt(invdata, secret)
             if invdata.startswith("sINV"):
                 print("Current inv is: ", invdata)
                 break
@@ -1228,13 +1242,13 @@ if __name__ == "__main__":
         # skill_display.close_skills()
         player = player()
 
-        thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+        thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event, secret))
         thread.start()
 
         # thread = threading.Thread(target=stop_rendering_continuosly, args=())
         # thread.start()
 
-        thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
+        thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))
         thread.start()
 
         print("here")
@@ -1298,5 +1312,5 @@ if __name__ == "__main__":
 
         print("11")
 
-    except Exception as e:
-        print("error: ", e)
+    #except Exception as e:
+    #    print("error: ", e)

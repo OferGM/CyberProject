@@ -160,6 +160,10 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
         for serverIP in servers_list.values():
             udp_socket.sendto(data.encode(), serverIP)
 
+def decrypt(data, shared_key):
+    kak = data^shared_key
+    return string(kak)
+
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
     #try:
         if data.startswith("s"):        #data intended for specific client
@@ -233,9 +237,9 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             return
 
         if data.startswith("a"):  # if data is intended for all clients
-            for clientIP in ClientList.get_ip_dict().values():  # for every client:
-                #print("poopooooooooo: ", clientIP)
-                udp_socket.sendto((data).encode(), clientIP)
+            for clientID in ClientList.get_ip_dict().keys():  # for every client:
+                precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
+                udp_socket.sendto(precious, ClientList.get_ip_dict()[clientID])
             return
 
         if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
@@ -420,6 +424,16 @@ def server_program(ClientList, kaki, kadki):
         connection.close()
         ClientList.get_hellman()[public_key_client] = shared_secret
         ClientList.get_public()[client_id] = public_key_client
+
+def encrypt(data, shared_key):
+    # Convert message and key to byte arrays
+    message_bytes = data.encode()
+    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+
+    # Perform XOR operation between each byte of the message and the key
+    encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
+    print(encrypted_bytes)
+    return encrypted_bytes
 
 def main():
     tcp_host = '127.0.0.1'

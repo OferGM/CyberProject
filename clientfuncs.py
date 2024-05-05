@@ -28,7 +28,7 @@ class clientfuncs:
             # Process received data
             if data == b'':
                 return
-            data = data.decode()
+            #data = data.decode()
             return data
         except socket.timeout:
             print("No data received within timeout period")
