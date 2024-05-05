@@ -5,6 +5,8 @@ import threading
 import time
 import select
 from pyskiplist import SkipList
+import random
+from sympy import randprime
 
 UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
 SERVER_UPDATE_RATE = 10  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
@@ -21,6 +23,14 @@ class ClientLister:
         self.server_dict = {}  # dict that matches between ID and server
         self.update_dict = {}  # dict that holds the mov msgs counter for each client (and the total counter)
         self.sl = SkipList()  # ordered skip list that holds x positions with ID's as keys
+        self.hellman = {}
+        self.public = {}
+
+    def get_public(self):
+        return self.public
+
+    def get_hellman(self):
+        return self.hellman
 
     def get_edges_arr(self):
         return self.edges_arr
@@ -151,7 +161,7 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
             udp_socket.sendto(data.encode(), serverIP)
 
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
-    try:
+    #try:
         if data.startswith("s"):        #data intended for specific client
             indi = data.split('&')
             clientID = int(indi[1])
@@ -166,16 +176,23 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             print("Client ID is: ", clientID)
             clientIP = f'({addr[0]}, {addr[1]})'
             print("Client IP is: ",clientIP)
-            ClientList.get_ip_dict()[clientID] = clientIP
-            ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-            print("Calculating edges")
-            ClientList.calc_edges()
-            client_server = ClientList.get_server(clientID)
-            print("Client server is: ", client_server)
-            ClientList.get_server_dict()[clientID] = client_server
-            serverIP = servers_list[client_server[0]]
-            udp_socket.sendto(data.encode(), serverIP)
-            print(f"Sent HI msg: {data} to {serverIP}")
+            clientKEY = int(indi[2])
+            if ClientList.get_hellman()[clientKEY]:
+                print("yaya")
+                ClientList.get_ip_dict()[clientID] = clientIP
+                ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+                print("Calculating edges")
+                ClientList.calc_edges()
+                client_server = ClientList.get_server(clientID)
+                print("Client server is: ", client_server)
+                ClientList.get_server_dict()[clientID] = client_server
+                serverIP = servers_list[client_server[0]]
+                udp_socket.sendto(data.encode(), serverIP)
+                print(f"Sent HI msg: {data} to {serverIP}")
+                return
+            print("NOT REGISTERED!!!!!!!!!!!!")
+            print("NOT REGISTERED!!!!!!!!!!!!")
+            print("NOT REGISTERED!!!!!!!!!!!!")
             return
 
         if data.startswith("HELD"):
@@ -260,6 +277,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             print("Disconnecting: ", clientID)
             ClientList.remove_client(clientID)
             del ClientList.get_server_dict()[clientID]
+            public = ClientList.get_public()[clientID]
+            del ClientList.get_hellman()[public]
             #udp_socket.sendto(data.encode(), servers_list['login'])
             #for clientIP in ClientList.get_ip_dict().values():
             #    udp_socket.sendto(data.encode(), clientIP)
@@ -273,8 +292,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         ##if clientServer[1] != 0:
         ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
         return
-    except:
-        pass
+    #except:
+    #    pass
 
 # Function to handle multiple TCP connections
 def tcp_server(host, port, ClientList, servers_list, udp_socket):
@@ -353,6 +372,55 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
         except Exception as e:
             print("error: ", e)
 
+def gen_prime():
+    # Function to generate a large prime number
+    return randprime(2 ** 1023, 2 ** 1024 - 1)
+
+
+def gen_primitive_root(p):
+    while True:
+        g = random.randint(2, p - 1)
+        if pow(g, (p - 1) // 2, p) != 1 and pow(g, 2, p) != 1:
+            return g
+
+
+def server_program(ClientList, kaki, kadki):
+    host = '0.0.0.0'
+    port = 1010
+
+    server_socket = socket.socket()
+    server_socket.bind((host, port))
+    server_socket.listen(1)
+    while(True):
+        connection, address = server_socket.accept()
+
+        prime = gen_prime()
+        base = gen_primitive_root(prime)  # You can choose any suitable base, typically a primitive root modulo prime
+
+        # Send prime and base to the client
+        connection.send(str(prime).encode())
+        connection.send(str(base).encode())
+
+        # Generate server's private key
+        private_key_server = random.randint(1, prime - 1)
+
+        # Calculate public key to send to the client
+        public_key_server = pow(base, private_key_server, prime)
+        connection.send(str(public_key_server).encode())
+
+        # Receive client's public key
+        data = (connection.recv(1024).decode())
+        public_key_client = int(data.split('&')[0])
+        client_id = int(data.split('&')[1])
+        print("client id is: ", client_id)
+
+        # Calculate shared secret
+        shared_secret = pow(public_key_client, private_key_server, prime)
+
+        connection.close()
+        ClientList.get_hellman()[public_key_client] = shared_secret
+        ClientList.get_public()[client_id] = public_key_client
+
 def main():
     tcp_host = '127.0.0.1'
     tcp_port = 8888
@@ -378,6 +446,8 @@ def main():
     udp_thread = threading.Thread(target=udp_server, args=(udp_host, udp_port, ClientList, servers_dict, udp_socket))
     udp_thread.start()
 
+    diffie = threading.Thread(target=server_program, args=(ClientList, servers_dict, udp_socket))
+    diffie.start()
 
 if __name__ == "__main__":
     main()

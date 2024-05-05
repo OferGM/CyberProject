@@ -1158,25 +1158,55 @@ def close_game():
     application.quit()
     exit()
 
+def client_program(port_yes):
+    host = '127.0.0.1'
+    port = 1010
+
+    client_socket = socket.socket()
+    client_socket.connect((host, port))
+
+    # Receive prime and base from the server
+    prime = int(client_socket.recv(1024).decode())
+    base = int(client_socket.recv(1024).decode())
+
+    # Generate client's private key
+    private_key_client = random.randint(1, prime - 1)  # Assume this is generated securely
+
+    # Calculate public key to send to the server
+    public_key_client = pow(base, private_key_client, prime)
+    client_socket.send((f"{public_key_client}&{port_yes}").encode())
+
+    # Receive server's public key
+    public_key_server = int(client_socket.recv(1024).decode())
+
+    # Calculate shared secret
+    shared_secret = pow(public_key_server, private_key_client, prime)
+
+    client_socket.close()
+    return shared_secret, public_key_client, private_key_client
 
 if __name__ == "__main__":
     try:
         port_yes = random.randint(50000, 65534)
+
+        secret, client_public_key, client_private_key = client_program(port_yes)
+        print("secret: " + str(secret))
+        print("public: " + str(client_public_key))
+        print("private: " + str(client_private_key))
+
         print("Port generated is: ", port_yes)
 
-        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode()])
+        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(client_public_key).encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(client_public_key).encode()])
 
         client_id = port_yes
 
         client = clientfuncs(int(client_id))
 
-        # client = clientfuncs(int(client_id))
-
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
-        msg = f'HI&{client.get_id()}'
+        msg = f'HI&{client.get_id()}&{client_public_key}'
         client.send_data(msg)
         print("Sending: ", msg)
 
@@ -1267,5 +1297,6 @@ if __name__ == "__main__":
         app.run()
 
         print("11")
+
     except Exception as e:
         print("error: ", e)
