@@ -35,17 +35,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.GameLoop.executor": "Run",
-    "Python.LoginPage.executor": "Run",
-    "Python.LoginServer.executor": "Run",
-    "Python.server.executor": "Run",
-    "Python.yes.executor": "Run",
-    "git-widget-placeholder": "GameServer__expiramental",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.GameLoop.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LoginPage.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LoginServer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.yes.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;GameServer__expiramental&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.GameLoop">
     <configuration name="Unnamed" type="CompoundRunConfigurationType">
       <toRun name="LoginServer" type="PythonConfigurationType" />

@@ -1159,6 +1159,78 @@ def close_game():
     exit()
 
 
+class Melee:
+    def __init__(self, arm1, arm2):
+        self.arm1 = arm1
+        self.arm2 = arm2
+        self.original_arm1_position = arm1.position
+        self.original_arm2_position = arm2.position
+        self.right_arm = True
+        self.punch_cooldown = 0.7
+        self.last_toggle_time = 0
+        self.activation_cooldown = 1
+        self.prev_activation_time = 0
+        self.damage = 100
+
+    def punch(self):
+        # Move arms forward slightly as a punch
+        if time.time() - self.last_toggle_time >= self.punch_cooldown:
+            if self.right_arm:
+                self.arm1.animate_position(self.arm1.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = False
+            else:
+                self.arm2.animate_position(self.arm2.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = True
+            self.hit()
+            # Reset arm positions after punch
+            self.last_toggle_time = time.time()
+            invoke(self.reset_arm_positions, delay=0.3)
+
+    def reset_arm_positions(self):
+        # Reset arm positions back to their original positions
+        self.arm1.animate_position(self.original_arm1_position, duration=0.2)
+        self.arm2.animate_position(self.original_arm2_position, duration=0.2)
+
+    def hit(self):
+        hovered_entity = mouse.hovered_entity
+        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
+            hovered_entity.enemy_hit(self.damage)
+
+    def deactivate(self):
+        # Animate the arms to a deactivated position (putting them down)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if self.arm1.enabled and self.arm2.enabled:
+                self.arm1.animate_position(self.original_arm1_position + Vec3(0, -0.8, 0), duration=0.4)
+                self.arm2.animate_position(self.original_arm2_position + Vec3(0, -0.8, 0), duration=0.4)
+                invoke(self.create_destroy_arms, delay=0.6)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()  # So that you won't be able to punch mid animation
+
+    def activate(self):
+        # Animate the arms to an activated position (putting them up)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if not (self.arm1.enabled and self.arm2.enabled):
+                self.create_destroy_arms()
+                self.arm2.animate_position(self.original_arm2_position, duration=0.4)
+                self.arm1.animate_position(self.original_arm1_position, duration=0.4)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()
+
+    def create_destroy_arms(self):
+        # Enable or disable arms accordingly
+        if self.arm1.enabled and self.arm2.enabled:
+            self.arm1.enabled = False
+            self.arm2.enabled = False
+        else:
+            self.arm1.enabled = True
+            self.arm2.enabled = True
+
+    def check_active_cooldown(self):
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            return True
+        else:
+            return False
+
 if __name__ == "__main__":
     try:
         port_yes = random.randint(50000, 65534)
@@ -1250,6 +1322,13 @@ if __name__ == "__main__":
 
         respawn_screen = RespawnScreen()
         respawn_screen.hide()
+
+        arm1 = Entity(model='cube', parent=camera, position=(.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                      color=color.white)
+        arm2 = Entity(model='cube', parent=camera, position=(-.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                      color=color.white)
+        melee = Melee(arm1, arm2)
+        melee.create_destroy_arms()
 
         sound = Audio("pistol_shoot.mp3", loop=False, autoplay=False)
 
