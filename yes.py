@@ -388,14 +388,14 @@ def server_program(ClientList, kaki, kadki):
     host = '0.0.0.0'
     port = 1010
 
+    prime = gen_prime()
+    base = gen_primitive_root(prime)  # You can choose any suitable base, typically a primitive root modulo prime
+
     server_socket = socket.socket()
     server_socket.bind((host, port))
     server_socket.listen(1)
     while(True):
         connection, address = server_socket.accept()
-
-        prime = gen_prime()
-        base = gen_primitive_root(prime)  # You can choose any suitable base, typically a primitive root modulo prime
 
         # Send prime and base to the client
         connection.send(str(prime).encode())
