@@ -18,7 +18,7 @@ class clientfuncs:
 
     def send_data(self, data):
         try:
-            self.socket.sendto(data.encode(), self.server_address)
+            self.socket.sendto(data, self.server_address)
         except Exception as e:
             print(f"Failed to send data to server: {e}")
 
