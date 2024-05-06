@@ -157,6 +157,7 @@ def sign_in(client_socket, client_address, data):
 
     """
     username, password = data.split("&")
+    print("sadas")
     user_document = users_collection.find_one({"name": username})
     if user_document:
         client_socket.send("Taken".encode())
@@ -164,7 +165,9 @@ def sign_in(client_socket, client_address, data):
         ip, port = client_address
         insert_new_user(username, password, ip, port)
         client_socket.send("Sign_in_successful".encode())
+        print("hio")
         user_document = users_collection.find_one({"name": username})
+        print("asd")
         change_connection_status(client_address, True)
         print(f"{client_address} is now logged into the game")
         init_lobby(client_socket, user_document)
@@ -307,8 +310,8 @@ def handle_client(client_socket, client_address):
                     ip, port = client_address
                     user_document = users_collection.find_one({"ip": ip, "port": port})
                     init_lobby(client_socket, user_document)
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
 
 def client_handler(client_socket, client_address):

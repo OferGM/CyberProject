@@ -5,7 +5,6 @@ import time
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
-servers_dict = {1: 12341, 2: 12342, 3: 12343, 4: 12344}
 
 
 class Server:
@@ -452,7 +451,5 @@ def get_ip_address():
 
 # Example usage
 if __name__ == "__main__":
-    serverNum = int(input("Enter server number: "))
-    serverAddress = servers_dict[serverNum]
-    server = Server((get_ip_address(), serverAddress))
+    server = Server((get_ip_address(), 12344))
     server.start_server()
