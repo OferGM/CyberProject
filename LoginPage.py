@@ -55,8 +55,9 @@ def login(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Login%{username}&{password}"
         print("Sending login request: ", response)
-        client_sock.send(response.encode())
-        data = client_sock.recv(9192).decode()
+        client_sock.send(encrypt(response))
+        data = client_sock.recv(9192)
+        data = decrypt(data)
         print("Received: ", data)
         if data == "Login_failed":
             print("Login failed, wrong username or password")
@@ -84,9 +85,10 @@ def login(client_sock, username, password):
 def sign_in(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Sign_in%{username}&{password}"
-        client_sock.send(response.encode())
+        client_sock.send(encrypt(response))
         print("Sending sign in request: ", response)
-        data = client_sock.recv(9192).decode()
+        data = client_sock.recv(9192)
+        data = decrypt(data)
         print("Received: ", data)
         if data == "Taken":
             print("Sign in failed, username already taken")
@@ -110,13 +112,38 @@ def close_page():
     print("Socket closed")
     app.destroy()
 
+def encrypt(data):
+    # Convert message and key to byte arrays
+    message_bytes = data.encode('ascii', 'ignore')
+    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+
+    # Perform XOR operation between each byte of the message and the key
+    encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
+    poo = f"{client_id}&".encode('ascii', 'ignore')
+    encrypted_bytes = poo + encrypted_bytes
+    print("encrypted bytes: ", encrypted_bytes)
+    return encrypted_bytes
+
+def decrypt(data):
+    # Convert key to bytes (using 4 bytes and little endian byteorder)
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
+
+    # Perform XOR operation between each byte of the encrypted message and the key
+    decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
+    # Convert the decrypted bytes back to a string
+    decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
+
+    return decrypted_message
 
 if __name__ == "__main__":
     import sys
 
     socket1 = socket.socket()
     print("Parameter gotten is: ", sys.argv[1])
+    print("Shared key is: ", sys.argv[2])
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    client_id = int(sys.argv[1])
+    shared_key = int(sys.argv[2])
     socket1.connect(("127.0.0.1", 6969))
     print(f"Connected to server, bound on: 127.0.0.1, {sys.argv[1]}")
     build_page(socket1)

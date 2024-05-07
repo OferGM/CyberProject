@@ -298,7 +298,8 @@ class Chest(Entity):
             self.isopen = True
             inv3 = combineInv(self._ChestInv, inv)  # Combine inventories
             inv3.openInv(player)
-            client.send_data(f"gREMOVECHEST&{client.id}&{self.id}")
+            msg = encrypt(f"gREMOVECHEST&{client.id}&{self.id}", secret)
+            client.send_data(msg)
 
         else:
             # Handle situation where chest can't be opened (show message, etc.)
@@ -445,7 +446,8 @@ class Item(Entity):
 
     def pickup(self):
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
-            client.send_data(f"gPICKED&{client.id}&{self.id}")
+            msg = encrypt(f"gPICKED&{client.id}&{self.id}", secret)
+            client.send_data(msg)
             inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
@@ -469,7 +471,8 @@ class Witch(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
-        client.send_data(f"gDAMAGEWITCH&{client.id}&{self.id}&{gun.damage}")
+        msg = encrypt(f"gDAMAGEWITCH&{client.id}&{self.id}&{gun.damage}", secret)
+        client.send_data(msg)
         if self.health <= 0:
             if self.id in mobs:
                 witches.pop(self.id)
@@ -520,7 +523,8 @@ class Enemy(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
-        client.send_data(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}")
+        msg = encrypt(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}", secret)
+        client.send_data(msg)
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
             if self.id in mobs:
@@ -573,7 +577,8 @@ class MultiPlayer(Entity):
 
     def damage(self, amount):
         self.health -= amount
-        client.send_data(f"gDAMAGE&{self.id}&{self.health}")
+        msg = encrypt(f"gDAMAGE&{self.id}&{self.health}", secret)
+        client.send_data(msg)
 
     def UpdateItem(self, Item):
         print("UPDATED ITEM", Item)
@@ -763,7 +768,8 @@ def calculate_distance(vector1, vector2):
 
 def Hold_gun():
     held_item = miniInv.HeldItem()
-    client.send_data(f"gHELD&{client.id}&{held_item}")
+    msg = encrypt(f"gHELD&{client.id}&{held_item}", secret)
+    client.send_data(msg)
     if held_item == 'awp.png' and gun.gun_type != "awp":
         awp.enabled = True
         ak.enabled = False
@@ -862,7 +868,8 @@ def stop_rendering_continuosly():
 def send_game_data_continuously(player, stop_event, secret):
     while not stop_event.is_set():
         try:
-            client.send_data(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}")
+            msg = encrypt(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}", secret)
+            client.send_data(msg)
             time.sleep(0.01)
         except AssertionError as e:
             print(e)
@@ -884,11 +891,22 @@ def decrypt(data, shared_key):
 
     # Perform XOR operation between each byte of the encrypted message and the key
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
-    print(decrypted_bytes)
     # Convert the decrypted bytes back to a string
-    decrypted_message = decrypted_bytes.decode()
+    decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
 
     return decrypted_message
+
+def encrypt(data, shared_key):
+    # Convert message and key to byte arrays
+    message_bytes = data.encode('ascii', 'ignore')
+    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+
+    # Perform XOR operation between each byte of the message and the key
+    encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
+    poo = f"{client_id}&".encode('ascii', 'ignore')
+    encrypted_bytes = poo + encrypted_bytes
+    print("encrypted bytes: ", encrypted_bytes)
+    return encrypted_bytes
 
 def recv_game_data_continuosly(player, stop_event, shared_key):
         global DEAD
@@ -969,7 +987,9 @@ stop_event = threading.Event()
 def death():
     items = inv.get_inventory_items()
     print(items)
-    client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
+    kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
     player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
     gun = 0
     inv.CleanInv()
@@ -983,7 +1003,9 @@ def input(key):
     global cursor, inv, activeChest
     if key == 'escape':
         # Wait for the background thread to finish
-        client.send_data(f"gDisconnect&{client_id}")
+        kaki = f"gDisconnect&{client_id}"
+        kaki = encrypt(kaki, secret)
+        client.send_data(kaki)
         time.sleep(3)
         stop_event.set()
         recvThread.join()
@@ -1205,9 +1227,9 @@ def close_game():
     exit()
     pass
 
-def client_program(port_yes):
-    host = '127.0.0.1'
-    port = 1010
+def client_program(port_yes, host, port):
+    host = host
+    port = port
 
     client_socket = socket.socket()
     client_socket.connect((host, port))
@@ -1221,7 +1243,7 @@ def client_program(port_yes):
 
     # Calculate public key to send to the server
     public_key_client = pow(base, private_key_client, prime)
-    client_socket.send((f"{public_key_client}&{port_yes}").encode())
+    client_socket.send(f"{public_key_client}&{port_yes}".encode())
 
     # Receive server's public key
     public_key_server = int(client_socket.recv(1024).decode())
@@ -1307,17 +1329,21 @@ class Melee:
 if __name__ == "__main__":
     try:
         port_yes = random.randint(50000, 65534)
+        print("Port generated is: ", port_yes)
 
-        secret, client_public_key, client_private_key = client_program(port_yes)
+        secret, client_public_key, client_private_key = client_program(port_yes, '127.0.0.1', 1010)
         print("secret: " + str(secret))
         print("public: " + str(client_public_key))
         print("private: " + str(client_private_key))
 
-        print("Port generated is: ", port_yes)
+        secret_login, client_public_key_login, client_private_key_login = client_program(port_yes, '127.0.0.1', 7878)
+        print("secret login: " + str(secret_login))
+        print("public login: " + str(client_public_key_login))
+        print("private login: " + str(client_private_key_login))
 
-        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(client_public_key).encode()])
+        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(client_public_key).encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode()])
 
         client_id = port_yes
 
@@ -1325,7 +1351,8 @@ if __name__ == "__main__":
 
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
-        msg = f'HI&{client.get_id()}&{client_public_key}'
+        msg = f'HI&{client.get_id()}'
+        msg = encrypt(msg, secret)
         client.send_data(msg)
         print("Sending: ", msg)
 
