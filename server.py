@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import queue
+import ChatServer
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
@@ -263,6 +264,9 @@ class Server:
             self.socket.sendto(orb_data.encode(), addr)  # Send orb data to clients
 
     def start_server(self):
+        if serverNum == 4:
+            chatThread = threading.Thread(target=ChatServer.Chat)
+            chatThread.start()
         try:
             for i in range(10):
                 self.GenerateMobs()

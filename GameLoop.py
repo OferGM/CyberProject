@@ -13,6 +13,7 @@ import time
 import socket
 from queue import Queue
 import subprocess
+import clientChat
 
 last_skill_activation = {
     'cooldown': 0,
@@ -950,7 +951,8 @@ def input(key):
         client.send_data(f"gDisconnect&{client_id}")
         time.sleep(3)
         stop_event.set()
-        thread.join()
+        recvThread.join()
+        sendThread.join()
         application.quit()
         exit()
     if held_keys['left mouse']:
@@ -969,6 +971,9 @@ def input(key):
         ActivateCoolDownSkill()
     if key == 'l':
         ActivateSpeedSkill()
+    if key == 'c':
+        chat = threading.Thread(target=clientChat.ClientChat)
+        chat.start()
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and activeChest != 0:
@@ -1153,10 +1158,10 @@ def ActivateStrengthSkill():
 
 def close_game():
 
-    stop_event.set()
-    thread.join()
-    application.quit()
-    exit()
+    # stop_event.set()
+    # application.quit()
+    # exit()
+    pass
 
 
 class Melee:
@@ -1270,14 +1275,14 @@ if __name__ == "__main__":
         # skill_display.close_skills()
         player = player()
 
-        thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
-        thread.start()
+        sendThread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event))
+        sendThread.start()
 
         # thread = threading.Thread(target=stop_rendering_continuosly, args=())
         # thread.start()
 
-        thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
-        thread.start()
+        recvThread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event))
+        recvThread.start()
 
         print("here")
 
@@ -1347,4 +1352,4 @@ if __name__ == "__main__":
 
         print("11")
     except Exception as e:
-        print("error: ", e)
+        print(f"{Exception}:", e)
