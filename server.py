@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import queue
+import ChatServer
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
@@ -199,6 +200,9 @@ class Server:
                         orb_speed = 0.5  # Adjust speed as needed
 
                         # Update orb position
+                        if distance > 15:
+                            self.socket.sendto(f"aRemoveOrb&{orb_id}".encode(), LOAD_BALANCER_UDP_ADDR)
+                            self.orbs.pop(orb_id, None)
                         if distance > 1.5:
                             normalized_dx = dx / distance
                             normalized_dz = dz / distance
@@ -263,6 +267,9 @@ class Server:
             self.socket.sendto(orb_data.encode(), addr)  # Send orb data to clients
 
     def start_server(self):
+        if serverNum == 4:
+            chatThread = threading.Thread(target=ChatServer.Chat)
+            chatThread.start()
         try:
             for i in range(10):
                 self.GenerateMobs()
@@ -414,10 +421,10 @@ class Server:
                     items = [dataArr[i] for i in range(5, len(dataArr))]
                     print(items)
                     self.GenerateChest(x,y,z,items)
-                    login_socket = socket.socket()
-                    login_socket.connect(("127.0.0.1", 6969))
-                    login_socket.send(f"Disconnect%{dataArr[1]}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}".encode())
-                    login_socket.close()
+                    # login_socket = socket.socket()
+                    # login_socket.connect(("127.0.0.1", 6969))
+                    # login_socket.send(f"Disconnect%{dataArr[1]}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}".encode())
+                    # login_socket.close()
                 if dataArr[0] == 'gREMOVECHEST':
                     self.RemoveChest(dataArr[1],dataArr[2])
 

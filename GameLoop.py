@@ -13,6 +13,7 @@ import time
 import socket
 from queue import Queue
 import subprocess
+import clientChat
 
 last_skill_activation = {
     'cooldown': 0,
@@ -390,6 +391,10 @@ class player(FirstPersonController):
             speed=8,
             collider='box',
             health=100,
+            npc=False,
+            time_since_last_change = 0,
+            change_direction_interval = 5,
+            npc_activate=True
         )
 
     def respawn(self, screen):
@@ -402,6 +407,15 @@ class player(FirstPersonController):
 
     def SpeedSkillDisable(self):
         self.speed = 8
+
+    def npc_player(self):
+        global random_direction
+        self.time_since_last_change += time.dt
+        if self.time_since_last_change >= self.change_direction_interval or self.npc_activate:
+            random_direction = Vec3(random.uniform(-1, 1), 0, random.uniform(-1, 1)).normalized()
+            self.time_since_last_change = 0
+            self.npc_activate = False
+        self.position += random_direction*0.045
 
 
 class Item(Entity):
@@ -461,6 +475,9 @@ class Witch(Entity):
                 witches.pop(self.id)
             self.self_destroy()
             player_money_bar.value += 100
+
+
+
 
 
 class Enemy(Entity):
@@ -534,7 +551,7 @@ class Enemy(Entity):
             invoke(self.reset_attack_cooldown, delay=0.8)
 
     def attack(self):
-        player.health = player.health - 10
+        player.health -= 10
         if player.health <= 0:
             death()
 
@@ -689,10 +706,10 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        sound.play()
         print(self.on_cooldown, self.canShoot)
         if self.on_cooldown == True or self.canShoot == False:
             return
+        sound.play()
         self.on_cooldown = True
         print("Shooting")
         hovered_entity = mouse.hovered_entity
@@ -799,6 +816,9 @@ def update():
         mob = mobs[zombie_id]
         if calculate_distance(player.position, mob.position) < 2:
             player.health -= 10
+
+    if player.npc:
+        player.npc_player()
 
     Hold_gun()
 
@@ -950,7 +970,10 @@ def death():
     items = inv.get_inventory_items()
     print(items)
     client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
-    close_game()
+    player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
+    gun = 0
+    inv.CleanInv()
+    player.health = 100
 
 
 activeChest = 0
@@ -963,7 +986,8 @@ def input(key):
         client.send_data(f"gDisconnect&{client_id}")
         time.sleep(3)
         stop_event.set()
-        thread.join()
+        recvThread.join()
+        sendThread.join()
         application.quit()
         exit()
     if held_keys['left mouse']:
@@ -982,6 +1006,16 @@ def input(key):
         ActivateCoolDownSkill()
     if key == 'l':
         ActivateSpeedSkill()
+    if key == 'c':
+        chat = threading.Thread(target=clientChat.ClientChat)
+        chat.start()
+    if key == 'b' and not player.npc:
+        player.npc=True
+    elif key =='b' and  player.npc:
+        player.npc=False
+        player.npc_activate=True
+
+
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and activeChest != 0:
@@ -1167,9 +1201,9 @@ def ActivateStrengthSkill():
 def close_game():
 
     stop_event.set()
-    thread.join()
     application.quit()
     exit()
+    pass
 
 def client_program(port_yes):
     host = '127.0.0.1'
@@ -1198,8 +1232,80 @@ def client_program(port_yes):
     client_socket.close()
     return shared_secret, public_key_client, private_key_client
 
+class Melee:
+    def __init__(self, arm1, arm2):
+        self.arm1 = arm1
+        self.arm2 = arm2
+        self.original_arm1_position = arm1.position
+        self.original_arm2_position = arm2.position
+        self.right_arm = True
+        self.punch_cooldown = 0.7
+        self.last_toggle_time = 0
+        self.activation_cooldown = 1
+        self.prev_activation_time = 0
+        self.damage = 100
+
+    def punch(self):
+        # Move arms forward slightly as a punch
+        if time.time() - self.last_toggle_time >= self.punch_cooldown:
+            if self.right_arm:
+                self.arm1.animate_position(self.arm1.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = False
+            else:
+                self.arm2.animate_position(self.arm2.position + Vec3(0, 0, 1), duration=0.2)
+                self.right_arm = True
+            self.hit()
+            # Reset arm positions after punch
+            self.last_toggle_time = time.time()
+            invoke(self.reset_arm_positions, delay=0.3)
+
+    def reset_arm_positions(self):
+        # Reset arm positions back to their original positions
+        self.arm1.animate_position(self.original_arm1_position, duration=0.2)
+        self.arm2.animate_position(self.original_arm2_position, duration=0.2)
+
+    def hit(self):
+        hovered_entity = mouse.hovered_entity
+        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
+            hovered_entity.enemy_hit(self.damage)
+
+    def deactivate(self):
+        # Animate the arms to a deactivated position (putting them down)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if self.arm1.enabled and self.arm2.enabled:
+                self.arm1.animate_position(self.original_arm1_position + Vec3(0, -0.8, 0), duration=0.4)
+                self.arm2.animate_position(self.original_arm2_position + Vec3(0, -0.8, 0), duration=0.4)
+                invoke(self.create_destroy_arms, delay=0.6)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()  # So that you won't be able to punch mid animation
+
+    def activate(self):
+        # Animate the arms to an activated position (putting them up)
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            if not (self.arm1.enabled and self.arm2.enabled):
+                self.create_destroy_arms()
+                self.arm2.animate_position(self.original_arm2_position, duration=0.4)
+                self.arm1.animate_position(self.original_arm1_position, duration=0.4)
+                self.prev_activation_time = time.time()
+                self.last_toggle_time = time.time()
+
+    def create_destroy_arms(self):
+        # Enable or disable arms accordingly
+        if self.arm1.enabled and self.arm2.enabled:
+            self.arm1.enabled = False
+            self.arm2.enabled = False
+        else:
+            self.arm1.enabled = True
+            self.arm2.enabled = True
+
+    def check_active_cooldown(self):
+        if time.time() - self.prev_activation_time >= self.activation_cooldown:
+            return True
+        else:
+            return False
+
 if __name__ == "__main__":
-    #try:
+    try:
         port_yes = random.randint(50000, 65534)
 
         secret, client_public_key, client_private_key = client_program(port_yes)
@@ -1272,6 +1378,9 @@ if __name__ == "__main__":
         inv.enabled = False
         addItems(invdata)
 
+
+
+
         print("8")
 
         miniInv = MiniInv(inv)
@@ -1280,6 +1389,7 @@ if __name__ == "__main__":
 
         enemies = {}
         items = {}
+
 
         player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
@@ -1295,7 +1405,18 @@ if __name__ == "__main__":
         respawn_screen = RespawnScreen()
         respawn_screen.hide()
 
+        arm1 = Entity(model='cube', parent=camera, position=(.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                      color=color.white)
+        arm2 = Entity(model='cube', parent=camera, position=(-.5, -.25, .25), scale=(.3, .2, 1), origin_z=-.5,
+                      color=color.white)
+        melee = Melee(arm1, arm2)
+        melee.create_destroy_arms()
+
         sound = Audio("pistol_shoot.mp3", loop=False, autoplay=False)
+
+
+
+        random_direction=Vec3()
 
         # chest = Chest((2, 0, 2))
         # chest._ChestInv = Inventory(None,4,4)
@@ -1311,6 +1432,5 @@ if __name__ == "__main__":
         app.run()
 
         print("11")
-
-    #except Exception as e:
-    #    print("error: ", e)
+    except Exception as e:
+        print(f"{Exception}:", e)

@@ -162,6 +162,9 @@ class Inventory(Entity):
 
     def get_inventory_items(self):
         return [str(item.texture).replace('.png','') for item in self.children]
+    def CleanInv(self):
+        for item in self.children:
+            destroy(item)
 
 
 if __name__ == '__main__':
