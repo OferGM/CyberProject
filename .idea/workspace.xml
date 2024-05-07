@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="Added weapon cooldowns">
-      <change afterPath="$PROJECT_DIR$/pistol_shoot.mp3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/CyberProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CyberProject.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="offline melee from game">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameLoop.py" afterDir="false" />
     </list>
@@ -27,6 +25,10 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 0
+}]]></component>
   <component name="ProjectId" id="2aGNGvztPO3zQR5zLrMXYpXPgHp" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -35,17 +37,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.GameLoop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.LoginPage.executor&quot;: &quot;Run&quot;,
-    &quot;Python.LoginServer.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.yes.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;GameServer__expiramental&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.GameLoop.executor": "Run",
+    "Python.LoginPage.executor": "Run",
+    "Python.LoginServer.executor": "Run",
+    "Python.server.executor": "Run",
+    "Python.yes.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "git-widget-placeholder": "GameServer__expiramental",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.GameLoop">
     <configuration name="Unnamed" type="CompoundRunConfigurationType">
       <toRun name="LoginServer" type="PythonConfigurationType" />
@@ -232,11 +235,11 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-67fca87a943a-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.11799.259" />
+        <option value="bundled-python-sdk-50da183f06c8-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13135.95" />
       </set>
     </attachedChunks>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="false" />
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -392,7 +395,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713996402635</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="offline melee from game">
+      <option name="closed" value="true" />
+      <created>1714939757096</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1714939757096</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -427,7 +438,8 @@
     <MESSAGE value="Witches" />
     <MESSAGE value="Add items from lobby ui" />
     <MESSAGE value="Added weapon cooldowns" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added weapon cooldowns" />
+    <MESSAGE value="offline melee from game" />
+    <option name="LAST_COMMIT_MESSAGE" value="offline melee from game" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

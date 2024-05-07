@@ -391,6 +391,10 @@ class player(FirstPersonController):
             speed=8,
             collider='box',
             health=100,
+            npc=False,
+            time_since_last_change = 0,
+            change_direction_interval = 5,
+            npc_activate=True
         )
 
     def respawn(self, screen):
@@ -403,6 +407,15 @@ class player(FirstPersonController):
 
     def SpeedSkillDisable(self):
         self.speed = 8
+
+    def npc_player(self):
+        global random_direction
+        self.time_since_last_change += time.dt
+        if self.time_since_last_change >= self.change_direction_interval or self.npc_activate:
+            random_direction = Vec3(random.uniform(-1, 1), 0, random.uniform(-1, 1)).normalized()
+            self.time_since_last_change = 0
+            self.npc_activate = False
+        self.position += random_direction*0.045
 
 
 class Item(Entity):
@@ -462,6 +475,9 @@ class Witch(Entity):
                 witches.pop(self.id)
             self.self_destroy()
             player_money_bar.value += 100
+
+
+
 
 
 class Enemy(Entity):
@@ -690,10 +706,10 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        sound.play()
         print(self.on_cooldown, self.canShoot)
         if self.on_cooldown == True or self.canShoot == False:
             return
+        sound.play()
         self.on_cooldown = True
         print("Shooting")
         hovered_entity = mouse.hovered_entity
@@ -800,6 +816,9 @@ def update():
         mob = mobs[zombie_id]
         if calculate_distance(player.position, mob.position) < 2:
             player.health -= 10
+
+    if player.npc:
+        player.npc_player()
 
     Hold_gun()
 
@@ -974,6 +993,13 @@ def input(key):
     if key == 'c':
         chat = threading.Thread(target=clientChat.ClientChat)
         chat.start()
+    if key == 'b' and not player.npc:
+        player.npc=True
+    elif key =='b' and  player.npc:
+        player.npc=False
+        player.npc_activate=True
+
+
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and activeChest != 0:
@@ -1305,6 +1331,9 @@ if __name__ == "__main__":
         inv.enabled = False
         addItems(invdata)
 
+
+
+
         print("8")
 
         miniInv = MiniInv(inv)
@@ -1313,6 +1342,7 @@ if __name__ == "__main__":
 
         enemies = {}
         items = {}
+
 
         player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
@@ -1336,6 +1366,10 @@ if __name__ == "__main__":
         melee.create_destroy_arms()
 
         sound = Audio("pistol_shoot.mp3", loop=False, autoplay=False)
+
+
+
+        random_direction=Vec3()
 
         # chest = Chest((2, 0, 2))
         # chest._ChestInv = Inventory(None,4,4)
