@@ -1630,8 +1630,9 @@ class Ui_MainWindow(object):
             print("hello1")
             response = f"Buy%{self.buy_ak_count}&{self.buy_m4_count}&{self.buy_awp_count}&{self.buy_mp5_count}&{self.buy_med_kit_count}&{self.buy_bandage_count}&{self.buy_sPotion_count}&{self.buy_lPotion_count}"
             print(response)
-            self.client_socket.send(response.encode())
-            data = self.client_socket.recv(1024).decode()
+            self.client_socket.send(encrypt(response))
+            data = self.client_socket.recv(1024)
+            data = decrypt(data)
             print(data)
             if data == "successful buy":
                 _translate = QtCore.QCoreApplication.translate
@@ -1774,8 +1775,9 @@ class Ui_MainWindow(object):
         # send packet to confirm
         request = f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}"
         print("Sending play request: ", request)
-        self.client_socket.send(request.encode())
-        data = self.client_socket.recv(9192).decode()
+        self.client_socket.send(encrypt(request))
+        data = self.client_socket.recv(9192)
+        data = decrypt(data)
         print("Received: ", data)
         if data == "Joining_game":
             print("Joining game")
@@ -1879,18 +1881,43 @@ import resources_rc
 #     print("FINISHED")
 #     exit()
 
+def encrypt(data):
+    # Convert message and key to byte arrays
+    message_bytes = data.encode('ascii', 'ignore')
+    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+
+    # Perform XOR operation between each byte of the message and the key
+    encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
+    poo = f"{client_id}&".encode('ascii', 'ignore')
+    encrypted_bytes = poo + encrypted_bytes
+    print("encrypted bytes: ", encrypted_bytes)
+    return encrypted_bytes
+
+def decrypt(data):
+    # Convert key to bytes (using 4 bytes and little endian byteorder)
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
+
+    # Perform XOR operation between each byte of the encrypted message and the key
+    decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
+    # Convert the decrypted bytes back to a string
+    decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
+
+    return decrypted_message
 
 if __name__ == "__main__":
     socket1 = socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    client_id = int(sys.argv[1])
+    shared_key = int(sys.argv[2])
     time.sleep(1)
     socket1.connect(("127.0.0.1", 6969))
     print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
     import sys
     import gc
 
-    socket1.send("GIMME%STATS".encode())
-    data = socket1.recv(9192).decode()
+    socket1.send(encrypt("GIMME%STATS"))
+    data = socket1.recv(9192)
+    data = decrypt(data)
     print("received: ", data)
 
     stats = data.split('&')

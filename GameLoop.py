@@ -1193,9 +1193,9 @@ def close_game():
     application.quit()
     exit()
 
-def client_program(port_yes):
-    host = '127.0.0.1'
-    port = 1010
+def client_program(port_yes, host, port):
+    host = host
+    port = port
 
     client_socket = socket.socket()
     client_socket.connect((host, port))
@@ -1209,7 +1209,7 @@ def client_program(port_yes):
 
     # Calculate public key to send to the server
     public_key_client = pow(base, private_key_client, prime)
-    client_socket.send((f"{public_key_client}&{port_yes}").encode())
+    client_socket.send(f"{public_key_client}&{port_yes}".encode())
 
     # Receive server's public key
     public_key_server = int(client_socket.recv(1024).decode())
@@ -1223,17 +1223,21 @@ def client_program(port_yes):
 if __name__ == "__main__":
     #try:
         port_yes = random.randint(50000, 65534)
+        print("Port generated is: ", port_yes)
 
-        secret, client_public_key, client_private_key = client_program(port_yes)
+        secret, client_public_key, client_private_key = client_program(port_yes, '127.0.0.1', 1010)
         print("secret: " + str(secret))
         print("public: " + str(client_public_key))
         print("private: " + str(client_private_key))
 
-        print("Port generated is: ", port_yes)
+        secret_login, client_public_key_login, client_private_key_login = client_program(port_yes, '127.0.0.1', 7878)
+        print("secret login: " + str(secret_login))
+        print("public login: " + str(client_public_key_login))
+        print("private login: " + str(client_private_key_login))
 
-        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(client_public_key).encode()])
+        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(client_public_key).encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode()])
 
         client_id = port_yes
 
@@ -1241,7 +1245,7 @@ if __name__ == "__main__":
 
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
-        msg = f'HI&{client.get_id()}&{client_public_key}'
+        msg = f'HI&{client.get_id()}'
         msg = encrypt(msg, secret)
         client.send_data(msg)
         print("Sending: ", msg)
