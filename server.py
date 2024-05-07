@@ -27,7 +27,6 @@ class Server:
         self.chat_messages = []
         self.orbs = {}
         self.heldItems = {}
-        self.totalItems = {}
         self.chests = {} # chests[id] = [x,y,z,item1,item2,...,item[n]]
 
 

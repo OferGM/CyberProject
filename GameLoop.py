@@ -1375,14 +1375,14 @@ if __name__ == "__main__":
         # skill_display.close_skills()
         player = player()
 
-        thread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event, secret))
-        thread.start()
+        sendThread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event, secret))
+        sendThread.start()
 
         # thread = threading.Thread(target=stop_rendering_continuosly, args=())
         # thread.start()
 
-        thread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))
-        thread.start()
+        recvThread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))
+        recvThread.start()
 
         print("here")
 

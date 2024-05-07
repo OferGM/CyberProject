@@ -187,10 +187,10 @@ def decrypt_login(data, shared_secret):
     return decrypted_message
 
 def handle_udp(data, ClientList, servers_list, udp_socket, addr):
-        print("Received: ", data)
         pring = data
         try:
             data = data.decode(errors = 'ignore')
+            print("Received: ", data)
             if data.startswith("s"):        #data intended for specific client
                 indi = data.split('&')
                 clientID = int(indi[1])
@@ -259,6 +259,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         except Exception as e:
             print("error: ", e)
         data = decrypt(pring, ClientList)
+        print("Received: ", data)
 
         if data.startswith("HI&"):
             print("Received HI MSG: ", data)
@@ -404,6 +405,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
     message_queue = queue.Queue()
 
     def process_messages():
+        #udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         while True:
             try:
                 data, client_address = message_queue.get(timeout=1)
