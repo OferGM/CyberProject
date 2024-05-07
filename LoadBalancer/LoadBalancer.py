@@ -383,8 +383,8 @@ def main():
     udp_host = '0.0.0.0'
     udp_port = 9999
 
-    servers_dict = {1: ("172.31.160.1", 12341), 2: ("172.31.160.1", 12342), 3: ("172.31.160.1", 12343),
-                    4: ("172.31.160.1", 12344)}
+    servers_dict = {1: (get_ip_address(), 12341), 2: (get_ip_address(), 12342), 3: (get_ip_address(), 12343),
+                    4: (get_ip_address(), 12344)}
 
     ClientList = ClientLister()
 

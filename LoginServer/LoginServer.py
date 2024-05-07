@@ -28,7 +28,7 @@ def get_ip_address():
 
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect(("172.31.160.1", 8888))
+lb_socket.connect((get_ip_address(), 8888))
 
 # Load environment variables
 load_dotenv(find_dotenv())

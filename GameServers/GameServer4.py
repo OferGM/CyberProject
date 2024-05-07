@@ -9,7 +9,7 @@ SEARCH_CLOSEST_PLAYER_RATE = 0.1
 
 class Server:
     def __init__(self, addr):
-        self.machine_IP = "172.31.160.1"
+        self.machine_IP = get_ip_address()
         self.host = addr[0]
         self.port = addr[1]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -25,9 +25,9 @@ def get_ip_address():
 
 class clientfuncs:
     def __init__(self, client_id):
-        self.server_address = ("172.31.160.1", 9999)
+        self.server_address = (get_ip_address(), 9999)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.connect(("172.31.160.1", 9999))
+        self.socket.connect((get_ip_address(), 9999))
         self.connected = False
         self.id = client_id
 
