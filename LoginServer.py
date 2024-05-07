@@ -11,6 +11,23 @@ from sympy import randprime
 lb_socket = socket.socket()
 lb_socket.connect(("127.0.0.1", 8888))
 
+# Receive prime and base from the server
+prime = int(lb_socket.recv(1024).decode())
+base = int(lb_socket.recv(1024).decode())
+
+# Generate client's private key
+private_key_client = random.randint(1, prime - 1)  # Assume this is generated securely
+
+# Calculate public key to send to the server
+public_key_client = pow(base, private_key_client, prime)
+lb_socket.send(f"{public_key_client}".encode())
+
+# Receive server's public key
+public_key_server = int(lb_socket.recv(1024).decode())
+
+# Calculate shared secret
+shared_secret_lb = pow(public_key_server, private_key_client, prime)
+
 # Load environment variables
 load_dotenv(find_dotenv())
 
@@ -234,7 +251,7 @@ def join_game(data, client_socket, client_address, clientID):
             users_collection.update_one({"_id": ObjectId(user_document["_id"])}, update)
     client_socket.send(encrypt("Joining_game", clientID))
     money = user_document["money"]
-    lb_socket.send(f"JOIN&{client_port}&{money}&{data}".encode())
+    lb_socket.send(encrypt_login(f"JOIN&{client_port}&{money}&{data}"))
 
 
 def disconnect_from_game(client_socket, client_address, data, clientID):
@@ -387,6 +404,16 @@ def encrypt(data, clientID):
     shared_key = shared_secrets[public_keys[clientID]]
     message_bytes = data.encode('ascii', 'ignore')
     key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+
+    # Perform XOR operation between each byte of the message and the key
+    encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
+    print(encrypted_bytes)
+    return encrypted_bytes
+
+def encrypt_login(data):
+    # Convert message and key to byte arrays
+    message_bytes = data.encode('ascii', 'ignore')
+    key_bytes = shared_secret_lb.to_bytes(1024, byteorder = 'little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])

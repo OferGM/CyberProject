@@ -126,13 +126,8 @@ def print_status(ClientList):
     print("in first: {}, in second: {}, in third: {}, in fourth: {}".format(in_first, in_second, in_third, in_fourth))'''
 
 
-def handle_tcp(data, rosie, ClientList, servers_list, udp_socket):
-    '''if data.startswith("s"):                        #intended for one specific client, not all of them
-        indi = data.find("&")
-        clientID = data[(indi+1):(indi+4)]
-        clientIP = ClientList.get_ip_dict()[clientID]           #address of client
-        client_socket = yes_dict[clientIP]
-        client_socket.send(data.encode())'''
+def handle_tcp(data, rosie, ClientList, servers_list, udp_socket, shared_secret):
+    data = decrypt_login(data, shared_secret)
 
     if data.startswith("NEW"):
         print("NEWNEWNEW")
@@ -170,6 +165,18 @@ def decrypt(data, ClientList):
     shared_key = ClientList.get_hellman()[ClientList.get_public()[clientID]]
     data = indi[1]
     key_bytes = shared_key.to_bytes(1024, byteorder='little')
+
+    # Perform XOR operation between each byte of the encrypted message and the key
+    decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
+    # Convert the decrypted bytes back to a string
+    decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
+    print("i love little kids: ", decrypted_message)
+
+    return decrypted_message
+
+def decrypt_login(data, shared_secret):
+
+    key_bytes = shared_secret.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the encrypted message and the key
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
@@ -329,13 +336,37 @@ def tcp_server(host, port, ClientList, servers_list, udp_socket):
     tcp_socket.listen()
     print("TCP Server listening on " + str(host) + ", " + str(port))
     login_socket, login_address = tcp_socket.accept()
+
+    prime = gen_prime()
+    base = gen_primitive_root(prime)  # You can choose any suitable base, typically a primitive root modulo prime
+
+    # Send prime and base to the client
+    login_socket.send(str(prime).encode())
+    login_socket.send(str(base).encode())
+
+    # Generate server's private key
+    private_key_server = random.randint(1, prime - 1)
+
+    # Calculate public key to send to the client
+    public_key_server = pow(base, private_key_server, prime)
+    login_socket.send(str(public_key_server).encode())
+
+    # Receive client's public key
+    data = (login_socket.recv(1024).decode())
+    public_key_client = int(data)
+
+    # Calculate shared secret
+    shared_secret = pow(public_key_client, private_key_server, prime)
+    print("shared secret is: ", shared_secret)
+    #ClientList.get_public()[client_id] = public_key_client
+
     while True:
         data = login_socket.recv(9192)
         if not data:
             break
-        print(f"Received: {data.decode()}")
-        rosie = handle_tcp(data=data.decode(), rosie=rosie, ClientList=ClientList, servers_list=servers_list,
-                           udp_socket=udp_socket)
+        print(f"Received: {data}")
+        rosie = handle_tcp(data=data, rosie=rosie, ClientList=ClientList, servers_list=servers_list,
+                           udp_socket=udp_socket, shared_secret=shared_secret)
 
     '''inputs = [tcp_socket]  # List of input sockets to monitor
 
