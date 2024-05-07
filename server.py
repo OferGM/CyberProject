@@ -26,6 +26,7 @@ class Server:
         self.chat_messages = []
         self.orbs = {}
         self.heldItems = {}
+        self.totalItems = {}
         self.chests = {} # chests[id] = [x,y,z,item1,item2,...,item[n]]
 
 
@@ -266,7 +267,7 @@ class Server:
         try:
             for i in range(10):
                 self.GenerateMobs()
-            for i in range(5):
+            for i in range(1):
                 self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
@@ -335,6 +336,7 @@ class Server:
                     darr = data.split('&', 2)
                     data = darr[2]
                     self.all_players[playerID] = data
+                    print("KAKIIIIIIIIIIIIIIIIIIIIIIIIIIII: ", data)
                 if dataArr[0] == 'gSTATE':
                     if dataArr[1] in self.heldItems:
                         msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&{self.heldItems[dataArr[1]]}'
@@ -400,7 +402,16 @@ class Server:
                 if dataArr[0] == 'gHELD':
                     ID_CLIENT = dataArr[1]
                     ITEM_HELD = dataArr[2]
-                    self.heldItems[ID_CLIENT] = ITEM_HELD
+                    stats = self.all_players[ID_CLIENT].split('&')
+                    if ITEM_HELD == 'ak-47.png' and self.all_players[1] != '0':
+                        self.heldItems[ID_CLIENT] = ITEM_HELD
+                    if ITEM_HELD == 'm4.png' and self.all_players[2] != '0':
+                        self.heldItems[ID_CLIENT] = ITEM_HELD
+                    if ITEM_HELD == 'awp.png' and self.all_players[3] != '0':
+                        self.heldItems[ID_CLIENT] = ITEM_HELD
+                    if ITEM_HELD == 'mp5.png' and self.all_players[4] != '0':
+                        self.heldItems[ID_CLIENT] = ITEM_HELD
+
                 if dataArr[0] == 'gREMOVEITEM':
                     CHEST_ID = dataArr[1]
                     item = dataArr[2]
