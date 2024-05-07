@@ -1158,9 +1158,9 @@ def ActivateStrengthSkill():
 
 def close_game():
 
-    # stop_event.set()
-    # application.quit()
-    # exit()
+    stop_event.set()
+    application.quit()
+    exit()
     pass
 
 
