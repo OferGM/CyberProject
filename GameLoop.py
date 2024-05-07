@@ -551,7 +551,7 @@ class Enemy(Entity):
             invoke(self.reset_attack_cooldown, delay=0.8)
 
     def attack(self):
-        player.health = player.health - 10
+        player.health -= 10
         if player.health <= 0:
             death()
 
@@ -957,7 +957,10 @@ def death():
     items = inv.get_inventory_items()
     print(items)
     client.send_data(f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}")
-    close_game()
+    player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
+    gun = 0
+    inv.CleanInv()
+    player.health = 100
 
 
 activeChest = 0
