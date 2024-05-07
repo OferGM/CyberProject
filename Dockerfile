@@ -2,19 +2,21 @@
 FROM python:3.9-slim-bullseye
 
 # Set the working directory inside the container
-WORKDIR /gameserver4_dockerized
+WORKDIR /loginserver_dockerized
 
 # Update and install required packages
 RUN apt-get update && \
     apt-get install -y python3.9 python3-pip
 
 # Install the required Python packages
+RUN pip install pymongo
+RUN pip install python-dotenv
 
 # Copy the load balancer script into the container
-COPY GameServers/GameServer4.py /gameserver4_dockerized
+COPY LoginServer/LoginServer.py /loginserver_dockerized
 
 # Command to run the load balancer script
-CMD ["python3", "GameServer4.py"]
+CMD ["python3", "LoginServer.py"]
 
 # Expose UDP and TCP ports
-EXPOSE 12344/udp
+EXPOSE 6969
