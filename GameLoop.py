@@ -905,7 +905,6 @@ def encrypt(data, shared_key):
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
     poo = f"{client_id}&".encode('ascii', 'ignore')
     encrypted_bytes = poo + encrypted_bytes
-    print("encrypted bytes: ", encrypted_bytes)
     return encrypted_bytes
 
 def recv_game_data_continuosly(player, stop_event, shared_key):
@@ -998,6 +997,16 @@ def death():
 
 activeChest = 0
 
+def safe_exit():
+    kaki = f"gSafeDisconnect&{client_id}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
+    time.sleep(3)
+    stop_event.set()
+    recvThread.join()
+    sendThread.join()
+    application.quit()
+    exit()
 
 def input(key):
     global cursor, inv, activeChest
@@ -1036,6 +1045,13 @@ def input(key):
     elif key =='b' and  player.npc:
         player.npc=False
         player.npc_activate=True
+    if key == 'q':
+        print(calculate_distance(player.position,(-600, 11, -800)))
+        print(calculate_distance(player.position,(800, 0, 650)))
+    if key == 'q' and (calculate_distance(player.position,(-600, 0, -800)) < 20 or calculate_distance(player.position,(800, 0, 650)) < 20):
+        print(calculate_distance(player.position,(-600, 11, -800)))
+        print(calculate_distance(player.position,(800, 0, 650)))
+        safe_exit()
 
 
 
@@ -1165,7 +1181,7 @@ def deactivate_cooldown_skill():
 
 def deactivate_speed_skill():
     skill_display.changeToWhite('speed')
-    player.speed = 8  # Reset speed to default or previous value
+    player.speed = 20  # Reset speed to default or previous value
     print("Speed skill deactivated!")
 
 
