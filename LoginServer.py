@@ -383,8 +383,7 @@ def diffie_program():
 
 def decrypt(data):
     # Convert key to bytes (using 4 bytes and little endian byteorder)
-    print(b'&')
-    indi = data.split(b'&')
+    indi = data.split(b'&', 1)
     print('rar')
     clientID = int(indi[0].decode('ascii', 'ignore'))
     print("id: ", clientID)

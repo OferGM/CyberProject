@@ -26,6 +26,7 @@ LOOT_ITEMS = ['gold_coin', 'silver_coin', 'health_potion', 'ammo']
 
 running = 1
 DEAD = 0
+counter = 0
 
 mobs = {}
 witches = {}
@@ -814,6 +815,11 @@ def update():
         task = update_queue.get()
         task()  # Execute the task
 
+    player_health_bar.value = player.health
+
+    if player.npc:
+        player.npc_player()
+
     for item_id in list(items.keys()):
         item = items[item_id]
         item.pickup()
@@ -823,12 +829,7 @@ def update():
         if calculate_distance(player.position, mob.position) < 2:
             player.health -= 10
 
-    if player.npc:
-        player.npc_player()
-
     Hold_gun()
-
-    player_health_bar.value = player.health
 
 
 def openInv():
@@ -1368,11 +1369,12 @@ if __name__ == "__main__":
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'
         msg = f'HI&{client.get_id()}'
-        msg = encrypt(msg, secret)
-        client.send_data(msg)
+        brr = encrypt(msg, secret)
+        client.send_data(brr)
         print("Sending: ", msg)
 
         invdata = 0
+        counter = 0
 
         while True:
             invdata = client.receive_data()

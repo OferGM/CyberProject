@@ -46,7 +46,7 @@ class Server:
         if len(self.mobs) < 10:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
-            random.randint(1, 50), 1.5, random.randint(1, 50), random.randint(0, 360) ,100]
+            random.randint(-200, 200), 1.5, random.randint(-200, 200), random.randint(0, 360) ,100]
             self.mobs[id] = random_coordinates
             self.playerChase[id] = 0
 
@@ -59,7 +59,7 @@ class Server:
         if len(self.witches) < 10:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
-                random.randint(1, 50), 3, random.randint(1, 50), random.randint(0, 360), 100, time.time()
+                random.randint(-200, 200), 3, random.randint(-200, 200), random.randint(0, 360), 100, time.time()
                 # Last orb shot time
             ]
             self.witches[id] = random_coordinates
@@ -271,9 +271,9 @@ class Server:
             chatThread = threading.Thread(target=ChatServer.Chat)
             chatThread.start()
         try:
-            for i in range(10):
+            for i in range(22):
                 self.GenerateMobs()
-            for i in range(1):
+            for i in range(3):
                 self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
@@ -349,6 +349,8 @@ class Server:
                     else:
                         msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
                     self.socket.sendto(msg.encode(), addr)
+                    self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
+                if dataArr[0] == 'STATE':
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'gDEAD':
                     self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])

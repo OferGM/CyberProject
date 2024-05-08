@@ -82,16 +82,12 @@ class ClientLister:
 
     def calc_edges(self):
         num_clients = len(self.client_dict)
-        print("yas")
         self.edges_arr[0] = self.sl[int(num_clients / 4 * 1)][0]
-        print("yassos")
         self.edges_arr[1] = self.sl[int(num_clients / 4 * 2)][0]
         self.edges_arr[2] = self.sl[int(num_clients / 4 * 3)][0]
-        print(f"The edges are: {self.edges_arr[0]}, {self.edges_arr[1]}, {self.edges_arr[2]}")
 
     def get_server(self, client_id):
         client_x = self.client_dict[int(client_id)]
-        print("client x is " + str(client_x))
 
         if client_x < self.edges_arr[0]:
             return (1, 0)  # only in first one
@@ -130,14 +126,12 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket, shared_secret)
     data = decrypt_login(data, shared_secret)
 
     if data.startswith("NEW"):
-        print("NEWNEWNEW")
         dataArr = data.split('&')
         clientID = dataArr[1]
         clientIP = dataArr[2]
         ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID,
                                      client_ip=clientIP)  # insert at x, with id and ip from the login server
         ClientList.calc_edges()
-        print("the edges are " + str(ClientList.get_edges_arr()))
         client_server = ClientList.get_server(clientID)
         ClientList.get_server_dict()[clientID] = client_server
         server_ip = servers_list[client_server[0]]
@@ -151,17 +145,16 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket, shared_secret)
         return rosie
 
     if data.startswith("JOIN"):
-        print("lllllllll")
+        print("Received JOIN request")
         for serverIP in servers_list.values():
             udp_socket.sendto(data.encode(), serverIP)
 
 def decrypt(data, ClientList):
+    print("trying to decrypt: ", data)
     # Convert key to bytes (using 4 bytes and little endian byteorder)
-    print(b'&')
-    indi = data.split(b'&')
-    print('rar')
+    indi = data.split(b'&', 1)
     clientID = int(indi[0].decode('ascii', 'ignore'))
-    print("id: ", clientID)
+    print("while decrypting, the ID is: ")
     shared_key = ClientList.get_hellman()[ClientList.get_public()[clientID]]
     data = indi[1]
     key_bytes = shared_key.to_bytes(1024, byteorder='little')
@@ -170,7 +163,6 @@ def decrypt(data, ClientList):
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
     # Convert the decrypted bytes back to a string
     decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
-    print("i love little kids: ", decrypted_message)
 
     return decrypted_message
 
@@ -182,7 +174,6 @@ def decrypt_login(data, shared_secret):
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
     # Convert the decrypted bytes back to a string
     decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
-    print("i love little kids: ", decrypted_message)
 
     return decrypted_message
 
@@ -190,7 +181,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         pring = data
         try:
             data = data.decode(errors = 'ignore')
-            print("Received: ", data)
+            print("Received without decrypting: ", data)
             if data.startswith("s"):        #data intended for specific client
                 indi = data.split('&')
                 clientID = int(indi[1])
@@ -245,6 +236,11 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 ClientList.get_update_dict()[clientID] += 1
                 ClientList.get_update_dict()['total'] += 1
 
+                '''for serverID in servers_list.keys():
+                    print("server ID: ", serverID)
+                    print("server IP: ", servers_list[serverID])
+                    udp_socket.sendto(data.encode(), servers_list[serverID])'''
+
                 for client in ClientList.get_sl().items():  # for every client:
                     if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
                         if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
@@ -256,78 +252,79 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                                 else:
                                     return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
                 return
-        except Exception as e:
-            print("error: ", e)
-        data = decrypt(pring, ClientList)
-        print("Received: ", data)
 
-        if data.startswith("HI&"):
-            print("Received HI MSG: ", data)
-            indi = data.split('&')
-            clientID = int(indi[1])
-            print("Client ID is: ", clientID)
-            clientIP = f'({addr[0]}, {addr[1]})'
-            print("Client IP is: ",clientIP)
-            print("yaya")
-            ClientList.get_ip_dict()[clientID] = clientIP
-            ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-            print("Calculating edges")
-            ClientList.calc_edges()
-            client_server = ClientList.get_server(clientID)
-            print("Client server is: ", client_server)
-            ClientList.get_server_dict()[clientID] = client_server
-            serverIP = servers_list[client_server[0]]
-            udp_socket.sendto(data.encode(), serverIP)
-            print(f"Sent HI msg: {data} to {serverIP}")
-            return
+            data = decrypt(pring, ClientList)
+            print("Received with decrypting: ", data)
 
-        if data.startswith("gHELD"):
-            print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-            indi = data.split('&')
-            clientID = indi[1]
-            for serverID in servers_list.keys():
-                print("server ID: ", serverID)
-                print("server IP: ", servers_list[serverID])
-                udp_socket.sendto(data.encode(), servers_list[serverID])
+            if data.startswith("HI&"):
+                print("Received HI MSG: ", data)
+                indi = data.split('&')
+                clientID = int(indi[1])
+                print("Client ID is: ", clientID)
+                clientIP = f'({addr[0]}, {addr[1]})'
+                print("Client IP is: ",clientIP)
+                print("yaya")
+                ClientList.get_ip_dict()[clientID] = clientIP
+                ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+                print("Calculating edges")
+                ClientList.calc_edges()
+                client_server = ClientList.get_server(clientID)
+                print("Client server is: ", client_server)
+                ClientList.get_server_dict()[clientID] = client_server
+                serverIP = servers_list[client_server[0]]
+                udp_socket.sendto(data.encode(), serverIP)
+                print(f"Sent HI msg: {data} to {serverIP}")
+                return
 
-        if data.startswith("g"):  # if data is intended for the gameserver
-            indi = data.split('&')
-            clientID = int(indi[1])  # find ID by msg
-            #print(f"kakaikakikaki{clientID}")
-            ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
-            clientServer = ClientList.get_server_dict()[clientID]
-            udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
+            if data.startswith("gHELD"):
+                print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+                indi = data.split('&')
+                clientID = indi[1]
+                for serverID in servers_list.keys():
+                    print("server ID: ", serverID)
+                    print("server IP: ", servers_list[serverID])
+                    udp_socket.sendto(data.encode(), servers_list[serverID])
+
+            if data.startswith("g"):  # if data is intended for the gameserver
+                indi = data.split('&')
+                clientID = int(indi[1])  # find ID by msg
+                #print(f"kakaikakikaki{clientID}")
+                ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
+                clientServer = ClientList.get_server_dict()[clientID]
+                udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
+                ##if clientServer[1] != 0:
+                ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
+                return
+
+            if data.startswith("l"):  # if data is intended for login server
+                udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
+                return
+
+            if data.startswith("DISCONNECT"):
+                indi = data.split("&")
+                clientID = int(indi[1])
+                print("Disconnecting: ", clientID)
+                ClientList.remove_client(clientID)
+                del ClientList.get_server_dict()[clientID]
+                public = ClientList.get_public()[clientID]
+                del ClientList.get_hellman()[public]
+                #udp_socket.sendto(data.encode(), servers_list['login'])
+                #for clientIP in ClientList.get_ip_dict().values():
+                #    udp_socket.sendto(data.encode(), clientIP)
+                return
+
+            print("default")
+
+            #indi = data.find("&")
+            #clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
+            #ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
+            #clientServer = ClientList.get_server_dict()[clientID]
+            #udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
             ##if clientServer[1] != 0:
             ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
             return
-
-        if data.startswith("l"):  # if data is intended for login server
-            udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
-            return
-
-        if data.startswith("DISCONNECT"):
-            indi = data.split("&")
-            clientID = int(indi[1])
-            print("Disconnecting: ", clientID)
-            ClientList.remove_client(clientID)
-            del ClientList.get_server_dict()[clientID]
-            public = ClientList.get_public()[clientID]
-            del ClientList.get_hellman()[public]
-            #udp_socket.sendto(data.encode(), servers_list['login'])
-            #for clientIP in ClientList.get_ip_dict().values():
-            #    udp_socket.sendto(data.encode(), clientIP)
-            return
-
-        print("default")
-
-        #indi = data.find("&")
-        #clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
-        #ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
-        #clientServer = ClientList.get_server_dict()[clientID]
-        #udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
-        ##if clientServer[1] != 0:
-        ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
-        return
+        except Exception as e:
+            print("error: ", e)
 
 # Function to handle multiple TCP connections
 def tcp_server(host, port, ClientList, servers_list, udp_socket):
@@ -416,7 +413,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
             except queue.Empty:
                 pass
 
-    pool_size = 10
+    pool_size = 15
     threads = []
     for _ in range(pool_size):
         thread = threading.Thread(target=process_messages)
