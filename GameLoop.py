@@ -472,7 +472,7 @@ class Witch(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
-        msg = encrypt(f"gDAMAGEWITCH&{client.id}&{self.id}&{gun.damage}", secret)
+        msg = encrypt(f"zDAMAGEWITCH&{client.id}&{self.id}&{gun.damage}", secret)
         client.send_data(msg)
         if self.health <= 0:
             if self.id in mobs:
@@ -524,7 +524,7 @@ class Enemy(Entity):
 
     def enemy_hit(self, gun):
         self.health -= gun.damage
-        msg = encrypt(f"gDAMAGEMOB&{client.id}&{self.id}&{gun.damage}", secret)
+        msg = encrypt(f"zDAMAGEMOB&{client.id}&{self.id}&{gun.damage}", secret)
         client.send_data(msg)
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
@@ -999,27 +999,26 @@ def death():
 activeChest = 0
 
 def safe_exit():
-    kaki = f"gSafeDisconnect&{client_id}"
-    kaki = encrypt(kaki, secret)
-    client.send_data(kaki)
-    time.sleep(3)
     stop_event.set()
     recvThread.join()
     sendThread.join()
+    time.sleep(1)
+    kaki = f"gSafeDisconnect&{client_id}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
     application.quit()
     exit()
 
 def input(key):
     global cursor, inv, activeChest
     if key == 'escape':
-        # Wait for the background thread to finish
-        kaki = f"gDisconnect&{client_id}"
-        kaki = encrypt(kaki, secret)
-        client.send_data(kaki)
-        time.sleep(3)
         stop_event.set()
         recvThread.join()
         sendThread.join()
+        time.sleep(1)
+        kaki = f"gDisconnect&{client_id}"
+        kaki = encrypt(kaki, secret)
+        client.send_data(kaki)
         application.quit()
         exit()
     if held_keys['left mouse']:

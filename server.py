@@ -176,10 +176,12 @@ class Server:
         min_dist = 1000
         for clientID in self.coordinates.keys():
             total_dist = abs((abs(float(self.coordinates[clientID][0])) - abs(self.witches[witchID][0]))) + \
-                         abs((abs(float(self.coordinates[clientID][1])) - abs(self.witches[witchID][1])))
+                         abs((abs(float(self.coordinates[clientID][2])) - abs(self.witches[witchID][2])))
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChaseWitches[witchID] = clientID
+        if min_dist > 1000:
+            self.playerChaseWitches[witchID] = 0
 
     def update_orbs(self):
         while True:
@@ -289,10 +291,12 @@ class Server:
         min_dist = 1000
         for clientID in self.coordinates.keys():
             total_dist = abs((abs(float(self.coordinates[clientID][0])) - abs(self.mobs[zombieID][0]))) + \
-                         abs((abs(float(self.coordinates[clientID][1])) - abs(self.mobs[zombieID][1])))
+                         abs((abs(float(self.coordinates[clientID][2])) - abs(self.mobs[zombieID][2])))
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChase[zombieID] = clientID
+        if min_dist > 1000:
+            self.playerChase[zombieID] = 0
 
     def rotate_enemy(self, player_posit, enemy_posit):
         # Calculate vector from enemy to player
@@ -365,7 +369,7 @@ class Server:
                     print(f"Player {int(dataArr[1])} hurt and his health is {dataArr[2]}")
 
                     self.socket.sendto(f"aH&{int(dataArr[1])}&{dataArr[2]}".encode(), addr)
-                if dataArr[0] == 'gDAMAGEMOB':
+                if dataArr[0] == 'zDAMAGEMOB':
                     print("DAMAGED MOB")
                     mob_id = int(dataArr[2])  # Ensuring that the mob ID is an integer
                     damage = int(dataArr[3])  # Ensuring that the damage is an integer
@@ -389,25 +393,25 @@ class Server:
                             self.socket.sendto(f"aR&{mob_id}".encode(), addr)
                 if dataArr[0] == 'gDisconnect':
                     print(f"Disconnecting: ", dataArr[1])
-                    self.all_players.pop(dataArr[1], None)
-                    self.coordinates.pop(dataArr[1], None)
-                    self.playerChase.pop(dataArr[1], None)
+                    self.all_players.pop(int(dataArr[1]), None)
+                    self.coordinates.pop((dataArr[1]), None)
+                    #self.playerChase.pop((dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
                     login_socket.connect(("127.0.0.1", 6969))
                     login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
                 if dataArr[0] == 'gSafeDisconnect':
-                    self.all_players.pop(dataArr[1], None)
-                    self.coordinates.pop(dataArr[1], None)
-                    self.playerChase.pop(dataArr[1], None)
+                    self.all_players.pop(int(dataArr[1]), None)
+                    self.coordinates.pop(int(dataArr[1]), None)
+                    #self.playerChase.pop(int(dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
                     login_socket.connect(("127.0.0.1", 6969))
                     login_socket.send(f"Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
 
-                if dataArr[0] == 'gDAMAGEWITCH':
+                if dataArr[0] == 'zDAMAGEWITCH':
                     # Example data: "gDAMAGEWITCH&witch_id&damage"
                     witch_id = int(dataArr[2])
                     damage_amount = int(dataArr[3])

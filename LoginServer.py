@@ -155,11 +155,15 @@ def sign_in(client_socket, client_address, data, clientID):
         data (str): Data containing username and password separated by '&'.
 
     """
+    print("poopyu")
     username, password = data.split("&")
     user_document = users_collection.find_one({"name": username})
+    print("kak")
     if user_document:
+        print("kaki")
         client_socket.send(encrypt("Taken", clientID))
     else:
+        print("kaka")
         ip, port = client_address
         insert_new_user(username, password, ip, port)
         client_socket.send(encrypt("Sign_in_successful", clientID))

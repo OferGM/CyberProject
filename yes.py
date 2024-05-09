@@ -276,6 +276,14 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 print(f"Sent HI msg: {data} to {serverIP}")
                 return
 
+            if data.startswith("z"):
+                indi = data.split('&')
+                clientID = indi[1]
+                for serverID in servers_list.keys():
+                    print("server ID: ", serverID)
+                    print("server IP: ", servers_list[serverID])
+                    udp_socket.sendto(data.encode(), servers_list[serverID])
+
             if data.startswith("gHELD"):
                 print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
                 indi = data.split('&')
