@@ -347,13 +347,18 @@ class Server:
                     data = darr[2]
                     self.all_players[playerID] = data
                     print("KAKIIIIIIIIIIIIIIIIIIIIIIIIIIII: ", data)
+                    #self.coordinates[playerID] = 0
                 if dataArr[0] == 'gSTATE':
-                    if dataArr[1] in self.heldItems:
+                    playerID = dataArr[1]
+                    if dataArr[1] in self.heldItems and playerID in self.all_players:
                         msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&{self.heldItems[dataArr[1]]}'
+                        self.socket.sendto(msg.encode(), addr)
+                        self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                     else:
-                        msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
-                    self.socket.sendto(msg.encode(), addr)
-                    self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
+                        if playerID in self.all_players:
+                            msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
+                            self.socket.sendto(msg.encode(), addr)
+                            self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'STATE':
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'gDEAD':

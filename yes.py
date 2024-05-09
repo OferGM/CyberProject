@@ -16,6 +16,7 @@ CLIENT_ID_LENGTH = 5
 
 class ClientLister:
     def __init__(self):
+        self.join_dict = {}
         self.client_dict = {}  # dict that matches ID to x pos
         self.client_dict_z = {}
         self.edges_arr = [100, 200, 300]  # arr that holds the x positions of the edges of the rectangles
@@ -25,6 +26,8 @@ class ClientLister:
         self.sl = SkipList()  # ordered skip list that holds x positions with ID's as keys
         self.hellman = {}
         self.public = {}
+    def get_join(self):
+        return self.join_dict
 
     def get_public(self):
         return self.public
@@ -146,8 +149,11 @@ def handle_tcp(data, rosie, ClientList, servers_list, udp_socket, shared_secret)
 
     if data.startswith("JOIN"):
         print("Received JOIN request")
-        for serverIP in servers_list.values():
-            udp_socket.sendto(data.encode(), serverIP)
+        dataArr = data.split('&')
+        clientID = int(dataArr[1])
+        ClientList.get_join()[clientID] = data
+        #for serverIP in servers_list.values():
+        #    udp_socket.sendto(data.encode(), serverIP)
 
 def decrypt(data, ClientList):
     print("trying to decrypt: ", data)
@@ -181,7 +187,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         pring = data
         try:
             data = data.decode(errors = 'ignore')
-            print("Received without decrypting: ", data)
+            #print("Received without decrypting: ", data)
             if data.startswith("s"):        #data intended for specific client
                 indi = data.split('&')
                 clientID = int(indi[1])
@@ -254,7 +260,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 return
 
             data = decrypt(pring, ClientList)
-            print("Received with decrypting: ", data)
+            #print("Received with decrypting: ", data)
 
             if data.startswith("HI&"):
                 print("Received HI MSG: ", data)
@@ -264,6 +270,9 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 clientIP = f'({addr[0]}, {addr[1]})'
                 print("Client IP is: ",clientIP)
                 print("yaya")
+                bata = ClientList.get_join()[clientID]
+                for serverIP in servers_list.values():
+                    udp_socket.sendto(bata.encode(), serverIP)
                 ClientList.get_ip_dict()[clientID] = clientIP
                 ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
                 print("Calculating edges")
@@ -316,6 +325,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 del ClientList.get_server_dict()[clientID]
                 public = ClientList.get_public()[clientID]
                 del ClientList.get_hellman()[public]
+                del ClientList.get_public()[clientID]
+                del ClientList.get_join()[clientID]
                 #udp_socket.sendto(data.encode(), servers_list['login'])
                 #for clientIP in ClientList.get_ip_dict().values():
                 #    udp_socket.sendto(data.encode(), clientIP)
