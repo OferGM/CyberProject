@@ -7,9 +7,10 @@ import ChatServer
 
 connected = 1
 SEARCH_CLOSEST_PLAYER_RATE = 0.1
-LOAD_BALANCER_UDP_ADDR = ('127.0.0.1', 9999)
-servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
-                    'login': ('127.0.0.1', 12345)}
+LOAD_BALANCER_UDP_ADDR = ()
+servers_dict = {1: (), 2: (), 3: (), 4: (),
+                 'login': ()}
+
 
 class Server:
     def __init__(self, addr):
@@ -462,10 +463,53 @@ class Server:
             except Exception as e:
                 print(f"Error handling client: {e}")
 
+def get_private_ip():
+    # Create a socket connection to a remote server
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # This IP and port are arbitrary and don't need to be reachable
+        # We just need to open a socket and get the local address used
+        s.connect(("8.8.8.8", 80))
+        private_ip = s.getsockname()[0]
+    except Exception as e:
+        private_ip = "Unable to determine IP address: " + str(e)
+    finally:
+        s.close()
+    return private_ip
 
 # Example usage
 if __name__ == "__main__":
+    private_ip = get_private_ip()
+    print (private_ip)
     serverNum = int(input("Enter server number: "))
+    servers_dict[serverNum]=(private_ip ,12340+serverNum)   #put the server ip and port in dictionary
     serverAddress = servers_dict[serverNum]
     server = Server(serverAddress)
+
+    ip=input("Fill the ip of the first server, if you already have done it, enter x")
+    if ip!='x':
+        servers_dict[1]=(ip,12341)
+
+    ip = input("Fill the ip of the second server, if you already have done it, enter x")
+    if ip != 'x':
+        servers_dict[2] = (ip, 12342)
+
+    ip = input("Fill the ip of the third server, if you already have done it, enter x")
+    if ip != 'x':
+        servers_dict[3] = (ip, 12343)
+
+    ip = input("Fill the ip of the fourth server, if you already have done it, enter x")
+    if ip != 'x':
+        servers_dict[4] = (ip, 12344)
+
+    ip = input ("Fill the ip of login-server")
+    servers_dict[5] = (ip, 12345)
+
+    ip = input("Fill the ip of the load-balancer")
+    LOAD_BALANCER_UDP_ADDR = (ip, 9999)
+
+
+
+
+
     server.start_server()

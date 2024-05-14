@@ -7,9 +7,30 @@ import threading
 import random
 from sympy import randprime
 
+
+def get_private_ip():
+    # Create a socket connection to a remote server
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # This IP and port are arbitrary and don't need to be reachable
+        # We just need to open a socket and get the local address used
+        s.connect(("8.8.8.8", 80))
+        private_ip = s.getsockname()[0]
+    except Exception as e:
+        private_ip = "Unable to determine IP address: " + str(e)
+    finally:
+        s.close()
+    return private_ip
+
+private_ip = get_private_ip()
+print (private_ip)
+
+ip = input("Fill the ip of the load-balancer")
+
+
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect(("127.0.0.1", 8888))
+lb_socket.connect(ip, 8888)
 
 # Receive prime and base from the server
 prime = int(lb_socket.recv(1024).decode())
@@ -54,6 +75,7 @@ def change_connection_status(client_address, connected):
     _id = ObjectId(user_document["_id"])
     update = {"$set": {"connected": connected}}
     users_collection.update_one({"_id": _id}, update)
+
 
 
 def update_user_address(client_ip, client_port, user_id):
@@ -440,6 +462,8 @@ def main():
         print('New connection received from: ', client_address)
         client_thread = threading.Thread(target=client_handler, args=(client_socket, client_address))
         client_thread.start()
+
+
 
 
 if __name__ == "__main__":

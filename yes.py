@@ -506,15 +506,57 @@ def encrypt(data, shared_key):
     print(encrypted_bytes)
     return encrypted_bytes
 
+
+def get_private_ip():
+    # Create a socket connection to a remote server
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # This IP and port are arbitrary and don't need to be reachable
+        # We just need to open a socket and get the local address used
+        s.connect(("8.8.8.8", 80))
+        private_ip = s.getsockname()[0]
+    except Exception as e:
+        private_ip = "Unable to determine IP address: " + str(e)
+    finally:
+        s.close()
+    return private_ip
+
+
+
+
 def main():
-    tcp_host = '127.0.0.1'
+
+    private_ip = get_private_ip()
+    print(private_ip)
+
+    tcp_host = private_ip
     tcp_port = 8888
 
-    udp_host = '127.0.0.1'
+    udp_host = private_ip
     udp_port = 9999
 
-    servers_dict = {1: ('127.0.0.1', 12341), 2: ('127.0.0.1', 12342), 3: ('127.0.0.1', 12343), 4: ('127.0.0.1', 12344),
-                    'login': ('127.0.0.1', 12345)}
+    servers_dict = {1: (), 2: (), 3: (), 4: (),
+                    'login': ()}
+
+
+    ip = input("Fill the ip of the first server")
+    servers_dict[1] = (ip, 12341)
+
+    ip = input("Fill the ip of the second server")
+    servers_dict[2] = (ip, 12342)
+
+    ip = input("Fill the ip of the third server")
+    servers_dict[3] = (ip, 12343)
+
+    ip = input("Fill the ip of the fourth server")
+    servers_dict[4] = (ip, 12344)
+
+    ip = input("Fill the ip of login-server")
+    servers_dict[5] = (ip, 12345)
+
+
+
+
 
     ClientList = ClientLister()
 
