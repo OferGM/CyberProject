@@ -27,4 +27,4 @@ def start_server(host, port):
 
 # Run the server
 def Chat():
-    start_server('0.0.0.0', 57687)
+    start_server('127.0.0.1', 57687)

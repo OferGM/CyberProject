@@ -30,7 +30,7 @@ ip = input("Fill the ip of the load-balancer")
 
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect(ip, 8888)
+lb_socket.connect((ip, 8888))
 
 # Receive prime and base from the server
 prime = int(lb_socket.recv(1024).decode())
@@ -292,7 +292,7 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     """
     print("disconnect")
     port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = ("127.0.0.1", port)
+    client_address = (client_address[0], port)
     update_user(data.split("&")[2:], client_address, shmoney)
     print("sending disconnect")
     client_socket.send(encrypt("successfully_disconnected", clientID))
@@ -330,7 +330,7 @@ def handle_client(client_socket, client_address):
                     disconnect_from_game(client_socket, client_address, data, clientID)
                 if method == "Rape_Disconnect":
                     print(data)
-                    client_address1 = ("127.0.0.1", int(data))
+                    client_address1 = (client_address[0], int(data))
                     change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")

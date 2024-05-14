@@ -1,3 +1,4 @@
+import builtins
 import faulthandler
 import random
 from ursina import *
@@ -36,6 +37,12 @@ chests = {}
 destroyed_orbs = []
 rendered_players = {}
 update_queue = Queue()
+
+
+
+lb_ip = ()
+login_ip = ()
+
 
 
 def RemoveChest(chest_id):
@@ -1342,28 +1349,51 @@ class Melee:
         else:
             return False
 
+
+def get_private_ip():
+    # Create a socket connection to a remote server
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # This IP and port are arbitrary and don't need to be reachable
+        # We just need to open a socket and get the local address used
+        s.connect(("8.8.8.8", 80))
+        private_ip = s.getsockname()[0]
+    except Exception as e:
+        private_ip = "Unable to determine IP address: " + str(e)
+    finally:
+        s.close()
+    return private_ip
+
 if __name__ == "__main__":
     try:
+
+        ip = builtins.input("Fill the ip of the login-server")
+        login_ip=ip
+        ip = builtins.input("Fill the ip of the load-balancer")
+        lb_ip=ip
+
+
+
         port_yes = random.randint(50000, 65534)
         print("Port generated is: ", port_yes)
 
-        secret, client_public_key, client_private_key = client_program(port_yes, '127.0.0.1', 1010)
+        secret, client_public_key, client_private_key = client_program(port_yes, lb_ip, 1010)
         print("secret: " + str(secret))
         print("public: " + str(client_public_key))
         print("private: " + str(client_private_key))
 
-        secret_login, client_public_key_login, client_private_key_login = client_program(port_yes, '127.0.0.1', 7878)
+        secret_login, client_public_key_login, client_private_key_login = client_program(port_yes, login_ip, 7878)
         print("secret login: " + str(secret_login))
         print("public login: " + str(client_public_key_login))
         print("private login: " + str(client_private_key_login))
 
-        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode()])
+        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), str(login_ip).encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), str(login_ip).encode()])
 
         client_id = port_yes
 
-        client = clientfuncs(int(client_id))
+        client = clientfuncs(int(client_id), lb_ip)
 
         addr = client.get_ip()
         addr = f'({addr[0]}, {addr[1]})'

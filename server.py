@@ -404,7 +404,7 @@ class Server:
                     #self.playerChase.pop((dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
-                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.connect((servers_dict['login'][0], 6969))
                     login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
                 if dataArr[0] == 'gSafeDisconnect':
@@ -413,7 +413,7 @@ class Server:
                     #self.playerChase.pop(int(dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
-                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.connect((servers_dict['login'][0], 6969))
                     login_socket.send(f"Disconnect%{dataArr[1]}".encode())
                     login_socket.close()
 
@@ -503,7 +503,7 @@ if __name__ == "__main__":
         servers_dict[4] = (ip, 12344)
 
     ip = input ("Fill the ip of login-server")
-    servers_dict[5] = (ip, 12345)
+    servers_dict['login'] = (ip, 6969)
 
     ip = input("Fill the ip of the load-balancer")
     LOAD_BALANCER_UDP_ADDR = (ip, 9999)

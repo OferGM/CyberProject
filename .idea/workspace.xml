@@ -4,12 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="Added weapon cooldowns">
+    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="servers fix&#10;(didnt test)">
       <change beforePath="$PROJECT_DIR$/.idea/CyberProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CyberProject.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ChatServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ChatServer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameLoop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LobbyUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/LobbyUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LoginPage.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginPage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LoginServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginServer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clientfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/clientfuncs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/yes.py" beforeDir="false" afterPath="$PROJECT_DIR$/yes.py" afterDir="false" />
     </list>
@@ -43,14 +46,14 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.GameLoop.executor": "Run",
-    "Python.LoginServer.executor": "Debug",
+    "Python.LoginServer.executor": "Run",
     "Python.server.executor": "Run",
     "Python.yes.executor": "Run",
     "git-widget-placeholder": "docker__communcation",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.LoginServer">
+  <component name="RunManager" selected="Python.GameLoop">
     <configuration name="Unnamed" type="CompoundRunConfigurationType">
       <toRun name="LoginServer" type="PythonConfigurationType" />
       <toRun name="server" type="PythonConfigurationType" />
@@ -403,7 +406,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714939757096</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="servers fix&#10;(didnt test)">
+      <option name="closed" value="true" />
+      <created>1715700594317</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1715700594317</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -439,7 +450,8 @@
     <MESSAGE value="Add items from lobby ui" />
     <MESSAGE value="Added weapon cooldowns" />
     <MESSAGE value="offline melee from game" />
-    <option name="LAST_COMMIT_MESSAGE" value="offline melee from game" />
+    <MESSAGE value="servers fix&#10;(didnt test)" />
+    <option name="LAST_COMMIT_MESSAGE" value="servers fix&#10;(didnt test)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

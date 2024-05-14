@@ -1910,7 +1910,7 @@ if __name__ == "__main__":
     client_id = int(sys.argv[1])
     shared_key = int(sys.argv[2])
     time.sleep(1)
-    socket1.connect(("127.0.0.1", 6969))
+    socket1.connect((str(sys.argv[3]), 6969))
     print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
     import sys
     import gc

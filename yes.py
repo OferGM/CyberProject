@@ -552,7 +552,7 @@ def main():
     servers_dict[4] = (ip, 12344)
 
     ip = input("Fill the ip of login-server")
-    servers_dict[5] = (ip, 12345)
+    servers_dict['login'] = (ip, 6969)
 
 
 
