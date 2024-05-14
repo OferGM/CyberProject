@@ -38,11 +38,8 @@ destroyed_orbs = []
 rendered_players = {}
 update_queue = Queue()
 
-
-
 lb_ip = ()
 login_ip = ()
-
 
 
 def RemoveChest(chest_id):
@@ -401,8 +398,8 @@ class player(FirstPersonController):
             collider='box',
             health=100,
             npc=False,
-            time_since_last_change = 0,
-            change_direction_interval = 5,
+            time_since_last_change=0,
+            change_direction_interval=5,
             npc_activate=True
         )
 
@@ -424,7 +421,7 @@ class player(FirstPersonController):
             random_direction = Vec3(random.uniform(-1, 1), 0, random.uniform(-1, 1)).normalized()
             self.time_since_last_change = 0
             self.npc_activate = False
-        self.position += random_direction*0.045
+        self.position += random_direction * 0.045
 
 
 class Item(Entity):
@@ -486,9 +483,6 @@ class Witch(Entity):
                 witches.pop(self.id)
             self.self_destroy()
             player_money_bar.value += 100
-
-
-
 
 
 class Enemy(Entity):
@@ -876,7 +870,8 @@ def stop_rendering_continuosly():
 def send_game_data_continuously(player, stop_event, secret):
     while not stop_event.is_set():
         try:
-            msg = encrypt(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}", secret)
+            msg = encrypt(f"gSTATE&{client.id}&{player.x}&{player.y}&{player.z}&{player.rotation_y}&{player.health}",
+                          secret)
             client.send_data(msg)
             time.sleep(0.01)
         except AssertionError as e:
@@ -893,6 +888,7 @@ def updatePlayer(id, x, y, z, rotation, health, item):
         p.health = int(health)
         p.UpdateItem(item)
 
+
 def decrypt(data, shared_key):
     # Convert key to bytes (using 4 bytes and little endian byteorder)
     key_bytes = shared_key.to_bytes(1024, byteorder='little')
@@ -904,10 +900,11 @@ def decrypt(data, shared_key):
 
     return decrypted_message
 
+
 def encrypt(data, shared_key):
     # Convert message and key to byte arrays
     message_bytes = data.encode('ascii', 'ignore')
-    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
@@ -915,77 +912,80 @@ def encrypt(data, shared_key):
     encrypted_bytes = poo + encrypted_bytes
     return encrypted_bytes
 
+
 def recv_game_data_continuosly(player, stop_event, shared_key):
-        global DEAD
-    #try:
-        while not stop_event.is_set():
-            a = client.receive_data()
-            print("Received: ", a)
-            a = decrypt(a, shared_key)
-            aList = a.split('&')
-            if aList[0] == 'STATE':
-                if int(aList[1]) != int(client.get_id()):
-                    if int(aList[1]) in players and len(aList) >= 7:
-                        rendered_players[int(aList[1])] = 1
-                        id = aList[1]
-                        x = aList[2]
-                        y = aList[3]
-                        z = aList[4]
-                        rotation = aList[5]
-                        health = aList[6]
-                        item = aList[7].replace('.png', '')
-                        update_task = lambda: updatePlayer(id, x, y, z, rotation, health, item)
-                        update_queue.put(update_task)
-                        pass
-                    else:
-                        players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
-            if aList[0] == 'aM':
-                separate_mob_string(a.replace('aM', ''))
-            if aList[0] == 'aW':
-                separate_Witch_string(a.replace('aW', ''))
-            if aList[0] == 'aI':
-                if a.replace('aI&', '') != '':
-                    separate_item_string(a.replace('aI', ''))
-            if aList[0] == 'aC':
-                if a.replace('aC&', '') != '':
-                    separate_chest_string(a.replace('aC', ''))
-            if aList[0] == 'aREMOVECHEST':
-                if int(aList[1]) != int(client.id):
-                    print("Chest Removed")
-                    RemoveChest(int(aList[2]))
-            if aList[0] == 'NEW':
-                print("NEW PLAYER")
-                CreateNewPlayer(int(aList[1]))
-            if aList[0] == 'aR':
-                print(f"Zombie removed: {aList[1]}")
-                if int(aList[1]) in mobs:
-                    destroy(mobs[int(aList[1])])
-                    mobs.pop(int(aList[1]))
-            if aList[0] == 'aH':
-                if int(aList[1]) in players:
-                    p = players[int(aList[1])]
-                    p.health = int(aList[2])
-                if int(aList[1]) == client.get_id():
-                    player.health = int(aList[2])
-                    if player.health <= 0 and DEAD == 0:
-                        DEAD = 1
-                        death()
-            if aList[0] == 'aPICKED':
-                items[int(aList[1])].enabled = False
-            if aList[0] == 'aO':
-                separate_orb_string(a.replace('aO', ''))
-            if aList[0] == 'aRemoveOrb':
-                orb_id = int(aList[1])  # Parse the orb ID safely
-                if orb_id in orbs:  # Check if the orb actually exists
-                    orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
-                    destroy(orbToDestroy)  # Safely destroy the orb entity
-                    destroyed_orbs.append(orb_id)
-                    print("Removed Orb")
-                    print(len(orbs))
+    global DEAD
+    # try:
+    while not stop_event.is_set():
+        a = client.receive_data()
+        print("Received: ", a)
+        a = decrypt(a, shared_key)
+        aList = a.split('&')
+        if aList[0] == 'STATE':
+            if int(aList[1]) != int(client.get_id()):
+                if int(aList[1]) in players and len(aList) >= 7:
+                    rendered_players[int(aList[1])] = 1
+                    id = aList[1]
+                    x = aList[2]
+                    y = aList[3]
+                    z = aList[4]
+                    rotation = aList[5]
+                    health = aList[6]
+                    item = aList[7].replace('.png', '')
+                    update_task = lambda: updatePlayer(id, x, y, z, rotation, health, item)
+                    update_queue.put(update_task)
+                    pass
                 else:
-                    print(f"Orb with ID {orb_id} not found")
-    #except Exception as e:
-    #    print("error: ", e)
+                    players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
+        if aList[0] == 'aM':
+            separate_mob_string(a.replace('aM', ''))
+        if aList[0] == 'aW':
+            separate_Witch_string(a.replace('aW', ''))
+        if aList[0] == 'aI':
+            if a.replace('aI&', '') != '':
+                separate_item_string(a.replace('aI', ''))
+        if aList[0] == 'aC':
+            if a.replace('aC&', '') != '':
+                separate_chest_string(a.replace('aC', ''))
+        if aList[0] == 'aREMOVECHEST':
+            if int(aList[1]) != int(client.id):
+                print("Chest Removed")
+                RemoveChest(int(aList[2]))
+        if aList[0] == 'NEW':
+            print("NEW PLAYER")
+            CreateNewPlayer(int(aList[1]))
+        if aList[0] == 'aR':
+            print(f"Zombie removed: {aList[1]}")
+            if int(aList[1]) in mobs:
+                destroy(mobs[int(aList[1])])
+                mobs.pop(int(aList[1]))
+        if aList[0] == 'aH':
+            if int(aList[1]) in players:
+                p = players[int(aList[1])]
+                p.health = int(aList[2])
+            if int(aList[1]) == client.get_id():
+                player.health = int(aList[2])
+                if player.health <= 0 and DEAD == 0:
+                    DEAD = 1
+                    death()
+        if aList[0] == 'aPICKED':
+            items[int(aList[1])].enabled = False
+        if aList[0] == 'aO':
+            separate_orb_string(a.replace('aO', ''))
+        if aList[0] == 'aRemoveOrb':
+            orb_id = int(aList[1])  # Parse the orb ID safely
+            if orb_id in orbs:  # Check if the orb actually exists
+                orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
+                destroy(orbToDestroy)  # Safely destroy the orb entity
+                destroyed_orbs.append(orb_id)
+                print("Removed Orb")
+                print(len(orbs))
+            else:
+                print(f"Orb with ID {orb_id} not found")
+
+
+# except Exception as e:
+#    print("error: ", e)
 
 
 stop_event = threading.Event()
@@ -997,13 +997,14 @@ def death():
     kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
-    player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
+    player.position = (random.randint(-150, 150), player.y, random.randint(-150, 150))
     gun = 0
     inv.CleanInv()
     player.health = 100
 
 
 activeChest = 0
+
 
 def safe_exit():
     stop_event.set()
@@ -1015,6 +1016,7 @@ def safe_exit():
     client.send_data(kaki)
     application.quit()
     exit()
+
 
 def input(key):
     global cursor, inv, activeChest
@@ -1048,19 +1050,19 @@ def input(key):
         chat = threading.Thread(target=clientChat.ClientChat)
         chat.start()
     if key == 'b' and not player.npc:
-        player.npc=True
-    elif key =='b' and  player.npc:
-        player.npc=False
-        player.npc_activate=True
+        player.npc = True
+    elif key == 'b' and player.npc:
+        player.npc = False
+        player.npc_activate = True
     if key == 'q':
-        print(calculate_distance(player.position,(-600, 11, -800)))
-        print(calculate_distance(player.position,(800, 0, 650)))
-    if key == 'q' and (calculate_distance(player.position,(-600, 0, -800)) < 20 or calculate_distance(player.position,(800, 0, 650)) < 20):
-        print(calculate_distance(player.position,(-600, 11, -800)))
-        print(calculate_distance(player.position,(800, 0, 650)))
+        print(calculate_distance(player.position, (-600, 11, -800)))
+        print(calculate_distance(player.position, (800, 0, 650)))
+    if key == 'q' and (calculate_distance(player.position, (-600, 0, -800)) < 20 or calculate_distance(player.position,
+                                                                                                       (800, 0,
+                                                                                                        650)) < 20):
+        print(calculate_distance(player.position, (-600, 11, -800)))
+        print(calculate_distance(player.position, (800, 0, 650)))
         safe_exit()
-
-
 
     # Check if 'i' is pressed and the chest is open
     if key == 'i' and activeChest != 0:
@@ -1244,11 +1246,11 @@ def ActivateStrengthSkill():
 
 
 def close_game():
-
     stop_event.set()
     application.quit()
     exit()
     pass
+
 
 def client_program(port_yes, host, port):
     host = host
@@ -1258,9 +1260,10 @@ def client_program(port_yes, host, port):
     client_socket.connect((host, port))
 
     # Receive prime and base from the server
+    print("1")
     prime = int(client_socket.recv(1024).decode())
     base = int(client_socket.recv(1024).decode())
-
+    print("2")
     # Generate client's private key
     private_key_client = random.randint(1, prime - 1)  # Assume this is generated securely
 
@@ -1269,13 +1272,21 @@ def client_program(port_yes, host, port):
     client_socket.send(f"{public_key_client}&{port_yes}".encode())
 
     # Receive server's public key
-    public_key_server = int(client_socket.recv(1024).decode())
+    print("3")
+    while True:
+        data = client_socket.recv(1024).decode()
+        if data != "":
+            break
+
+    print(data)
 
     # Calculate shared secret
-    shared_secret = pow(public_key_server, private_key_client, prime)
+    print("5")
+    shared_secret = pow(int(data), private_key_client, prime)
 
     client_socket.close()
     return shared_secret, public_key_client, private_key_client
+
 
 class Melee:
     def __init__(self, arm1, arm2):
@@ -1311,7 +1322,8 @@ class Melee:
 
     def hit(self):
         hovered_entity = mouse.hovered_entity
-        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
+        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position,
+                                                                                       hovered_entity.position) < 3.5:
             hovered_entity.enemy_hit(self.damage)
 
     def deactivate(self):
@@ -1364,15 +1376,14 @@ def get_private_ip():
         s.close()
     return private_ip
 
+
 if __name__ == "__main__":
     try:
 
         ip = builtins.input("Fill the ip of the login-server")
-        login_ip=ip
+        login_ip = ip
         ip = builtins.input("Fill the ip of the load-balancer")
-        lb_ip=ip
-
-
+        lb_ip = ip
 
         port_yes = random.randint(50000, 65534)
         print("Port generated is: ", port_yes)
@@ -1387,9 +1398,10 @@ if __name__ == "__main__":
         print("public login: " + str(client_public_key_login))
         print("private login: " + str(client_private_key_login))
 
-        subprocess.run(['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), str(login_ip).encode()])
+        subprocess.run(
+            ['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), str(login_ip).encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode()])
 
         client_id = port_yes
 
@@ -1452,9 +1464,6 @@ if __name__ == "__main__":
         inv.enabled = False
         addItems(invdata)
 
-
-
-
         print("8")
 
         miniInv = MiniInv(inv)
@@ -1463,7 +1472,6 @@ if __name__ == "__main__":
 
         enemies = {}
         items = {}
-
 
         player_health_bar = HealthBar(value=100, position=(-0.9, -0.48))
 
@@ -1488,9 +1496,7 @@ if __name__ == "__main__":
 
         sound = Audio("pistol_shoot.mp3", loop=False, autoplay=False)
 
-
-
-        random_direction=Vec3()
+        random_direction = Vec3()
 
         # chest = Chest((2, 0, 2))
         # chest._ChestInv = Inventory(None,4,4)

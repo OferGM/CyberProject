@@ -1905,6 +1905,7 @@ def decrypt(data):
     return decrypted_message
 
 if __name__ == "__main__":
+    print(sys.argv[3])
     socket1 = socket.socket()
     socket1.bind(("127.0.0.1", int(sys.argv[1])))
     client_id = int(sys.argv[1])
