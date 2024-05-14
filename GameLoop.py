@@ -35,6 +35,7 @@ orbs = {}
 chests = {}
 destroyed_orbs = []
 rendered_players = {}
+rendered_zombies = {}
 update_queue = Queue()
 
 
@@ -150,6 +151,7 @@ def separate_mob_string(all_mobs_string):
                     mobs[id].health = int(parts[5])
                 else:
                     CreateEnemy(coords, id)
+                rendered_zombies[id] = 1
             except Exception as e:
                 # Handle the case where conversion to int fails
                 print(f"Could not convert {entry} to mob data: ", e)
@@ -863,7 +865,14 @@ def stop_rendering_continuosly():
                 rendered_players[ID] = 0
             else:
                 players[ID].enabled = False
-        time.sleep(0.2)
+
+        for ID in rendered_zombies.keys():
+            if rendered_zombies[ID] == 1:
+                mobs[ID].enabled = True
+                rendered_zombies[ID] = 0
+            else:
+                mobs[ID].enabled = False
+        time.sleep(0.3)
 
 
 def send_game_data_continuously(player, stop_event, secret):
@@ -933,6 +942,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
                     else:
                         players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
             if aList[0] == 'aM':
+                print("got aM: ", a)
                 separate_mob_string(a.replace('aM', ''))
             if aList[0] == 'aW':
                 separate_Witch_string(a.replace('aW', ''))
@@ -1002,6 +1012,7 @@ def safe_exit():
     stop_event.set()
     recvThread.join()
     sendThread.join()
+    renderThread.join()
     time.sleep(1)
     kaki = f"gSafeDisconnect&{client_id}"
     kaki = encrypt(kaki, secret)
@@ -1015,6 +1026,7 @@ def input(key):
         stop_event.set()
         recvThread.join()
         sendThread.join()
+        renderThread.join()
         time.sleep(1)
         kaki = f"gDisconnect&{client_id}"
         kaki = encrypt(kaki, secret)
@@ -1395,8 +1407,8 @@ if __name__ == "__main__":
         sendThread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event, secret))
         sendThread.start()
 
-        # thread = threading.Thread(target=stop_rendering_continuosly, args=())
-        # thread.start()
+        renderThread = threading.Thread(target=stop_rendering_continuosly, args=())
+        renderThread.start()
 
         recvThread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))
         recvThread.start()

@@ -10,7 +10,7 @@ from sympy import randprime
 
 UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
 SERVER_UPDATE_RATE = 10  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
-LOOKING_DISTANCE = 20  # the max distance from which you can see other ppl
+LOOKING_DISTANCE = 30  # the max distance from which you can see other ppl
 CLIENT_ID_LENGTH = 5
 
 
@@ -71,12 +71,12 @@ class ClientLister:
 
     def insert_client(self, client_x, client_z, client_id):
         self.client_dict[client_id] = client_x
-        self.client_dict_z[client_id] = client_z
+        self.client_dict_z[int(client_id)] = client_z
         self.sl.insert(client_x, client_id)
 
     def remove_client(self, client_id):
-        client_x = self.client_dict.pop(client_id)
-        gh = self.client_dict_z.pop(client_id)
+        client_x = self.client_dict.pop((client_id))
+        gh = self.client_dict_z.pop(int(client_id))
         self.sl.remove(client_x)
 
     def update_client(self, new_x, new_z, client_id):
@@ -169,6 +169,7 @@ def decrypt(data, ClientList):
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
     # Convert the decrypted bytes back to a string
     decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
+    print("decrypted message is ", decrypted_message)
 
     return decrypted_message
 
@@ -188,6 +189,39 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
         try:
             data = data.decode(errors = 'ignore')
             #print("Received without decrypting: ", data)
+            if data.startswith("aM"):
+                # Split the string by semicolons to get individual mob data strings
+                bata = data.replace('aM', '')
+                mob_entries = bata.split(';')
+                msg_dict = {}
+                for client in ClientList.get_dict().items():  # for every client:
+                    msg_dict[int(client[0])] = 'aM&;'
+                for entry in mob_entries:
+                    if entry and entry != '&':  # Check if entry is not empty
+                        print("entry: ", entry)
+                        parts = entry.split('&')
+                        mobX = float(parts[1])
+                        mobZ = float(parts[3])
+                        for client in ClientList.get_sl().items():  # for every client:
+                            print("kak, client x is ", client[0], ", client id is ", client[1])
+                            if client[0] >= mobX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
+                                if client[0] <= mobX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
+                                    if ClientList.get_z_dict()[int(client[1])] >= mobZ - LOOKING_DISTANCE:
+                                        if ClientList.get_z_dict()[int(client[1])] <= mobZ + LOOKING_DISTANCE:
+                                            msg_dict[int(client[1])] += entry + ';'
+                                        else:
+                                            pass
+                                            #return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+                            #'''
+                        #return
+                for client in msg_dict.items():
+                    print("For clientID: ", client[0], ", the msg is: ", client[1])
+                    data = client[1]
+                    data = data[:-1]
+                    precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[int(client[0])]])
+                    udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[0])])  # then send the client
+                return
+
             if data.startswith("s"):        #data intended for specific client
                 indi = data.split('&')
                 clientID = int(indi[1])
@@ -250,11 +284,10 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 for client in ClientList.get_sl().items():  # for every client:
                     if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
                         if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
-                            if ClientList.get_z_dict()[client[1]] >= clientZ - LOOKING_DISTANCE:
-                                if ClientList.get_z_dict()[client[1]] <= clientZ + LOOKING_DISTANCE:
+                            if ClientList.get_z_dict()[int(client[1])] >= clientZ - LOOKING_DISTANCE:
+                                if ClientList.get_z_dict()[int(client[1])] <= clientZ + LOOKING_DISTANCE:
                                     precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
-                                    udp_socket.sendto(precious,
-                                                      ClientList.get_ip_dict()[int(client[1])])  # then send the client
+                                    udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[1])])  # then send the client
                                 else:
                                     return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
                 return
