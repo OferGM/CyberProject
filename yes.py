@@ -220,6 +220,43 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                     udp_socket.sendto(precious, ClientList.get_ip_dict()[clientID])
                 return
 
+            if data.startswith("DISCONNECT"):
+                # Handle disconnection
+                indi = data.split("&")
+                clientID = int(indi[1])
+                print(f"Disconnecting: {clientID}")
+
+                # Safely remove client and its data from all relevant dictionaries
+                try:
+                    ClientList.remove_client(clientID)
+                except KeyError:
+                    print(f"Client ID {clientID} not found in client list")
+
+                try:
+                    del ClientList.get_server_dict()[clientID]
+                except KeyError:
+                    print(f"Client ID {clientID} not found in server dict")
+
+                try:
+                    public = ClientList.get_public()[clientID]
+                    del ClientList.get_hellman()[public]
+                    del ClientList.get_public()[clientID]
+                except KeyError:
+                    print(f"Public key for client ID {clientID} not found")
+
+                try:
+                    del ClientList.get_join()[clientID]
+                except KeyError:
+                    print(f"Client ID {clientID} not found in join dict")
+
+                # Optionally notify other clients or the login server
+                # udp_socket.sendto(data.encode(), servers_list['login'])
+                # for clientIP in ClientList.get_ip_dict().values():
+                #     udp_socket.sendto(data.encode(), clientIP)
+
+                print(f"Disconnected: {clientID}")
+                return
+
             if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
                 dataArr = data.split('&')
                 clientID = int(dataArr[1])
@@ -260,7 +297,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 return
 
             data = decrypt(pring, ClientList)
-            #print("Received with decrypting: ", data)
+            print("Received with decrypting: ", data)
 
             if data.startswith("HI&"):
                 print("Received HI MSG: ", data)
@@ -317,20 +354,6 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
                 return
 
-            if data.startswith("DISCONNECT"):
-                indi = data.split("&")
-                clientID = int(indi[1])
-                print("Disconnecting: ", clientID)
-                ClientList.remove_client(clientID)
-                del ClientList.get_server_dict()[clientID]
-                public = ClientList.get_public()[clientID]
-                del ClientList.get_hellman()[public]
-                del ClientList.get_public()[clientID]
-                del ClientList.get_join()[clientID]
-                #udp_socket.sendto(data.encode(), servers_list['login'])
-                #for clientIP in ClientList.get_ip_dict().values():
-                #    udp_socket.sendto(data.encode(), clientIP)
-                return
 
             print("default")
 
@@ -343,7 +366,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
             return
         except Exception as e:
-            print("error: ", e)
+            print("error 2: ", e)
 
 # Function to handle multiple TCP connections
 def tcp_server(host, port, ClientList, servers_list, udp_socket):
@@ -445,7 +468,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
             if data:
                 message_queue.put((data, client_address))
         except Exception as e:
-            print("error: ", e)
+            print("error 1: ", e)
 
 def gen_prime():
     # Function to generate a large prime number
