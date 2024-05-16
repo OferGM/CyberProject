@@ -1,3 +1,5 @@
+import time
+
 from dotenv import load_dotenv, find_dotenv
 import os
 from pymongo import MongoClient
