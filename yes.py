@@ -473,7 +473,9 @@ def server_program(ClientList, kaki, kadki):
         connection, address = server_socket.accept()
 
         # Send prime and base to the client
+        print(prime)
         connection.send(str(prime).encode())
+        print(base)
         connection.send(str(base).encode())
 
         # Generate server's private key
@@ -481,10 +483,13 @@ def server_program(ClientList, kaki, kadki):
 
         # Calculate public key to send to the client
         public_key_server = pow(base, private_key_server, prime)
+        print(public_key_server)
+        time.sleep(5)
         connection.send(str(public_key_server).encode())
 
         # Receive client's public key
         data = (connection.recv(1024).decode())
+        print(data)
         public_key_client = int(data.split('&')[0])
         client_id = int(data.split('&')[1])
         print("client id is: ", client_id)

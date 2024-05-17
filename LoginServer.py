@@ -1,3 +1,5 @@
+import time
+
 from dotenv import load_dotenv, find_dotenv
 import os
 from pymongo import MongoClient
@@ -393,6 +395,7 @@ def diffie_program():
 
         # Calculate public key to send to the client
         public_key_server = pow(base, private_key_server, prime)
+        time.sleep(5)
         connection.send(str(public_key_server).encode())
 
         # Receive client's public key
