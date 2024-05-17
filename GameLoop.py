@@ -1260,25 +1260,22 @@ def client_program(port_yes, host, port):
     client_socket.connect((host, port))
 
     # Receive prime and base from the server
-    print("1")
     prime = int(client_socket.recv(1024).decode())
+    print(prime)
     base = int(client_socket.recv(1024).decode())
-    print("2")
+    print(base)
     # Generate client's private key
     private_key_client = random.randint(1, prime - 1)  # Assume this is generated securely
 
+    # Receive server's public key
+    data = client_socket.recv(1024).decode()
+    print(1)
+    print(data)
+
     # Calculate public key to send to the server
     public_key_client = pow(base, private_key_client, prime)
+    print(f"{public_key_client}&{port_yes}")
     client_socket.send(f"{public_key_client}&{port_yes}".encode())
-
-    # Receive server's public key
-    print("3")
-    while True:
-        data = client_socket.recv(1024).decode()
-        if data != "":
-            break
-
-    print(data)
 
     # Calculate shared secret
     print("5")
