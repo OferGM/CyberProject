@@ -1396,9 +1396,9 @@ if __name__ == "__main__":
         print("private login: " + str(client_private_key_login))
 
         subprocess.run(
-            ['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode()])
+            ['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(), get_private_ip().encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(), get_private_ip().encode()])
 
         client_id = port_yes
 
