@@ -484,7 +484,7 @@ def server_program(ClientList, kaki, kadki):
         # Calculate public key to send to the client
         public_key_server = pow(base, private_key_server, prime)
         print(public_key_server)
-        time.sleep(5)
+        time.sleep(1)
         connection.send(str(public_key_server).encode())
 
         # Receive client's public key

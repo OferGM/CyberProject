@@ -395,7 +395,7 @@ def diffie_program():
 
         # Calculate public key to send to the client
         public_key_server = pow(base, private_key_server, prime)
-        time.sleep(5)
+        time.sleep(1)
         connection.send(str(public_key_server).encode())
 
         # Receive client's public key
@@ -461,9 +461,9 @@ def main():
     diffie = threading.Thread(target=diffie_program, args=())
     diffie.start()
     server_socket = socket.socket()
-    server_socket.bind(("127.0.0.1", 6969))
+    server_socket.bind(("0.0.0.0", 6969))
     server_socket.listen()
-    print("Server up and running, listening at: 127.0.0.1, 6969")
+    print("Server up and running, listening at: 0.0.0.0, 6969")
 
     while True:
         client_socket, client_address = server_socket.accept()
