@@ -274,9 +274,9 @@ class Server:
             chatThread.start()
         try:
             for i in range(22):
-                self.GenerateMobs()
+                pass#self.GenerateMobs()
             for i in range(3):
-                self.GenerateWitches()
+                pass#self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
@@ -335,7 +335,7 @@ class Server:
 
     def handle_client(self):
         while(True):
-            try:
+            #try:
                 data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
                 print("Received: ", data)
@@ -429,13 +429,13 @@ class Server:
                     ID_CLIENT = dataArr[1]
                     ITEM_HELD = dataArr[2]
                     stats = self.all_players[ID_CLIENT].split('&')
-                    if ITEM_HELD == 'ak-47.png' and self.all_players[1] != '0':
+                    if ITEM_HELD == 'ak-47.png' and stats[1] != '0':
                         self.heldItems[ID_CLIENT] = ITEM_HELD
-                    if ITEM_HELD == 'm4.png' and self.all_players[2] != '0':
+                    if ITEM_HELD == 'm4.png' and stats[2] != '0':
                         self.heldItems[ID_CLIENT] = ITEM_HELD
-                    if ITEM_HELD == 'awp.png' and self.all_players[3] != '0':
+                    if ITEM_HELD == 'awp.png' and stats[3] != '0':
                         self.heldItems[ID_CLIENT] = ITEM_HELD
-                    if ITEM_HELD == 'mp5.png' and self.all_players[4] != '0':
+                    if ITEM_HELD == 'mp5.png' and stats[4] != '0':
                         self.heldItems[ID_CLIENT] = ITEM_HELD
 
                 if dataArr[0] == 'gREMOVEITEM':
@@ -459,8 +459,8 @@ class Server:
                     self.RemoveChest(dataArr[1],dataArr[2])
 
 
-            except Exception as e:
-                print(f"Error handling client: {e}")
+            #except Exception as e:
+            #    print(f"Error handling client: {e}")
 
 
 # Example usage

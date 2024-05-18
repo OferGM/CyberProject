@@ -1009,14 +1009,14 @@ def death():
 activeChest = 0
 
 def safe_exit():
+    kaki = f"gSafeDisconnect&{client_id}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
+    time.sleep(1)
     stop_event.set()
     recvThread.join()
     sendThread.join()
     renderThread.join()
-    time.sleep(1)
-    kaki = f"gSafeDisconnect&{client_id}"
-    kaki = encrypt(kaki, secret)
-    client.send_data(kaki)
     application.quit()
     exit()
 
