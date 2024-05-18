@@ -274,9 +274,9 @@ class Server:
             chatThread.start()
         try:
             for i in range(22):
-                pass#self.GenerateMobs()
+                self.GenerateMobs()
             for i in range(3):
-                pass#self.GenerateWitches()
+                self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
