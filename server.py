@@ -351,11 +351,13 @@ class Server:
                 if dataArr[0] == 'gSTATE':
                     playerID = dataArr[1]
                     if dataArr[1] in self.heldItems and playerID in self.all_players:
+                        print("SENDING STATE!!!!!")
                         msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&{self.heldItems[dataArr[1]]}'
                         self.socket.sendto(msg.encode(), addr)
                         self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                     else:
                         if playerID in self.all_players:
+                            print("SENDING STATE!!!!!")
                             msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
                             self.socket.sendto(msg.encode(), addr)
                             self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])

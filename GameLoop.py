@@ -857,8 +857,8 @@ def setup_inventory():
     inventory = MiniInv.MiniInv(inv, image_paths=image_paths, parent=camera.ui)
 
 
-def stop_rendering_continuosly():
-    while True:
+def stop_rendering_continuosly(player, stop_event):
+    while not stop_event.is_set():
         for ID in rendered_players.keys():
             if rendered_players[ID] == 1:
                 players[ID].enabled = True
@@ -926,6 +926,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
             a = decrypt(a, shared_key)
             aList = a.split('&')
             if aList[0] == 'STATE':
+                print("Received STATE msg: ", a)
                 if int(aList[1]) != int(client.get_id()):
                     if int(aList[1]) in players and len(aList) >= 7:
                         rendered_players[int(aList[1])] = 1
@@ -1009,14 +1010,14 @@ def death():
 activeChest = 0
 
 def safe_exit():
-    kaki = f"gSafeDisconnect&{client_id}"
-    kaki = encrypt(kaki, secret)
-    client.send_data(kaki)
-    time.sleep(1)
     stop_event.set()
     recvThread.join()
     sendThread.join()
     renderThread.join()
+    time.sleep(1)
+    kaki = f"gSafeDisconnect&{client_id}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
     application.quit()
     exit()
 
@@ -1407,7 +1408,7 @@ if __name__ == "__main__":
         sendThread = threading.Thread(target=send_game_data_continuously, args=(player, stop_event, secret))
         sendThread.start()
 
-        renderThread = threading.Thread(target=stop_rendering_continuosly, args=())
+        renderThread = threading.Thread(target=stop_rendering_continuosly, args=(player, stop_event))
         renderThread.start()
 
         recvThread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))

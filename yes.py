@@ -255,6 +255,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 return
 
             if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
+                print("STATE MSG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 dataArr = data.split('&')
                 clientID = int(dataArr[1])
                 clientX = float(dataArr[2])
@@ -282,11 +283,13 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                     udp_socket.sendto(data.encode(), servers_list[serverID])'''
 
                 for client in ClientList.get_sl().items():  # for every client:
+                    #print(f"Volunteers x is {client[0]} and his z is {ClientList.get_z_dict()[int(client[1])]}. he needs to be between {clientX - LOOKING_DISTANCE} and {clientX + LOOKING_DISTANCE} for x, and between ")
                     if client[0] >= clientX - LOOKING_DISTANCE:  # if the client's x is big enough to see the relevant client
                         if client[0] <= clientX + LOOKING_DISTANCE:  # and if the client's x is also small enough to see
                             if ClientList.get_z_dict()[int(client[1])] >= clientZ - LOOKING_DISTANCE:
                                 if ClientList.get_z_dict()[int(client[1])] <= clientZ + LOOKING_DISTANCE:
-                                    precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
+                                    precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[int(client[1])]])
+                                    print("SENDING STATE MSG TO: ", ClientList.get_ip_dict()[int(client[1])])
                                     udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[1])])  # then send the client
                                 else:
                                     return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
