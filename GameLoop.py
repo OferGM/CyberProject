@@ -205,7 +205,7 @@ def separate_orb_string(all_orbs_string):
 
 
 def separate_item_string(all_items_string):
-    # Split the string by semicolons to get individual mob data strings
+    # Split the string dby semicolons to get individual mob data strings
     item_entries = all_items_string.split(';')
 
     for entry in item_entries:
@@ -707,6 +707,7 @@ class Gun(Entity):
             self.canShoot = False
             self.enabled = False
 
+
     def reset_cooldown(self):
         self.on_cooldown = False
 
@@ -774,6 +775,7 @@ def Hold_gun():
     msg = encrypt(f"gHELD&{client.id}&{held_item}", secret)
     client.send_data(msg)
     if held_item == 'awp.png' and gun.gun_type != "awp":
+        melee.destroy_arms()
         awp.enabled = True
         ak.enabled = False
         m4.enabled = False
@@ -784,6 +786,7 @@ def Hold_gun():
         gun.cooldown = 2
         return
     if held_item == 'm4.png':
+        melee.destroy_arms()
         gun.switchType("m4")
         selectedGun = m4
         awp.enabled = False
@@ -795,6 +798,7 @@ def Hold_gun():
         gun.cooldown = 0.25
         return
     if held_item == 'ak-47.png' and gun.gun_type != "ak-47":
+        melee.destroy_arms()
         selectedGun = ak
         awp.enabled = False
         ak.enabled = True
@@ -810,6 +814,7 @@ def Hold_gun():
         m4.enabled = False
         gun.switchType("None")
         gun.canShoot = False
+        melee.create_arms()
 
 
 def update():
@@ -1022,7 +1027,7 @@ def safe_exit():
     exit()
 
 def input(key):
-    global cursor, inv, activeChest
+    global cursor, inv, activeChest, melee
     if key == 'escape':
         stop_event.set()
         recvThread.join()
@@ -1035,7 +1040,10 @@ def input(key):
         application.quit()
         exit()
     if held_keys['left mouse']:
-        selectedGun.shoot()
+        if melee.check():
+            melee.punch()
+        else:
+            selectedGun.shoot()
     if held_keys['right mouse']:
         hoveredEntity = mouse.hovered_entity
         if isinstance(hoveredEntity, Chest):
@@ -1317,8 +1325,13 @@ class Melee:
 
     def hit(self):
         hovered_entity = mouse.hovered_entity
-        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position, hovered_entity.position) < 3.5:
-            hovered_entity.enemy_hit(self.damage)
+        dist = calculate_distance(player.position, hovered_entity.position)
+        if hovered_entity and dist < 3.5 and (isinstance(hovered_entity, Enemy) or isinstance(hovered_entity, Witch)):
+            hovered_entity.enemy_hit(self)
+
+        if hovered_entity and dist < 3.5 and isinstance(hovered_entity, MultiPlayer):
+            print("HIT PLAYER")
+            hovered_entity.damage(self.damage)
 
     def deactivate(self):
         # Animate the arms to a deactivated position (putting them down)
@@ -1349,11 +1362,22 @@ class Melee:
             self.arm1.enabled = True
             self.arm2.enabled = True
 
+    def destroy_arms(self):
+        self.arm1.enabled = False
+        self.arm2.enabled = False
+
+    def create_arms(self):
+        self.arm1.enabled = True
+        self.arm2.enabled = True
+
     def check_active_cooldown(self):
         if time.time() - self.prev_activation_time >= self.activation_cooldown:
             return True
         else:
             return False
+
+    def check(self):
+        return self.arm1.enabled and self.arm2.enabled
 
 if __name__ == "__main__":
     try:
