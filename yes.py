@@ -218,8 +218,9 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                     print("For clientID: ", client[0], ", the msg is: ", client[1])
                     data = client[1]
                     data = data[:-1]
-                    precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[int(client[0])]])
-                    udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[0])])  # then send the client
+                    if data != 'aM&':
+                        precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[int(client[0])]])
+                        udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[0])])  # then send the client
                 return
 
             if data.startswith("s"):        #data intended for specific client
@@ -314,10 +315,10 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 ClientList.get_update_dict()[clientID] += 1
                 ClientList.get_update_dict()['total'] += 1
 
-                '''for serverID in servers_list.keys():
+                for serverID in servers_list.keys():
                     print("server ID: ", serverID)
                     print("server IP: ", servers_list[serverID])
-                    udp_socket.sendto(data.encode(), servers_list[serverID])'''
+                    udp_socket.sendto(data.encode(), servers_list[serverID])
 
                 for client in ClientList.get_sl().items():  # for every client:
                     #print(f"Volunteers x is {client[0]} and his z is {ClientList.get_z_dict()[int(client[1])]}. he needs to be between {clientX - LOOKING_DISTANCE} and {clientX + LOOKING_DISTANCE} for x, and between ")
