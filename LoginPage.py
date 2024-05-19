@@ -112,10 +112,11 @@ def close_page():
     print("Socket closed")
     app.destroy()
 
+
 def encrypt(data):
     # Convert message and key to byte arrays
     message_bytes = data.encode('ascii', 'ignore')
-    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
@@ -123,6 +124,7 @@ def encrypt(data):
     encrypted_bytes = poo + encrypted_bytes
     print("encrypted bytes: ", encrypted_bytes)
     return encrypted_bytes
+
 
 def decrypt(data):
     # Convert key to bytes (using 4 bytes and little endian byteorder)
@@ -135,17 +137,18 @@ def decrypt(data):
 
     return decrypted_message
 
+
 if __name__ == "__main__":
     import sys
 
     socket1 = socket.socket()
     print("Parameter gotten is: ", sys.argv[1])
     print("Shared key is: ", sys.argv[2])
-    socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    socket1.bind((sys.argv[4], int(sys.argv[1])))
     client_id = int(sys.argv[1])
     shared_key = int(sys.argv[2])
-    socket1.connect(("127.0.0.1", 6969))
-    print(f"Connected to server, bound on: 127.0.0.1, {sys.argv[1]}")
+    print(str(sys.argv[3]))
+    socket1.connect((str(sys.argv[3]), 6969))
     build_page(socket1)
     print("Finished with login page")
     socket1.close()

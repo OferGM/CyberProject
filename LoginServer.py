@@ -1,3 +1,5 @@
+import time
+
 from dotenv import load_dotenv, find_dotenv
 import os
 from pymongo import MongoClient
@@ -7,9 +9,30 @@ import threading
 import random
 from sympy import randprime
 
+
+def get_private_ip():
+    # Create a socket connection to a remote server
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # This IP and port are arbitrary and don't need to be reachable
+        # We just need to open a socket and get the local address used
+        s.connect(("8.8.8.8", 80))
+        private_ip = s.getsockname()[0]
+    except Exception as e:
+        private_ip = "Unable to determine IP address: " + str(e)
+    finally:
+        s.close()
+    return private_ip
+
+
+private_ip = get_private_ip()
+print(private_ip)
+
+ip = input("Fill the ip of the load-balancer")
+
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect(("127.0.0.1", 8888))
+lb_socket.connect((ip, 8888))
 
 # Receive prime and base from the server
 prime = int(lb_socket.recv(1024).decode())
@@ -39,6 +62,7 @@ login_serverDB = db_client.login_server
 users_collection = login_serverDB.users
 shared_secrets = {}
 public_keys = {}
+
 
 def change_connection_status(client_address, connected):
     """
@@ -270,7 +294,7 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     """
     print("disconnect")
     port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = ("127.0.0.1", port)
+    client_address = (client_address[0], port)
     update_user(data.split("&")[2:], client_address, shmoney)
     print("sending disconnect")
     client_socket.send(encrypt("successfully_disconnected", clientID))
@@ -311,7 +335,7 @@ def handle_client(client_socket, client_address):
                     disconnect_from_game(client_socket, client_address, data, clientID)
                 if method == "Rape_Disconnect":
                     print(data)
-                    client_address1 = ("127.0.0.1", int(data))
+                    client_address1 = (client_address[0], int(data))
                     change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")
@@ -340,16 +364,17 @@ def client_handler(client_socket, client_address):
         client_socket.close()
 
 
-
 def gen_prime():
     # Function to generate a large prime number
     return randprime(2 ** 1023, 2 ** 1024 - 1)
+
 
 def gen_primitive_root(p):
     while True:
         g = random.randint(2, p - 1)
         if pow(g, (p - 1) // 2, p) != 1 and pow(g, 2, p) != 1:
             return g
+
 
 def diffie_program():
     host = '0.0.0.0'
@@ -361,7 +386,7 @@ def diffie_program():
     server_socket = socket.socket()
     server_socket.bind((host, port))
     server_socket.listen(1)
-    while(True):
+    while (True):
         connection, address = server_socket.accept()
 
         # Send prime and base to the client
@@ -373,6 +398,7 @@ def diffie_program():
 
         # Calculate public key to send to the client
         public_key_server = pow(base, private_key_server, prime)
+        time.sleep(1)
         connection.send(str(public_key_server).encode())
 
         # Receive client's public key
@@ -387,6 +413,7 @@ def diffie_program():
         connection.close()
         shared_secrets[public_key_client] = shared_secret
         public_keys[client_id] = public_key_client
+
 
 def decrypt(data):
     # Convert key to bytes (using 4 bytes and little endian byteorder)
@@ -405,26 +432,29 @@ def decrypt(data):
     print("i love little kids: ", decrypted_message)
     return decrypted_message
 
+
 def encrypt(data, clientID):
     # Convert message and key to byte arrays
     shared_key = shared_secrets[public_keys[clientID]]
     message_bytes = data.encode('ascii', 'ignore')
-    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
     print(encrypted_bytes)
     return encrypted_bytes
+
 
 def encrypt_login(data):
     # Convert message and key to byte arrays
     message_bytes = data.encode('ascii', 'ignore')
-    key_bytes = shared_secret_lb.to_bytes(1024, byteorder = 'little')
+    key_bytes = shared_secret_lb.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
     print(encrypted_bytes)
     return encrypted_bytes
+
 
 def main():
     """
@@ -434,9 +464,9 @@ def main():
     diffie = threading.Thread(target=diffie_program, args=())
     diffie.start()
     server_socket = socket.socket()
-    server_socket.bind(("127.0.0.1", 6969))
+    server_socket.bind(("0.0.0.0", 6969))
     server_socket.listen()
-    print("Server up and running, listening at: 127.0.0.1, 6969")
+    print("Server up and running, listening at: 0.0.0.0, 6969")
 
     while True:
         client_socket, client_address = server_socket.accept()

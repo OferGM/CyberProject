@@ -1905,13 +1905,13 @@ def decrypt(data):
     return decrypted_message
 
 if __name__ == "__main__":
+    print(sys.argv[3])
     socket1 = socket.socket()
-    socket1.bind(("127.0.0.1", int(sys.argv[1])))
+    socket1.bind((sys.argv[4], int(sys.argv[1])))
     client_id = int(sys.argv[1])
     shared_key = int(sys.argv[2])
     time.sleep(1)
-    socket1.connect(("127.0.0.1", 6969))
-    print("Connected to server, bound on: 127.0.0.1, ", sys.argv[1])
+    socket1.connect((str(sys.argv[3]), 6969))
     import sys
     import gc
 
