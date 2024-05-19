@@ -180,7 +180,7 @@ class Server:
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChaseWitches[witchID] = clientID
-        if min_dist > 1000:
+        if min_dist > 70:
             self.playerChaseWitches[witchID] = 0
 
     def update_orbs(self):
@@ -295,7 +295,7 @@ class Server:
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChase[zombieID] = clientID
-        if min_dist > 1000:
+        if min_dist > 45:
             self.playerChase[zombieID] = 0
 
     def rotate_enemy(self, player_posit, enemy_posit):
@@ -381,7 +381,7 @@ class Server:
                     mob_id = int(dataArr[2])  # Ensuring that the mob ID is an integer
                     damage = int(dataArr[3])  # Ensuring that the damage is an integer
                     print("damage:",damage)
-                    print(self.mobs[mob_id][4])
+                    #print(self.mobs[mob_id][4])
 
                     if mob_id in self.mobs:
                         current_health = self.mobs[mob_id][4]

@@ -1002,6 +1002,8 @@ def death():
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
     player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
+    for ID in rendered_players.keys():
+            players[ID].enabled = False
     gun = 0
     inv.CleanInv()
     player.health = 100
