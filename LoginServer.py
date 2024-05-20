@@ -297,6 +297,7 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     client_address = (client_address[0], port)
     update_user(data.split("&")[2:], client_address, shmoney)
     print("sending disconnect")
+    change_connection_status(client_address, False)
     client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
