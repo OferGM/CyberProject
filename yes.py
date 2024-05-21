@@ -16,6 +16,8 @@ SERVER_STATE_RATE = 20
 
 
 class ClientLister:
+    updates_counter: dict
+
     def __init__(self):
         self.updates_counter = {}
         self.join_dict = {}
@@ -114,7 +116,7 @@ class ClientLister:
                 self.updates_counter[clientID] += 1
                 return True
             if self.updates_counter[clientID] >= 20:
-                self.updates_counter = 1
+                self.updates_counter[clientID] = 1
                 return True
             self.updates_counter[clientID] += 1
             return False

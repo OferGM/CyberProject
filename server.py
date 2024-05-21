@@ -276,7 +276,7 @@ class Server:
             for i in range(22):
                 self.GenerateMobs()
             for i in range(3):
-                self.GenerateWitches()
+                pass#self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
