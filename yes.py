@@ -12,10 +12,14 @@ UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_
 SERVER_UPDATE_RATE = 10  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
 LOOKING_DISTANCE = 30  # the max distance from which you can see other ppl
 CLIENT_ID_LENGTH = 5
+SERVER_STATE_RATE = 20
 
 
 class ClientLister:
+    updates_counter: dict
+
     def __init__(self):
+        self.updates_counter = {}
         self.join_dict = {}
         self.client_dict = {}  # dict that matches ID to x pos
         self.client_dict_z = {}
@@ -26,6 +30,9 @@ class ClientLister:
         self.sl = SkipList()  # ordered skip list that holds x positions with ID's as keys
         self.hellman = {}
         self.public = {}
+    def get_updates(self):
+        return self.updates_counter
+
     def get_join(self):
         return self.join_dict
 
@@ -102,6 +109,21 @@ class ClientLister:
             return (3, 0)  # only in third one
 
         return (4, 0)  # only in fourth one
+
+    def inc_updates(self, clientID):
+        if clientID in self.updates_counter:
+            if self.updates_counter[clientID] == 0:
+                self.updates_counter[clientID] += 1
+                return True
+            if self.updates_counter[clientID] >= 20:
+                self.updates_counter[clientID] = 1
+                return True
+            self.updates_counter[clientID] += 1
+            return False
+        else:
+            self.updates_counter[clientID] = 1
+            return True
+
 
 
 def print_status(ClientList):
@@ -294,6 +316,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
             if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
                 print("STATE MSG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
                 dataArr = data.split('&')
                 clientID = int(dataArr[1])
                 clientX = float(dataArr[2])
@@ -315,10 +338,12 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 ClientList.get_update_dict()[clientID] += 1
                 ClientList.get_update_dict()['total'] += 1
 
-                for serverID in servers_list.keys():
-                    print("server ID: ", serverID)
-                    print("server IP: ", servers_list[serverID])
-                    udp_socket.sendto(data.encode(), servers_list[serverID])
+                shouldUpdate = ClientList.inc_updates(clientID)
+                if shouldUpdate:
+                    for serverID in servers_list.keys():
+                        print("server ID: ", serverID)
+                        print("server IP: ", servers_list[serverID])
+                        udp_socket.sendto(data.encode(), servers_list[serverID])
 
                 for client in ClientList.get_sl().items():  # for every client:
                     #print(f"Volunteers x is {client[0]} and his z is {ClientList.get_z_dict()[int(client[1])]}. he needs to be between {clientX - LOOKING_DISTANCE} and {clientX + LOOKING_DISTANCE} for x, and between ")
@@ -329,8 +354,9 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                                     precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[int(client[1])]])
                                     print("SENDING STATE MSG TO: ", ClientList.get_ip_dict()[int(client[1])])
                                     udp_socket.sendto(precious, ClientList.get_ip_dict()[int(client[1])])  # then send the client
-                                else:
-                                    return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+                        else:
+                            return  # if the client is big enough but not small enough, then theres no reason to continue as the list is ordered
+
                 return
 
             data = decrypt(pring, ClientList)
