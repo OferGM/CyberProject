@@ -293,12 +293,12 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
 
     """
     print("disconnect")
-    port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = (client_address[0], port)
-    update_user(data.split("&")[2:], client_address, shmoney)
+    port = data
+    #port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
+    client_address = ("127.0.0.1", port)
+    #update_user(data.split("&")[2:], client_address, 0)
     print("sending disconnect")
-    change_connection_status(client_address, False)
-    client_socket.send(encrypt("successfully_disconnected", clientID))
+    #client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
 def handle_client(client_socket, client_address):
@@ -315,8 +315,20 @@ def handle_client(client_socket, client_address):
             data = client_socket.recv(9192)
             if data:
                 print(client_address[1])
-                if client_address[1] == 1234:
+                if client_address[1] == 59336:
                     print("hi")
+                    data = data.decode()
+                    print("Received from gameserver: ", data)
+                    method, data = data.split("%")
+                    if method == "Disconnect":
+                        print("RECEIVED DISCONNECT")
+                        client_address1 = ("127.0.0.1", int(data))
+                        change_connection_status(client_address1, False)
+                        #disconnect_from_game(client_socket, client_address, data, 0)
+                    if method == "Rape_Disconnect":
+                        print("RECEIVED RAPE DISCONNECT")
+                        client_address1 = ("127.0.0.1", int(data))
+                        change_connection_status(client_address1, False)
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
                 print("id: ", clientID)
@@ -332,12 +344,6 @@ def handle_client(client_socket, client_address):
                     buy_shit(data, client_socket, client_address, clientID)
                 if method == "Play":
                     join_game(data, client_socket, client_address, clientID)
-                if method == "Disconnect":
-                    disconnect_from_game(client_socket, client_address, data, clientID)
-                if method == "Rape_Disconnect":
-                    print(data)
-                    client_address1 = (client_address[0], int(data))
-                    change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")
                     ip, port = client_address
