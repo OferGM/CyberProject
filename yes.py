@@ -546,7 +546,7 @@ def gen_primitive_root(p):
 
 
 def server_program(ClientList, kaki, kadki):
-    host = '0.0.0.0'
+    host = '127.0.0.1'
     port = 1010
 
     prime = gen_prime()

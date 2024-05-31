@@ -407,7 +407,7 @@ class Server:
                     self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
                     login_socket = socket.socket()
                     login_socket.bind(("127.0.0.1", 59336))
-                    login_socket.connect(("127.0.0.1", 6969))
+                    login_socket.connect(servers_dict['login'])
                     login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     print("senttttttttttt")
                     login_socket.close()
