@@ -373,72 +373,76 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             data = decrypt(pring, ClientList)
             print("Received with decrypting: ", data)
 
-            if data.startswith("HI&"):
-                print("Received HI MSG: ", data)
-                indi = data.split('&')
-                clientID = int(indi[1])
-                print("Client ID is: ", clientID)
-                clientIP = f'({addr[0]}, {addr[1]})'
-                print("Client IP is: ",clientIP)
-                print("yaya")
-                bata = ClientList.get_join()[clientID]
-                for serverIP in servers_list.values():
-                    udp_socket.sendto(bata.encode(), serverIP)
-                ClientList.get_ip_dict()[clientID] = clientIP
-                ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-                print("Calculating edges")
-                ClientList.calc_edges()
-                client_server = ClientList.get_server(clientID)
-                print("Client server is: ", client_server)
-                ClientList.get_server_dict()[clientID] = client_server
-                serverIP = servers_list[client_server[0]]
-                udp_socket.sendto(data.encode(), serverIP)
-                print(f"Sent HI msg: {data} to {serverIP}")
-                return
+            indi = data.split('&')
+            clientID = int(indi[1])
+            if clientID in ClientList.get_ip_dict().keys():
 
-            if data.startswith("z"):
-                indi = data.split('&')
-                clientID = indi[1]
-                for serverID in servers_list.keys():
-                    print("server ID: ", serverID)
-                    print("server IP: ", servers_list[serverID])
-                    udp_socket.sendto(data.encode(), servers_list[serverID])
+                if data.startswith("HI&"):
+                    print("Received HI MSG: ", data)
+                    indi = data.split('&')
+                    clientID = int(indi[1])
+                    print("Client ID is: ", clientID)
+                    clientIP = f'({addr[0]}, {addr[1]})'
+                    print("Client IP is: ",clientIP)
+                    print("yaya")
+                    bata = ClientList.get_join()[clientID]
+                    for serverIP in servers_list.values():
+                        udp_socket.sendto(bata.encode(), serverIP)
+                    ClientList.get_ip_dict()[clientID] = clientIP
+                    ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
+                    print("Calculating edges")
+                    ClientList.calc_edges()
+                    client_server = ClientList.get_server(clientID)
+                    print("Client server is: ", client_server)
+                    ClientList.get_server_dict()[clientID] = client_server
+                    serverIP = servers_list[client_server[0]]
+                    udp_socket.sendto(data.encode(), serverIP)
+                    print(f"Sent HI msg: {data} to {serverIP}")
+                    return
 
-            if data.startswith("gHELD"):
-                print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-                indi = data.split('&')
-                clientID = indi[1]
-                for serverID in servers_list.keys():
-                    print("server ID: ", serverID)
-                    print("server IP: ", servers_list[serverID])
-                    udp_socket.sendto(data.encode(), servers_list[serverID])
+                if data.startswith("z"):
+                    indi = data.split('&')
+                    clientID = indi[1]
+                    for serverID in servers_list.keys():
+                        print("server ID: ", serverID)
+                        print("server IP: ", servers_list[serverID])
+                        udp_socket.sendto(data.encode(), servers_list[serverID])
 
-            if data.startswith("g"):  # if data is intended for the gameserver
-                indi = data.split('&')
-                clientID = int(indi[1])  # find ID by msg
-                #print(f"kakaikakikaki{clientID}")
-                ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
-                clientServer = ClientList.get_server_dict()[clientID]
-                udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
+                if data.startswith("gHELD"):
+                    print("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+                    indi = data.split('&')
+                    clientID = indi[1]
+                    for serverID in servers_list.keys():
+                        print("server ID: ", serverID)
+                        print("server IP: ", servers_list[serverID])
+                        udp_socket.sendto(data.encode(), servers_list[serverID])
+
+                if data.startswith("g"):  # if data is intended for the gameserver
+                    indi = data.split('&')
+                    clientID = int(indi[1])  # find ID by msg
+                    #print(f"kakaikakikaki{clientID}")
+                    ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
+                    clientServer = ClientList.get_server_dict()[clientID]
+                    udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
+                    ##if clientServer[1] != 0:
+                    ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
+                    return
+
+                if data.startswith("l"):  # if data is intended for login server
+                    udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
+                    return
+
+
+                print("default")
+
+                #indi = data.find("&")
+                #clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
+                #ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
+                #clientServer = ClientList.get_server_dict()[clientID]
+                #udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
                 ##if clientServer[1] != 0:
                 ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
                 return
-
-            if data.startswith("l"):  # if data is intended for login server
-                udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
-                return
-
-
-            print("default")
-
-            #indi = data.find("&")
-            #clientID = int(data[indi + 1:indi + CLIENT_ID_LENGTH + 1])  # find ID by msg
-            #ClientList.get_server_dict()[clientID] = ClientList.get_server(clientID)
-            #clientServer = ClientList.get_server_dict()[clientID]
-            #udp_socket.sendto((data).encode(), servers_list[clientServer[0]])  # send msg to the main gameserver
-            ##if clientServer[1] != 0:
-            ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
-            return
         except Exception as e:
             print("error 2: ", e)
 
