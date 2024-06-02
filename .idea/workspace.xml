@@ -18,7 +18,7 @@
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="preferences.pathVariables" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -134,8 +134,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.GameLoop" />
-        <item itemvalue="Python.server" />
         <item itemvalue="Python.LoginServer" />
+        <item itemvalue="Python.server" />
         <item itemvalue="Python.yes" />
       </list>
     </recent_temporary>

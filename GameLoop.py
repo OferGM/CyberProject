@@ -605,7 +605,26 @@ class MultiPlayer(Entity):
             self.item_entity.rotation_y += 180
             self.item_entity.x += 4
             self.item_entity.z += 4
-
+        if Item == 'mp5' and self.last_held != 'mp5':
+            print("UPDATED ITEM MP5")
+            destroy(self.item_entity)
+            self.last_held = 'mp5'
+            self.item_entity = Entity(parent=self, model='mp5.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 0.5  # Adjust scale to fit the scene
+            self.item_entity.rotation_y += 180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
+        if Item == 'm4' and self.last_held != 'm4':
+            print("UPDATED ITEM M4")
+            destroy(self.item_entity)
+            self.last_held = 'm4'
+            self.item_entity = Entity(parent=self, model='m4.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 0.5  # Adjust scale to fit the scene
+            self.item_entity.rotation_y += 180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
         if Item == "None" and self.item_entity and self.last_held != 'None':
             self.last_held = 'None'
             destroy(self.item_entity)
@@ -667,6 +686,17 @@ class Gun(Entity):
             self.cooldown = 2
             player.cursor.visible = False
 
+        if gun_type == 'mp5':
+            self.canShoot = True
+            self.model = 'mp5.obj'
+            self.texture = 'mp5_tex.png'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 20
+            self.scale = 0.06
+            self.cooldown = 0.15
+            player.cursor.visible = False
+
     def switchType(self, type):
         if type == 'ak-47':
             self.gun_type = "ak-47"
@@ -702,6 +732,19 @@ class Gun(Entity):
             player.cursor.visible = False
             # m=load_model('awp.obj',reload=True)
             self.cooldown = 0.2
+
+        if type == 'mp5':
+            self.gun_type = "mp5"
+            self.canShoot = True
+            self.model = 'mp5.obj'
+            self.texture = 'mp5_tex.png'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 20
+            self.scale = 0.06
+            player.cursor.visible = False
+            self.cooldown = 0.15
+
         if type == "None":
             self.gun_type = "None"
             self.canShoot = False
@@ -779,6 +822,7 @@ def Hold_gun():
         awp.enabled = True
         ak.enabled = False
         m4.enabled = False
+        mp5.enabled = False
         selectedGun = awp
         gun.gun_type = 'awp'
         gun.canShoot = True
@@ -792,6 +836,7 @@ def Hold_gun():
         awp.enabled = False
         ak.enabled = False
         m4.enabled = True
+        mp5.enabled = False
         gun.gun_type = 'm4'
         gun.canShoot = True
         gun.damage = 30
@@ -803,15 +848,29 @@ def Hold_gun():
         awp.enabled = False
         ak.enabled = True
         m4.enabled = False
+        mp5.enabled = False
         gun.gun_type = 'ak-47'
         gun.canShoot = True
         gun.damage = 20
         gun.cooldown = 0.5
         return
-    if held_item != "awp.png" and held_item != "m4.png" and held_item != "ak-47.png":
+    if held_item == 'mp5.png' and gun.gun_type != "mp5":
+        melee.destroy_arms()
+        selectedGun = mp5
         awp.enabled = False
         ak.enabled = False
         m4.enabled = False
+        mp5.enabled = True
+        gun.gun_type = 'mp5'
+        gun.canShoot = True
+        gun.damage = 20
+        gun.cooldown = 0.15
+        return
+    if held_item != "awp.png" and held_item != "m4.png" and held_item != "ak-47.png" and held_item != "mp5.png":
+        awp.enabled = False
+        ak.enabled = False
+        m4.enabled = False
+        mp5.enabled = False
         gun.switchType("None")
         gun.canShoot = False
         melee.create_arms()
@@ -1114,7 +1173,7 @@ def addItems(data):
             inv.add_item("awp")
     if mp5_count > 0:
         for _ in range(mp5_count):
-            pass
+            inv.add_item("mp5")
     if medkit_count > 0:
         for _ in range(medkit_count):
             inv.add_item("medkit")
@@ -1199,6 +1258,8 @@ def deactivate_cooldown_skill():
         gun.cooldown = 0.25
     if gun.gun_type == 'ak-47':
         gun.cooldown = 0.5
+    if gun.gun_type == 'mp5':
+        gun.cooldown = 0.15
     print("Cooldown skill deactivated!")
 
 
@@ -1216,6 +1277,8 @@ def deactivate_strength_skill():
         gun.damage = 33
     if gun.gun_type == 'ak-47':
         gun.damage = 36
+    if gun.gun_type == 'mp5':
+        gun.damage = 20
     print("Strength skill deactivated!")
 
 
@@ -1327,11 +1390,11 @@ class Melee:
 
     def hit(self):
         hovered_entity = mouse.hovered_entity
-        dist = calculate_distance(player.position, hovered_entity.position)
-        if hovered_entity and dist < 3.5 and (isinstance(hovered_entity, Enemy) or isinstance(hovered_entity, Witch)):
+        #dist = calculate_distance(player.position, hovered_entity.position)
+        if hovered_entity and calculate_distance(player.position, hovered_entity.position) < 3.5 and (isinstance(hovered_entity, Enemy) or isinstance(hovered_entity, Witch)):
             hovered_entity.enemy_hit(self)
 
-        if hovered_entity and dist < 3.5 and isinstance(hovered_entity, MultiPlayer):
+        if hovered_entity and calculate_distance(player.position, hovered_entity.position) < 3.5 and isinstance(hovered_entity, MultiPlayer):
             print("HIT PLAYER")
             hovered_entity.damage(self.damage)
 
@@ -1441,7 +1504,7 @@ if __name__ == "__main__":
         recvThread.start()
 
         print("here")
-
+        mp5 = Gun(player, 'mp5')
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
         m4 = Gun(player, 'm4')
@@ -1449,6 +1512,7 @@ if __name__ == "__main__":
         awp.enabled = False
         ak.enabled = False
         m4.enabled = False
+        mp5.enabled = False
         selectedGun = gun
 
         print("6")
