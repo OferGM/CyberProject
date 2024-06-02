@@ -453,7 +453,7 @@ class Item(Entity):
 
     def pickup(self):
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
-            msg = encrypt(f"gPICKED&{client.id}&{self.id}", secret)
+            msg = encrypt(f"zPICKED&{client.id}&{self.id}", secret)
             print("sending PICKED msg: ", f"zPICKED&{client.id}&{self.id}")
             client.send_data(msg)
             inv.add_item(self.ttype)

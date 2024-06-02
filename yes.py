@@ -283,6 +283,11 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 clientID = int(indi[1])
                 print(f"Disconnecting: {clientID}")
 
+                login_socket = socket.socket()
+                login_socket.connect((servers_list['login'][0], 6969))
+                login_socket.send(f"Rape_Disconnect%{clientID}".encode())
+                login_socket.close()
+
                 # Safely remove client and its data from all relevant dictionaries
                 try:
                     ClientList.remove_client(clientID)
@@ -305,6 +310,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                     del ClientList.get_join()[clientID]
                 except KeyError:
                     print(f"Client ID {clientID} not found in join dict")
+
+
 
                 # Optionally notify other clients or the login server
                 # udp_socket.sendto(data.encode(), servers_list['login'])

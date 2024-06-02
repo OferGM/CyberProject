@@ -28,11 +28,11 @@ def get_private_ip():
 private_ip = get_private_ip()
 print(private_ip)
 
-ip = input("Fill the ip of the load-balancer")
+lb_ip = input("Fill the ip of the load-balancer")
 
 # Initialize socket connection to load balancer
 lb_socket = socket.socket()
-lb_socket.connect((ip, 8888))
+lb_socket.connect((lb_ip, 8888))
 
 # Receive prime and base from the server
 prime = int(lb_socket.recv(1024).decode())
@@ -75,6 +75,20 @@ def change_connection_status(client_address, connected):
     """
     ip, port = client_address
     user_document = users_collection.find_one({"ip": ip, "port": port})
+    _id = ObjectId(user_document["_id"])
+    update = {"$set": {"connected": connected}}
+    users_collection.update_one({"_id": _id}, update)
+
+def change_connection_status_id(clientID, connected):
+    """
+    Update the connection status of a user in the database.
+
+    Args:
+        client_address (tuple): IP address and port of the client.
+        connected (bool): New connection status.
+
+    """
+    user_document = users_collection.find_one({"_id": clientID})
     _id = ObjectId(user_document["_id"])
     update = {"$set": {"connected": connected}}
     users_collection.update_one({"_id": _id}, update)
@@ -232,6 +246,39 @@ def update_user(data, client_address, shmoney):
 
     users_collection.update_one({"_id": _id}, updates)
 
+def update_user_by_id(data, clientID, shmoney):
+    """
+    Update user data in the database.
+
+    Args:
+        data (list[str]): Data containing inventory counts.
+        client_address (tuple): IP address and port of the client.
+        shmoney (int): Amount of money to be updated.
+
+    """
+    user_document = users_collection.find_one({"_id": clientID})
+    _id = ObjectId(user_document["_id"])
+    ak_count = data[0]
+    m4_count = data[1]
+    awp_count = data[2]
+    mp5_count = data[3]
+    med_kit_count = data[4]
+    bandage_count = data[5]
+    sp_count = data[6]
+    lp_count = data[7]
+    updates = {
+        "$inc": {"ak-47": int(ak_count),
+                 "m4": int(m4_count),
+                 "awp": int(awp_count),
+                 "mp5": int(mp5_count),
+                 "medkit": int(med_kit_count),
+                 "bandage": int(bandage_count),
+                 "speed_potion": int(sp_count),
+                 "leaping_potion": int(lp_count),
+                 "money": shmoney}
+    }
+
+    users_collection.update_one({"_id": _id}, updates)
 
 def buy_shit(data, client_socket, client_address, clientID):
     """
@@ -294,10 +341,10 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     """
     print("disconnect")
     port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = (client_address[0], port)
-    update_user(data.split("&")[2:], client_address, shmoney)
+    #client_address = (client_address[0], port)
+    update_user_by_id(data.split("&")[2:], clientID, shmoney)
     print("sending disconnect")
-    change_connection_status(client_address, False)
+    change_connection_status_id(clientID, False)
     client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
@@ -315,8 +362,23 @@ def handle_client(client_socket, client_address):
             data = client_socket.recv(9192)
             if data:
                 print(client_address[0])
-                if client_address[0] == 0:
-                    print("hi")
+                if client_address[0] == lb_ip:
+
+                    data = data.decode()
+                    print("received: ", data)
+                    indi = data.split('%')
+                    clientID = int(indi[1])
+
+                    if data.startswith("Disconnect"):
+                        print("disconnect request")
+                        disconnect_from_game(client_socket, client_address, data, clientID)
+
+                    if data.startswith("Rape_Disconnect"):
+                        print("rape disconnect request")
+                        #client_address1 = (client_address[0], int(data))
+                        change_connection_status_id(clientID, False)
+                    print("success")
+
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
                 print("id: ", clientID)
