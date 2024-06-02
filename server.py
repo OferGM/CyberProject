@@ -405,7 +405,7 @@ class Server:
                     self.all_players.pop(int(dataArr[1]), None)
                     self.coordinates.pop((dataArr[1]), None)
                     #self.playerChase.pop((dataArr[1]), None)
-                    self.socket.sendto(f"DISCONNECT&{dataArr[1]}".encode(), addr)
+                    self.socket.sendto(f"DISCONNECT_RAPE&{dataArr[1]}".encode(), addr)
                     #login_socket = socket.socket()
                     #login_socket.connect((servers_dict['login'][0], 6969))
                     #login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())

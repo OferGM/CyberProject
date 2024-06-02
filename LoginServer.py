@@ -341,10 +341,10 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     """
     print("disconnect")
     port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    #client_address = (client_address[0], port)
+    client_address = (client_address[0], port)
     update_user_by_id(data.split("&")[2:], clientID, shmoney)
     print("sending disconnect")
-    change_connection_status_id(clientID, False)
+    change_connection_status(client_address, False)
     client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
@@ -368,6 +368,7 @@ def handle_client(client_socket, client_address):
                     print("received: ", data)
                     indi = data.split('%')
                     clientID = int(indi[1])
+                    client_address = (indi[2], int(indi[3]))
 
                     if data.startswith("Disconnect"):
                         print("disconnect request")
@@ -376,7 +377,7 @@ def handle_client(client_socket, client_address):
                     if data.startswith("Rape_Disconnect"):
                         print("rape disconnect request")
                         #client_address1 = (client_address[0], int(data))
-                        change_connection_status_id(clientID, False)
+                        change_connection_status(client_address, False)
                     print("success")
 
                 indi = data.split(b'&')

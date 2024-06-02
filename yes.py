@@ -281,11 +281,15 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 # Handle disconnection
                 indi = data.split("&")
                 clientID = int(indi[1])
+                clientIP = ClientList.get_ip_dict()[clientID]
                 print(f"Disconnecting: {clientID}")
 
                 login_socket = socket.socket()
                 login_socket.connect((servers_list['login'][0], 6969))
-                login_socket.send(f"Rape_Disconnect%{clientID}".encode())
+                if data.startswith("DISCONNECT_RAPE"):
+                    login_socket.send(f"Rape_Disconnect%{clientID}%{clientIP[0]}%{clientIP[1]}".encode())
+                else:
+                    login_socket.send(f"Disconnect%{clientID}%{clientIP[0]}%{clientIP[1]}".encode())
                 login_socket.close()
 
                 # Safely remove client and its data from all relevant dictionaries
