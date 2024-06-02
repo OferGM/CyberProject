@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3d180aaa-e2c1-4a6e-afeb-47716631cf4e" name="Default Changelist" comment="">
+    <list default="true" id="4935ba00-5978-49d4-972d-5df4ae96852c" name="Changes" comment="Added weapon cooldowns">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LoginServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginServer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yes.py" beforeDir="false" afterPath="$PROJECT_DIR$/yes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,10 +126,10 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.yes" />
+      <item itemvalue="Python.GameLoop" />
       <item itemvalue="Python.LoginServer" />
       <item itemvalue="Python.server" />
-      <item itemvalue="Python.GameLoop" />
+      <item itemvalue="Python.yes" />
     </list>
     <recent_temporary>
       <list>
