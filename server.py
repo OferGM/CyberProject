@@ -400,17 +400,19 @@ class Server:
                             self.mobs.pop(mob_id)
                             self.playerChase.pop(mob_id)
                             self.socket.sendto(f"aR&{mob_id}".encode(), addr)
-                if dataArr[0] == 'gDisconnect':
+                if dataArr[0] == 'zDisconnect':
                     print(f"Disconnecting: ", dataArr[1])
-                    self.all_players.pop(int(dataArr[1]), None)
-                    self.coordinates.pop((dataArr[1]), None)
+                    if int(dataArr[1]) in self.all_players.keys():
+                        self.all_players.pop(int(dataArr[1]), None)
+                    if int(dataArr[1]) in self.coordinates.keys():
+                        self.coordinates.pop((dataArr[1]), None)
                     #self.playerChase.pop((dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT_RAPE&{dataArr[1]}".encode(), addr)
                     #login_socket = socket.socket()
                     #login_socket.connect((servers_dict['login'][0], 6969))
                     #login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())
                     #login_socket.close()
-                if dataArr[0] == 'gSafeDisconnect':
+                if dataArr[0] == 'zSafeDisconnect':
                     self.all_players.pop(int(dataArr[1]), None)
                     self.coordinates.pop(int(dataArr[1]), None)
                     #self.playerChase.pop(int(dataArr[1]), None)

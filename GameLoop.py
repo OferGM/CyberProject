@@ -1072,7 +1072,7 @@ def safe_exit():
     sendThread.join()
     renderThread.join()
     time.sleep(1)
-    kaki = f"gSafeDisconnect&{client_id}"
+    kaki = f"zSafeDisconnect&{client_id}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
     application.quit()
@@ -1087,7 +1087,7 @@ def input(key):
         sendThread.join()
         renderThread.join()
         time.sleep(1)
-        kaki = f"gDisconnect&{client_id}"
+        kaki = f"zDisconnect&{client_id}"
         kaki = encrypt(kaki, secret)
         client.send_data(kaki)
         application.quit()

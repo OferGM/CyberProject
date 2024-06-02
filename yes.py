@@ -281,48 +281,49 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 # Handle disconnection
                 indi = data.split("&")
                 clientID = int(indi[1])
-                clientIP = ClientList.get_ip_dict()[clientID]
-                print(f"Disconnecting: {clientID}")
+                if clientID in ClientList.get_ip_dict().keys():
+                    clientIP = ClientList.get_ip_dict()[clientID]
+                    print(f"Disconnecting: {clientID}")
+    
+                    login_socket = socket.socket()
+                    login_socket.connect((servers_list['login'][0], 6969))
+                    if data.startswith("DISCONNECT_RAPE"):
+                        login_socket.send(f"Rape_Disconnect%{clientID}%{clientIP[0]}%{clientID}".encode())
+                    else:
+                        login_socket.send(f"Disconnect%{clientID}%{clientIP[0]}%{clientIP[1]}".encode())
+                    login_socket.close()
 
-                login_socket = socket.socket()
-                login_socket.connect((servers_list['login'][0], 6969))
-                if data.startswith("DISCONNECT_RAPE"):
-                    login_socket.send(f"Rape_Disconnect%{clientID}%{clientIP[0]}%{clientID}".encode())
-                else:
-                    login_socket.send(f"Disconnect%{clientID}%{clientIP[0]}%{clientIP[1]}".encode())
-                login_socket.close()
+                    # Safely remove client and its data from all relevant dictionaries
+                    try:
+                        ClientList.remove_client(clientID)
+                    except KeyError:
+                        print(f"Client ID {clientID} not found in client list")
 
-                # Safely remove client and its data from all relevant dictionaries
-                try:
-                    ClientList.remove_client(clientID)
-                except KeyError:
-                    print(f"Client ID {clientID} not found in client list")
+                    try:
+                        del ClientList.get_server_dict()[clientID]
+                    except KeyError:
+                        print(f"Client ID {clientID} not found in server dict")
 
-                try:
-                    del ClientList.get_server_dict()[clientID]
-                except KeyError:
-                    print(f"Client ID {clientID} not found in server dict")
+                    try:
+                        public = ClientList.get_public()[clientID]
+                        del ClientList.get_hellman()[public]
+                        del ClientList.get_public()[clientID]
+                    except KeyError:
+                        print(f"Public key for client ID {clientID} not found")
 
-                try:
-                    public = ClientList.get_public()[clientID]
-                    del ClientList.get_hellman()[public]
-                    del ClientList.get_public()[clientID]
-                except KeyError:
-                    print(f"Public key for client ID {clientID} not found")
-
-                try:
-                    del ClientList.get_join()[clientID]
-                except KeyError:
-                    print(f"Client ID {clientID} not found in join dict")
+                    try:
+                        del ClientList.get_join()[clientID]
+                    except KeyError:
+                        print(f"Client ID {clientID} not found in join dict")
 
 
 
-                # Optionally notify other clients or the login server
-                # udp_socket.sendto(data.encode(), servers_list['login'])
-                # for clientIP in ClientList.get_ip_dict().values():
-                #     udp_socket.sendto(data.encode(), clientIP)
+                    # Optionally notify other clients or the login server
+                    # udp_socket.sendto(data.encode(), servers_list['login'])
+                    # for clientIP in ClientList.get_ip_dict().values():
+                    #     udp_socket.sendto(data.encode(), clientIP)
 
-                print(f"Disconnected: {clientID}")
+                    print(f"Disconnected: {clientID}")
                 return
 
             if data.startswith("STATE"):  # this is STATE_ACK sent from gs, as STATE_UPDATE sent from client starts with g
