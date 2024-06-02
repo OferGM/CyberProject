@@ -454,6 +454,7 @@ class Item(Entity):
     def pickup(self):
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
             msg = encrypt(f"gPICKED&{client.id}&{self.id}", secret)
+            print("sending PICKED msg: ", f"zPICKED&{client.id}&{self.id}")
             client.send_data(msg)
             inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
@@ -528,6 +529,7 @@ class Enemy(Entity):
     def enemy_hit(self, gun):
         self.health -= gun.damage
         msg = encrypt(f"zDAMAGEMOB&{client.id}&{self.id}&{gun.damage}", secret)
+        print("SENT DAMAGEMOB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         client.send_data(msg)
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed

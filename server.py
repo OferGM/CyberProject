@@ -256,6 +256,7 @@ class Server:
             item_strings.append(item_str)
         # Join all mob strings into one single string, separated by semicolons
         all_items_string = ";".join(item_strings)
+        print("item string is: ", all_items_string)
         return all_items_string
 
     def SendPositions(self, addr):
@@ -336,7 +337,7 @@ class Server:
 
     def handle_client(self):
         while(True):
-            #try:
+            try:
                 data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
                 print("Received: ", data)
@@ -369,9 +370,14 @@ class Server:
                     self.mobs.pop(int(dataArr[2]))
                     self.playerChase.pop(int(dataArr[2]))
                     self.socket.sendto(f"aR&{int(dataArr[2])}".encode(), addr)
-                if dataArr[0] == 'gPICKED':
-                    self.items.pop(int(dataArr[2]))
-                    self.socket.sendto(f"aPICKED&{dataArr[2]}".encode(), addr)
+                if dataArr[0] == 'zPICKED':
+                    print("got PICKED request: ", self.items[int(dataArr[2])])
+                    if int(dataArr[2]) in self.items:
+                        self.items.pop(int(dataArr[2]))
+                        self.socket.sendto(f"aPICKED&{dataArr[2]}".encode(), addr)
+                        print("EXIST")
+                    else:
+                        print("NOT EXIST, current dict is: ", self.items.items())
                 if dataArr[0] == 'gDAMAGE':
                     self.coordinates[dataArr[1]] = (self.coordinates[dataArr[1]][0], self.coordinates[dataArr[1]][1], self.coordinates[dataArr[1]][2], self.coordinates[dataArr[1]][3], dataArr[2])
                     print(f"Player {int(dataArr[1])} hurt and his health is {dataArr[2]}")
@@ -462,8 +468,8 @@ class Server:
                     self.RemoveChest(dataArr[1],dataArr[2])
 
 
-            #except Exception as e:
-            #    print(f"Error handling client: {e}")
+            except Exception as e:
+                print(f"Error handling client: {e}, as current dict is: ", self.items.items())
 
 def get_private_ip():
     # Create a socket connection to a remote server
