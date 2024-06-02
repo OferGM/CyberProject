@@ -298,7 +298,7 @@ class Server:
             if total_dist <= min_dist:
                 min_dist = total_dist
                 self.playerChase[zombieID] = clientID
-        if min_dist > 45:
+        if min_dist > 57:
             self.playerChase[zombieID] = 0
 
     def rotate_enemy(self, player_posit, enemy_posit):
