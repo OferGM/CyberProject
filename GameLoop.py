@@ -978,8 +978,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
                     p.health = int(aList[2])
                 if int(aList[1]) == client.get_id():
                     player.health = int(aList[2])
-                    if player.health <= 0 and DEAD == 0:
-                        DEAD = 1
+                    if player.health <= 0:
                         death()
             if aList[0] == 'aPICKED':
                 items[int(aList[1])].enabled = False
@@ -1023,8 +1022,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
                 p.health = int(aList[2])
             if int(aList[1]) == client.get_id():
                 player.health = int(aList[2])
-                if player.health <= 0 and DEAD == 0:
-                    DEAD = 1
+                if player.health <= 0:
                     death()
         if aList[0] == 'aPICKED':
             items[int(aList[1])].enabled = False
