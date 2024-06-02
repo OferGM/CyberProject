@@ -74,7 +74,9 @@ def change_connection_status(client_address, connected):
 
     """
     ip, port = client_address
+    print("client address is: ", client_address)
     user_document = users_collection.find_one({"ip": ip, "port": port})
+    print("found!")
     _id = ObjectId(user_document["_id"])
     update = {"$set": {"connected": connected}}
     users_collection.update_one({"_id": _id}, update)
