@@ -462,6 +462,7 @@ def get_private_ip():
 # Example usage
 if __name__ == "__main__":
     private_ip = get_private_ip()
+    print(private_ip)
     serverNum = int(input("Enter server number: "))
     servers_dict[serverNum]=(private_ip ,12340+serverNum)   #put the server ip and port in dictionary
     serverAddress = servers_dict[serverNum]

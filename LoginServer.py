@@ -26,7 +26,7 @@ def get_private_ip():
 
 
 private_ip = get_private_ip()
-
+print(private_ip)
 lb_ip = input("Fill the ip of the load-balancer")
 
 # Initialize socket connection to load balancer

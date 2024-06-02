@@ -538,7 +538,7 @@ def get_private_ip():
 def main():
 
     private_ip = get_private_ip()
-
+    print(private_ip)
     tcp_host = private_ip
     tcp_port = 8888
 

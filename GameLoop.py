@@ -1401,6 +1401,8 @@ if __name__ == "__main__":
         ip = builtins.input("Fill the ip of the load-balancer")
         lb_ip = ip
 
+        print(get_private_ip())
+
         port_yes = random.randint(50000, 65534)
 
         secret, client_public_key, client_private_key = client_program(port_yes, lb_ip, 1010)
