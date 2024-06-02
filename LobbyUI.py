@@ -1627,13 +1627,10 @@ class Ui_MainWindow(object):
     def buy_items(self):
         # send packet to confirm
         if self.buy_sum > 0:
-            print("hello1")
             response = f"Buy%{self.buy_ak_count}&{self.buy_m4_count}&{self.buy_awp_count}&{self.buy_mp5_count}&{self.buy_med_kit_count}&{self.buy_bandage_count}&{self.buy_sPotion_count}&{self.buy_lPotion_count}"
-            print(response)
             self.client_socket.send(encrypt(response))
             data = self.client_socket.recv(1024)
             data = decrypt(data)
-            print(data)
             if data == "successful buy":
                 _translate = QtCore.QCoreApplication.translate
                 self.ak_count += self.buy_ak_count
@@ -1774,18 +1771,14 @@ class Ui_MainWindow(object):
     def play_butt_pressed(self):
         # send packet to confirm
         request = f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}"
-        print("Sending play request: ", request)
         self.client_socket.send(encrypt(request))
         data = self.client_socket.recv(9192)
         data = decrypt(data)
-        print("Received: ", data)
         if data == "Joining_game":
-            print("Joining game")
             self.client_socket.close()
             QCoreApplication.exit()
             sys.exit()
         else:
-            print("Joining attempt failed")
             socket1.close()
             QCoreApplication.quit()
             sys.exit()
@@ -1878,7 +1871,6 @@ import resources_rc
 #     MainWindow.show()
 #     app.exec_()
 #
-#     print("FINISHED")
 #     exit()
 
 def encrypt(data):
@@ -1890,7 +1882,6 @@ def encrypt(data):
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
     poo = f"{client_id}&".encode('ascii', 'ignore')
     encrypted_bytes = poo + encrypted_bytes
-    print("encrypted bytes: ", encrypted_bytes)
     return encrypted_bytes
 
 def decrypt(data):
@@ -1905,7 +1896,6 @@ def decrypt(data):
     return decrypted_message
 
 if __name__ == "__main__":
-    print(sys.argv[3])
     socket1 = socket.socket()
     socket1.bind((sys.argv[4], int(sys.argv[1])))
     client_id = int(sys.argv[1])
@@ -1918,7 +1908,6 @@ if __name__ == "__main__":
     socket1.send(encrypt("GIMME%STATS"))
     data = socket1.recv(9192)
     data = decrypt(data)
-    print("received: ", data)
 
     stats = data.split('&')
 
@@ -1931,7 +1920,5 @@ if __name__ == "__main__":
     MainWindow.show()
     app.exec_()
     # data = socket1.recv(9192).decode()
-    # print("data: ", data)
     socket1.close()
-    print("Finished with LobbyUI")
     exit()

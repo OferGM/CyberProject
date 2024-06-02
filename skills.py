@@ -36,7 +36,6 @@ class SkillDisplay(Entity):
             element.enabled = True  # Re-enable elements to show them
 
     def changeToRed(self,skill):
-        print("CHANGED TO RED")
         if skill == 'speed':
             self.elements[0].scale = 0
         if skill == 'strength':

@@ -20,7 +20,7 @@ class clientfuncs:
         try:
             self.socket.sendto(data, self.server_address)
         except Exception as e:
-            print(f"Failed to send data to server: {e}")
+            pass
 
     def receive_data(self):
         try:
@@ -31,18 +31,17 @@ class clientfuncs:
             #data = data.decode()
             return data
         except socket.timeout:
-            print("No data received within timeout period")
+            pass
             # Handle the lack of data here, such as setting a default value or raising an error
             # For example:
             # dataArr = []
             # or
             # raise Exception("No data received within timeout period")
         except Exception as e:
-            print("An error occurred:", e)
-
+            pass
 
         except Exception as e:
-            print(f"Failed to receive data from server: {e}")
+            pass
 
 
 

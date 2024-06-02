@@ -7,20 +7,16 @@ def start_server(host, port):
     clients = set()
 
     try:
-        print(f"Server started at {host}:{port}")
         while True:
             msg, addr = server_socket.recvfrom(1024)
             if addr not in clients:
                 clients.add(addr)
-                print(f"New client: {addr}")
 
-            print(f"Received message from {addr}: {msg.decode()}")
 
             for client in clients:
                 server_socket.sendto(msg, client)
-                print(msg)
     except Exception as e:
-        print(f"Error: {e}")
+        pass
     finally:
         server_socket.close()
 

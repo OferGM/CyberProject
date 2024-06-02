@@ -21,7 +21,6 @@ def send_message():
     message = message_entry.get()
     if message:
         msg = f"gCHAT&{client_id}&{message}"
-        print(msg)
         client_socket.sendto(msg.encode(), ADDR)
         message_entry.delete(0, tk.END)
     else:

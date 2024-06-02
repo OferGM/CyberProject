@@ -33,7 +33,6 @@ class ChatClient:
     def receive_messages(self):
         while True:
             message, _ = self.socket.recvfrom(1024)
-            print(message.decode())
             self.text_area.insert(tk.END, f"{message.decode()}\n")
 
 

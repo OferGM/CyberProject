@@ -37,7 +37,6 @@ class Server:
         for item in items:
             list.append(item)
         self.chests[id] = list
-        print("hi")
         packet = self.CreateChestString()
         self.socket.sendto(packet.encode(), LOAD_BALANCER_UDP_ADDR)
 
@@ -98,10 +97,8 @@ class Server:
         if witch_id in self.witches:
             current_health = self.witches[witch_id][4]
             new_health = current_health - damage_amount
-            print(f"Witch {witch_id} damaged: {damage_amount} damage, {new_health} health remaining.")
 
             if new_health <= 0:
-                print(f"Witch {witch_id} has died.")
                 # Remove the witch from the dictionary
                 witch = self.witches.pop(witch_id)
                 self.playerChaseWitches.pop(witch_id)
@@ -232,7 +229,6 @@ class Server:
         # Inform client about the new health
         self.socket.sendto(f"aH&{player_id}&{player_health}".encode(), LOAD_BALANCER_UDP_ADDR)
         # Remove the orb after it hits a player
-        print("ORB EXPLODED")
         self.socket.sendto(f"aRemoveOrb&{orb_id}".encode(), LOAD_BALANCER_UDP_ADDR)
         self.orbs.pop(orb_id, None)
         pass
@@ -257,7 +253,6 @@ class Server:
             item_strings.append(item_str)
         # Join all mob strings into one single string, separated by semicolons
         all_items_string = ";".join(item_strings)
-        print("item string is: ", all_items_string)
         return all_items_string
 
     def SendPositions(self, addr):
@@ -282,13 +277,12 @@ class Server:
                 self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
-            print(f"Server listening on {self.host}:{self.port}")
             threading.Thread(target=self.update_zombies).start()
             threading.Thread(target=self.update_witches).start()
             threading.Thread(target=self.handle_client).start()
             threading.Thread(target=self.update_orbs).start()
         except Exception as e:
-            print(f"Error starting server: {e}")
+            pass
 
     def find_closest_player(self, zombieID):
         min_dist = 1000
@@ -340,68 +334,53 @@ class Server:
             try:
                 data, addr = self.socket.recvfrom(9192)
                 data = data.decode()
-                print("Received: ", data)
                 dataArr = data.split('&')
                 if dataArr[0] == 'JOIN':
                     playerID = dataArr[1]
-                    print("new player joined: ", playerID)
                     darr = data.split('&', 2)
                     data = darr[2]
                     self.all_players[playerID] = data
-                    print("KAKIIIIIIIIIIIIIIIIIIIIIIIIIIII: ", data)
                     #self.coordinates[playerID] = 0
                 if dataArr[0] == 'gSTATE':
                     playerID = dataArr[1]
                     if dataArr[1] in self.heldItems and playerID in self.all_players:
-                        print("SENDING STATE!!!!!")
                         msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&{self.heldItems[dataArr[1]]}'
                         self.socket.sendto(msg.encode(), addr)
                         self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                     else:
                         if playerID in self.all_players:
-                            print("SENDING STATE!!!!!")
                             msg = f'STATE&{dataArr[1]}&{dataArr[2]}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&{dataArr[6]}&NONE'
                             self.socket.sendto(msg.encode(), addr)
                             self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'STATE':
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'zPICKED':
-                    print("got PICKED request: ", self.items[int(dataArr[2])])
                     if int(dataArr[2]) in self.items:
                         self.items.pop(int(dataArr[2]))
                         self.socket.sendto(f"aPICKED&{dataArr[2]}".encode(), addr)
-                        print("EXIST")
                     else:
-                        print("NOT EXIST, current dict is: ", self.items.items())
+                        pass
                 if dataArr[0] == 'gDAMAGE':
                     self.coordinates[dataArr[1]] = (self.coordinates[dataArr[1]][0], self.coordinates[dataArr[1]][1], self.coordinates[dataArr[1]][2], self.coordinates[dataArr[1]][3], dataArr[2])
-                    print(f"Player {int(dataArr[1])} hurt and his health is {dataArr[2]}")
 
                     self.socket.sendto(f"aH&{int(dataArr[1])}&{dataArr[2]}".encode(), addr)
                 if dataArr[0] == 'zDAMAGEMOB':
-                    print("DAMAGED MOB")
                     mob_id = int(dataArr[2])  # Ensuring that the mob ID is an integer
                     damage = int(dataArr[3])  # Ensuring that the damage is an integer
-                    print("damage:",damage)
-                    #print(self.mobs[mob_id][4])
 
                     if mob_id in self.mobs:
                         current_health = self.mobs[mob_id][4]
-                        print(f"Before damage: Zombie {mob_id} health is {current_health}")
                         new_health = current_health - damage
                         self.mobs[mob_id] = (
                         self.mobs[mob_id][0], self.mobs[mob_id][1], self.mobs[mob_id][2], self.mobs[mob_id][3],
                         new_health)
-                        print(f"After damage: Zombie {mob_id} health is {self.mobs[mob_id][4]}")
 
                         if new_health <= 0:
-                            print("DEAD")
                             self.GenerateItem(self.mobs[mob_id][0], self.mobs[mob_id][2])
                             self.mobs.pop(mob_id)
                             self.playerChase.pop(mob_id)
                             self.socket.sendto(f"aR&{mob_id}".encode(), addr)
                 if dataArr[0] == 'zDisconnect':
-                    print(f"Disconnecting: ", dataArr[1])
                     if int(dataArr[1]) in self.all_players.keys():
                         self.all_players.pop(int(dataArr[1]), None)
                     if int(dataArr[1]) in self.coordinates.keys():
@@ -432,7 +411,6 @@ class Server:
                 if dataArr[0] == 'HI':
                     inv = f"sINV&{dataArr[1]}&{self.all_players[dataArr[1]]}"
                     self.socket.sendto(inv.encode(), addr)
-                    print("Sending inv: ", inv)
                 if dataArr[0] == 'gHELD':
                     ID_CLIENT = dataArr[1]
                     ITEM_HELD = dataArr[2]
@@ -452,12 +430,10 @@ class Server:
                     self.RemoveItemFromChest(CHEST_ID,item)
 
                 if dataArr[0] == 'gPLAYERDEATH': #gPLAYERDEATH&x&y&z&item1&item2&...&item[n]
-                    print("PLAYER DIED")
                     x = dataArr[2]
                     y = dataArr[3]
                     z = dataArr[4]
                     items = [dataArr[i] for i in range(5, len(dataArr))]
-                    print(items)
                     self.GenerateChest(x,y,z,items)
                     # login_socket = socket.socket()
                     # login_socket.connect(("127.0.0.1", 6969))
@@ -468,8 +444,7 @@ class Server:
 
 
             except Exception as e:
-                print(f"Error handling client: {e}, as current dict is: ", self.items.items())
-
+                pass
 def get_private_ip():
     # Create a socket connection to a remote server
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -487,7 +462,6 @@ def get_private_ip():
 # Example usage
 if __name__ == "__main__":
     private_ip = get_private_ip()
-    print (private_ip)
     serverNum = int(input("Enter server number: "))
     servers_dict[serverNum]=(private_ip ,12340+serverNum)   #put the server ip and port in dictionary
     serverAddress = servers_dict[serverNum]
