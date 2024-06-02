@@ -314,8 +314,8 @@ def handle_client(client_socket, client_address):
         try:
             data = client_socket.recv(9192)
             if data:
-                print(client_address[1])
-                if client_address[1] == 1234:
+                print(client_address[0])
+                if client_address[0] == 0:
                     print("hi")
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))

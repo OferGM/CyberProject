@@ -365,11 +365,6 @@ class Server:
                             self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
                 if dataArr[0] == 'STATE':
                     self.coordinates[dataArr[1]] = (dataArr[2], dataArr[3], dataArr[4], dataArr[5], dataArr[6])
-                if dataArr[0] == 'gDEAD':
-                    self.GenerateItem(self.mobs[int(dataArr[2])][0],self.mobs[int(dataArr[2])][2])
-                    self.mobs.pop(int(dataArr[2]))
-                    self.playerChase.pop(int(dataArr[2]))
-                    self.socket.sendto(f"aR&{int(dataArr[2])}".encode(), addr)
                 if dataArr[0] == 'zPICKED':
                     print("got PICKED request: ", self.items[int(dataArr[2])])
                     if int(dataArr[2]) in self.items:
