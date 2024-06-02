@@ -44,7 +44,7 @@ class Server:
 
 
     def GenerateMobs(self):
-        if len(self.mobs) < 10:
+        if len(self.mobs) < 23:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
             random.randint(-200, 200), 1.5, random.randint(-200, 200), random.randint(0, 360) ,100]
@@ -57,7 +57,7 @@ class Server:
         self.orbs[id] = random_coordinates
         self.playerChaseOrbs[id] = playerToChase
     def GenerateWitches(self):
-        if len(self.witches) < 10:
+        if len(self.witches) < 2:
             id = random.randint(10000000, 99999999)
             random_coordinates = [
                 random.randint(-200, 200), 3, random.randint(-200, 200), random.randint(0, 360), 100, time.time()
@@ -146,6 +146,7 @@ class Server:
 
     def update_witches(self):
         while True:
+            self.GenerateWitches()
             for witch_id in list(self.witches.keys()):
                 self.find_closest_player_for_witch(witch_id)
             for witch_id in list(self.witches.keys()):
@@ -275,10 +276,10 @@ class Server:
             chatThread = threading.Thread(target=ChatServer.Chat)
             chatThread.start()
         try:
-            for i in range(22):
+            for i in range(23):
                 self.GenerateMobs()
-            for i in range(3):
-                pass#self.GenerateWitches()
+            for i in range(2):
+                self.GenerateWitches()
 
             self.socket.bind((self.host, self.port))
             print(f"Server listening on {self.host}:{self.port}")
@@ -327,8 +328,7 @@ class Server:
                     )
     def update_zombies(self):
         while (True):
-            # if len(self.mobs) < 30:
-            #     self.GenerateMobs()
+            self.GenerateMobs()
             for zombieID in self.mobs.keys():
                 self.find_closest_player(zombieID)
             self.update_positions()
