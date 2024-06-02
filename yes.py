@@ -8,9 +8,9 @@ from pyskiplist import SkipList
 import random
 from sympy import randprime
 
-UPDATE_RATE = 10  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
-SERVER_UPDATE_RATE = 10  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
-LOOKING_DISTANCE = 30  # the max distance from which you can see other ppl
+UPDATE_RATE = 15  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
+SERVER_UPDATE_RATE = 15  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
+LOOKING_DISTANCE = 40  # the max distance from which you can see other ppl
 CLIENT_ID_LENGTH = 5
 SERVER_STATE_RATE = 20
 
@@ -284,7 +284,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 if clientID in ClientList.get_ip_dict().keys():
                     clientIP = ClientList.get_ip_dict()[clientID]
                     print(f"Disconnecting: {clientID}")
-    
+
                     login_socket = socket.socket()
                     login_socket.connect((servers_list['login'][0], 6969))
                     if data.startswith("DISCONNECT_RAPE"):

@@ -314,7 +314,7 @@ class Server:
             if connected == 1:
                 current_zombie_data = self.mobs[zombie_id]
                 playerID = int(self.playerChase[zombie_id])
-                if playerID != 0 and str(playerID) in self.coordinates:
+                if playerID != 0 and (str(playerID) in self.coordinates or int(playerID) in self.coordinates):
                     player_coords = self.coordinates[str(playerID)]
                     player_x = float(player_coords[0])
                     player_z = float(player_coords[2])
@@ -405,6 +405,8 @@ class Server:
                     if int(dataArr[1]) in self.all_players.keys():
                         self.all_players.pop(int(dataArr[1]), None)
                     if int(dataArr[1]) in self.coordinates.keys():
+                        self.coordinates.pop(int(dataArr[1]), None)
+                    if (dataArr[1]) in self.coordinates.keys():
                         self.coordinates.pop((dataArr[1]), None)
                     #self.playerChase.pop((dataArr[1]), None)
                     self.socket.sendto(f"DISCONNECT_RAPE&{dataArr[1]}".encode(), addr)
