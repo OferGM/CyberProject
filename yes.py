@@ -375,30 +375,32 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
             indi = data.split('&')
             clientID = int(indi[1])
-            if clientID in ClientList.get_ip_dict().keys():
 
-                if data.startswith("HI&"):
-                    print("Received HI MSG: ", data)
-                    indi = data.split('&')
-                    clientID = int(indi[1])
-                    print("Client ID is: ", clientID)
-                    clientIP = f'({addr[0]}, {addr[1]})'
-                    print("Client IP is: ",clientIP)
-                    print("yaya")
-                    bata = ClientList.get_join()[clientID]
-                    for serverIP in servers_list.values():
-                        udp_socket.sendto(bata.encode(), serverIP)
-                    ClientList.get_ip_dict()[clientID] = clientIP
-                    ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID, client_ip=clientIP)  # insert at x, with id and ip from the login server
-                    print("Calculating edges")
-                    ClientList.calc_edges()
-                    client_server = ClientList.get_server(clientID)
-                    print("Client server is: ", client_server)
-                    ClientList.get_server_dict()[clientID] = client_server
-                    serverIP = servers_list[client_server[0]]
-                    udp_socket.sendto(data.encode(), serverIP)
-                    print(f"Sent HI msg: {data} to {serverIP}")
-                    return
+            if data.startswith("HI&"):
+                print("Received HI MSG: ", data)
+                indi = data.split('&')
+                clientID = int(indi[1])
+                print("Client ID is: ", clientID)
+                clientIP = f'({addr[0]}, {addr[1]})'
+                print("Client IP is: ", clientIP)
+                print("yaya")
+                bata = ClientList.get_join()[clientID]
+                for serverIP in servers_list.values():
+                    udp_socket.sendto(bata.encode(), serverIP)
+                ClientList.get_ip_dict()[clientID] = clientIP
+                ClientList.insert_new_client(client_x=0, client_z=0, client_id=clientID,
+                                             client_ip=clientIP)  # insert at x, with id and ip from the login server
+                print("Calculating edges")
+                ClientList.calc_edges()
+                client_server = ClientList.get_server(clientID)
+                print("Client server is: ", client_server)
+                ClientList.get_server_dict()[clientID] = client_server
+                serverIP = servers_list[client_server[0]]
+                udp_socket.sendto(data.encode(), serverIP)
+                print(f"Sent HI msg: {data} to {serverIP}")
+                return
+
+            if clientID in ClientList.get_ip_dict().keys():
 
                 if data.startswith("z"):
                     indi = data.split('&')
