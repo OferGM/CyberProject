@@ -608,6 +608,26 @@ class MultiPlayer(Entity):
             self.item_entity.rotation_y += 180
             self.item_entity.x += 4
             self.item_entity.z += 4
+        if Item == 'mp5' and self.last_held != 'mp5':
+            print("UPDATED ITEM MP5")
+            destroy(self.item_entity)
+            self.last_held = 'mp5'
+            self.item_entity = Entity(parent=self, model='mp5.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 0.6  # Adjust scale to fit the scene
+            self.item_entity.rotation_y += 180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
+        if Item == 'm4' and self.last_held != 'm4':
+            print("UPDATED ITEM M4")
+            destroy(self.item_entity)
+            self.last_held = 'm4'
+            self.item_entity = Entity(parent=self, model='m4.obj', texture=f'{Item}_tex.png')
+            self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
+            self.item_entity.scale = 2.5  # Adjust scale to fit the scene
+            self.item_entity.rotation_y += 180
+            self.item_entity.x += 4
+            self.item_entity.z += 4
 
         if Item == "None" and self.item_entity and self.last_held != 'None':
             self.last_held = 'None'
@@ -670,6 +690,19 @@ class Gun(Entity):
             self.cooldown = 2
             player.cursor.visible = False
 
+        if type == 'mp5':
+            self.gun_type = "mp5"
+            self.canShoot = True
+            self.model = 'mp5.obj'
+            self.texture = 'mp5_tex.png'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 25
+            self.scale = 0.06
+            player.cursor.visible = False
+            self.cooldown = 0
+            player.cursor.visible = True
+
     def switchType(self, type):
         if type == 'ak-47':
             self.gun_type = "ak-47"
@@ -705,6 +738,20 @@ class Gun(Entity):
             player.cursor.visible = False
             # m=load_model('awp.obj',reload=True)
             self.cooldown = 0.2
+
+        if type == 'mp5':
+            self.gun_type = "mp5"
+            self.canShoot = True
+            self.model = 'mp5.obj'
+            self.texture = 'mp5_tex.png'
+            self.position = (0.5, 1.5, 1)
+            self.rotation_y = 0
+            self.damage = 25
+            self.scale = 0.06
+            player.cursor.visible = False
+            self.cooldown = 0
+
+
         if type == "None":
             self.gun_type = "None"
             self.canShoot = False
@@ -737,7 +784,7 @@ class Gun(Entity):
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
                                                                                               hovered_entity.position) < 20 or gun.gun_type == 'awp'):
             print("HIT PLAYER")
-            hovered_entity.damage(20)
+            hovered_entity.damage(self.damage)
         print(self.cooldown)
         invoke(self.reset_cooldown, delay=self.cooldown)  # Set the cooldown duration (0.5 seconds in this example)
 
@@ -777,8 +824,10 @@ def Hold_gun():
     msg = encrypt(f"gHELD&{client.id}&{held_item}", secret)
     client.send_data(msg)
     if held_item == 'awp.png' and gun.gun_type != "awp":
+        melee.destroy_arms()
         awp.enabled = True
         ak.enabled = False
+        mp5.enabled = False
         m4.enabled = False
         selectedGun = awp
         gun.gun_type = 'awp'
@@ -787,10 +836,12 @@ def Hold_gun():
         gun.cooldown = 2
         return
     if held_item == 'm4.png':
+        melee.destroy_arms()
         gun.switchType("m4")
         selectedGun = m4
         awp.enabled = False
         ak.enabled = False
+        mp5.enabled = False
         m4.enabled = True
         gun.gun_type = 'm4'
         gun.canShoot = True
@@ -798,19 +849,34 @@ def Hold_gun():
         gun.cooldown = 0.25
         return
     if held_item == 'ak-47.png' and gun.gun_type != "ak-47":
+        melee.destroy_arms()
         selectedGun = ak
         awp.enabled = False
         ak.enabled = True
         m4.enabled = False
+        mp5.enabled = False
         gun.gun_type = 'ak-47'
         gun.canShoot = True
         gun.damage = 20
         gun.cooldown = 0.5
         return
-    if held_item != "awp.png" and held_item != "m4.png" and held_item != "ak-47.png":
+    if held_item == 'mp5.png' and gun.gun_type != 'mp5':
+        melee.destroy_arms()
+        selectedGun = mp5
         awp.enabled = False
         ak.enabled = False
         m4.enabled = False
+        mp5.enabled = True
+        gun.gun_type = 'mp5'
+        gun.canShoot = True
+        gun.damage = 25
+        gun.cooldown = 0
+        return
+    if held_item != "awp.png" and held_item != "m4.png" and held_item != "ak-47.png" and held_item != "mp5.png":
+        awp.enabled = False
+        ak.enabled = False
+        m4.enabled = False
+        mp5.enabled = False
         gun.switchType("None")
         gun.canShoot = False
 
@@ -1093,7 +1159,10 @@ def input(key):
         application.quit()
         exit()
     if held_keys['left mouse']:
-        selectedGun.shoot()
+        if melee.check():
+            melee.punch()
+        else:
+            selectedGun.shoot()
     if held_keys['right mouse']:
         hoveredEntity = mouse.hovered_entity
         if isinstance(hoveredEntity, Chest):
@@ -1162,7 +1231,7 @@ def addItems(data):
             inv.add_item("awp")
     if mp5_count > 0:
         for _ in range(mp5_count):
-            pass
+            inv.add_item("mp5")
     if medkit_count > 0:
         for _ in range(medkit_count):
             inv.add_item("medkit")
@@ -1247,6 +1316,8 @@ def deactivate_cooldown_skill():
         gun.cooldown = 0.25
     if gun.gun_type == 'ak-47':
         gun.cooldown = 0.5
+    if gun.gun_type == 'mp5':
+        gun.cooldown = 0
     print("Cooldown skill deactivated!")
 
 
@@ -1264,6 +1335,8 @@ def deactivate_strength_skill():
         gun.damage = 33
     if gun.gun_type == 'ak-47':
         gun.damage = 36
+    if gun.gun_type == 'mp5':
+        gun.damage = 25
     print("Strength skill deactivated!")
 
 
@@ -1348,7 +1421,7 @@ def client_program(port_yes, host, port):
 
 
 class Melee:
-    def __init__(self, arm1, arm2):
+    def _init_(self, arm1, arm2):
         self.arm1 = arm1
         self.arm2 = arm2
         self.original_arm1_position = arm1.position
@@ -1381,9 +1454,13 @@ class Melee:
 
     def hit(self):
         hovered_entity = mouse.hovered_entity
-        if hovered_entity and isinstance(hovered_entity, Enemy) and calculate_distance(player.position,
-                                                                                       hovered_entity.position) < 3.5:
-            hovered_entity.enemy_hit(self.damage)
+        #dist = calculate_distance(player.position, hovered_entity.position)
+        if hovered_entity and calculate_distance(player.position, hovered_entity.position) < 3.5 and (isinstance(hovered_entity, Enemy) or isinstance(hovered_entity, Witch)):
+            hovered_entity.enemy_hit(self)
+
+        if hovered_entity and calculate_distance(player.position, hovered_entity.position) < 3.5 and isinstance(hovered_entity, MultiPlayer):
+            print("HIT PLAYER")
+            hovered_entity.damage(self.damage)
 
     def deactivate(self):
         # Animate the arms to a deactivated position (putting them down)
@@ -1414,12 +1491,22 @@ class Melee:
             self.arm1.enabled = True
             self.arm2.enabled = True
 
+    def destroy_arms(self):
+        self.arm1.enabled = False
+        self.arm2.enabled = False
+
+    def create_arms(self):
+        self.arm1.enabled = True
+        self.arm2.enabled = True
+
     def check_active_cooldown(self):
         if time.time() - self.prev_activation_time >= self.activation_cooldown:
             return True
         else:
             return False
 
+    def check(self):
+        return self.arm1.enabled and self.arm2.enabled
 
 def get_private_ip():
     # Create a socket connection to a remote server
@@ -1507,7 +1594,9 @@ if __name__ == "__main__":
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
         m4 = Gun(player, 'm4')
+        mp5 = Gun(player, 'mp5')
         gun = Gun(player, 'None')
+        mp5.enabled = False
         awp.enabled = False
         ak.enabled = False
         m4.enabled = False
