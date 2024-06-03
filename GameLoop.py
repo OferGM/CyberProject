@@ -822,6 +822,9 @@ def update():
 
     player_health_bar.value = player.health
 
+    if player_health_bar.value <= 0:
+        death()
+
     if player.npc:
         player.npc_player()
 
@@ -1070,7 +1073,7 @@ def safe_exit():
     sendThread.join()
     renderThread.join()
     time.sleep(1)
-    kaki = f"zSafeDisconnect&{client_id}"
+    kaki = f"zDisconnect&{client_id}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
     application.quit()
