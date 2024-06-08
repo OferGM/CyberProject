@@ -1073,8 +1073,10 @@ def safe_exit():
     sendThread.join()
     renderThread.join()
     time.sleep(1)
-    kaki = f"zDisconnect&{client_id}"
-    kaki = encrypt(kaki, secret)
+    items = inv.get_inventory_items()
+    items_str = '&'.join(items)
+    disconnect_message = f"zSafeDisconnect&{client_id}&{items_str}"
+    kaki = encrypt(disconnect_message, secret)
     client.send_data(kaki)
     application.quit()
     exit()

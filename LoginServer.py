@@ -248,7 +248,7 @@ def update_user(data, client_address, shmoney):
 
     users_collection.update_one({"_id": _id}, updates)
 
-def update_user_by_id(data, clientID, shmoney):
+def update_user_by_id(inventory_data, clientID, shmoney):
     """
     Update user data in the database.
 
@@ -258,29 +258,22 @@ def update_user_by_id(data, clientID, shmoney):
         shmoney (int): Amount of money to be updated.
 
     """
-    user_document = users_collection.find_one({"_id": clientID})
-    _id = ObjectId(user_document["_id"])
-    ak_count = data[0]
-    m4_count = data[1]
-    awp_count = data[2]
-    mp5_count = data[3]
-    med_kit_count = data[4]
-    bandage_count = data[5]
-    sp_count = data[6]
-    lp_count = data[7]
-    updates = {
-        "$inc": {"ak-47": int(ak_count),
-                 "m4": int(m4_count),
-                 "awp": int(awp_count),
-                 "mp5": int(mp5_count),
-                 "medkit": int(med_kit_count),
-                 "bandage": int(bandage_count),
-                 "speed_potion": int(sp_count),
-                 "leaping_potion": int(lp_count),
-                 "money": shmoney}
-    }
-
-    users_collection.update_one({"_id": _id}, updates)
+    user_document = users_collection.find_one({"_id": ObjectId(clientID)})
+    if user_document:
+        updates = {
+            "$set": {
+                "money": shmoney,
+                "ak-47": int(inventory_data[0]),
+                "m4": int(inventory_data[1]),
+                "awp": int(inventory_data[2]),
+                "mp5": int(inventory_data[3]),
+                "medkit": int(inventory_data[4]),
+                "bandage": int(inventory_data[5]),
+                "speed_potion": int(inventory_data[6]),
+                "leaping_potion": int(inventory_data[7])
+            }
+        }
+        users_collection.update_one({"_id": ObjectId(clientID)}, updates)
 
 def buy_shit(data, client_socket, client_address, clientID):
     """
@@ -338,15 +331,20 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     Args:
         client_socket (socket): Client socket object.
         client_address (tuple): IP address and port of the client.
-        data (str): Data containing updated money amount.
+        data (str): Data containing updated money amount and inventory items.
+        clientID (int): Client's unique identifier.
 
     """
     print("disconnect")
-    port, shmoney = int(data.split("&")[0]), int(data.split("&")[1])
-    client_address = (client_address[0], port)
-    update_user_by_id(data.split("&")[2:], clientID, shmoney)
+    data_parts = data.split("&")
+    port = int(data_parts[0])
+    shmoney = int(data_parts[1])
+    inventory_data = data_parts[2:]  # This assumes the inventory data starts from the third element
+
+    # Update the user's money and inventory in the database
+    update_user_by_id(inventory_data, clientID, shmoney)
     print("sending disconnect")
-    change_connection_status(client_address, False)
+    change_connection_status((client_address[0], port), False)
     client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
