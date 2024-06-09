@@ -8,6 +8,8 @@ from pyskiplist import SkipList
 import random
 from sympy import randprime
 
+
+public_key_client = 0
 UPDATE_RATE = 15  # update the client's positions in the databases every UPDATE_RATEth movement msg from a client
 SERVER_UPDATE_RATE = 15  # update the lb values every SERVER_UPDATE_RATEth msg movement msg from a client
 LOOKING_DISTANCE = 40  # the max distance from which you can see other ppl
@@ -290,10 +292,10 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
                     if data.startswith("DISCONNECT_RAPE"):
 
-                        encrypted_bytes = encrypt(f"Rape_Disconnect%{clientIP[0]}&",
+                        encrypted_bytes = encrypt(f"Rape_Disconnect%{clientIP[0]}&{clientID}",
                                                   ClientList.get_hellman()[ClientList.get_public()[clientID]])
 
-                        poo = f"{clientID}&".encode('ascii', 'ignore')
+                        poo = f"{public_key_client}&".encode('ascii', 'ignore')
                         encrypted_bytes = poo + encrypted_bytes
 
                         login_socket.send(encrypted_bytes)
