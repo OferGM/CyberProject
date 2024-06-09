@@ -383,7 +383,7 @@ def handle_client(client_socket, client_address):
                     print(data)
                     print ("rape disconnect")
                     data = data.split("&")
-                    client_address1 = (int(data[0], int(data[1])))
+                    client_address1 = (int(data[0], clientID))
                     change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")

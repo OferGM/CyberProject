@@ -288,8 +288,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                     login_socket = socket.socket()
                     login_socket.connect((servers_list['login'][0], 6969))
                     if data.startswith("DISCONNECT_RAPE"):
-
-                        login_socket.send(encrypt(f"Rape_Disconnect&{clientIP[0]}&{clientID}",
+                        login_socket.send(encrypt(f"{clientID}&Rape_Disconnect%{clientIP[0]}&",
                                                   ClientList.get_hellman()[ClientList.get_public()[clientID]]))
                     else:
                         login_socket.send(f"Disconnect&{clientIP[0]}&{clientID}&{indi[2]}&{indi[3:]}".encode())
