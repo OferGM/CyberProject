@@ -81,6 +81,7 @@ def change_connection_status(client_address, connected):
     update = {"$set": {"connected": connected}}
     users_collection.update_one({"_id": _id}, update)
 
+
 def change_connection_status_id(clientID, connected):
     """
     Update the connection status of a user in the database.
@@ -248,6 +249,7 @@ def update_user(data, client_address, shmoney):
 
     users_collection.update_one({"_id": _id}, updates)
 
+
 def update_user_by_id(inventory_data, clientID, shmoney):
     """
     Update user data in the database.
@@ -274,6 +276,7 @@ def update_user_by_id(inventory_data, clientID, shmoney):
             }
         }
         users_collection.update_one({"_id": ObjectId(clientID)}, updates)
+
 
 def buy_shit(data, client_socket, client_address, clientID):
     """
@@ -324,7 +327,7 @@ def join_game(data, client_socket, client_address, clientID):
     lb_socket.send(encrypt_login(f"JOIN&{client_port}&{money}&{data}"))
 
 
-def disconnect_from_game(client_socket, client_address, data, clientID):
+def disconnect_from_game(client_socket, client_address, data):
     """
     Handle user disconnecting from a game.
 
@@ -342,11 +345,14 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     shmoney = int(data_parts[2])
     inventory_data = data_parts[3:]  # This assumes the inventory data starts from the third element
 
+    user_document = users_collection.find_one({"ip": ip, "port": port})
+    print("found!")
+    _id = ObjectId(user_document["_id"])
+
     # Update the user's money and inventory in the database
-    update_user_by_id(inventory_data, clientID, shmoney)
+    update_user_by_id(inventory_data, _id, shmoney)
     print("sending disconnect")
     change_connection_status((ip, port), False)
-    client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
 def handle_client(client_socket, client_address):
@@ -362,6 +368,19 @@ def handle_client(client_socket, client_address):
         try:
             data = client_socket.recv(9192)
             if data:
+                if client_address[0] == lb_ip:
+                    data = data.decode()
+                    print("received: ", data)
+                    method, data = data.split('%')
+                    if method == "Disconnect":
+                        disconnect_from_game(client_socket, client_address, data)
+                    if method == "Rape_Disconnect":
+                        print(data)
+                        print("rape disconnect")
+                        data = data.split("&")
+                        client_address1 = (int(data[0]), int(data[1]))
+                        change_connection_status(client_address1, False)
+
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
                 print("id: ", clientID)
@@ -377,14 +396,6 @@ def handle_client(client_socket, client_address):
                     buy_shit(data, client_socket, client_address, clientID)
                 if method == "Play":
                     join_game(data, client_socket, client_address, clientID)
-                if method == "Disconnect":
-                    disconnect_from_game(client_socket, client_address, data, clientID)
-                if method == "Rape_Disconnect":
-                    print(data)
-                    print ("rape disconnect")
-                    data = data.split("&")
-                    client_address1 = (int(data[0], clientID))
-                    change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")
                     ip, port = client_address
