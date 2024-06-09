@@ -287,9 +287,17 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
                     login_socket = socket.socket()
                     login_socket.connect((servers_list['login'][0], 6969))
+
                     if data.startswith("DISCONNECT_RAPE"):
-                        login_socket.send(encrypt(f"{clientID}&Rape_Disconnect%{clientIP[0]}&",
-                                                  ClientList.get_hellman()[ClientList.get_public()[clientID]]))
+
+                        encrypted_bytes = encrypt(f"Rape_Disconnect%{clientIP[0]}&",
+                                                  ClientList.get_hellman()[ClientList.get_public()[clientID]])
+
+                        poo = f"{clientID}&".encode('ascii', 'ignore')
+                        encrypted_bytes = poo + encrypted_bytes
+
+                        login_socket.send(encrypted_bytes)
+
                     else:
                         login_socket.send(f"Disconnect&{clientIP[0]}&{clientID}&{indi[2]}&{indi[3:]}".encode())
                     login_socket.close()
@@ -609,7 +617,7 @@ def server_program(ClientList, kaki, kadki):
 def encrypt(data, shared_key):
     # Convert message and key to byte arrays
     message_bytes = data.encode('ascii', 'ignore')
-    key_bytes = shared_key.to_bytes(1024, byteorder = 'little')
+    key_bytes = shared_key.to_bytes(1024, byteorder='little')
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
