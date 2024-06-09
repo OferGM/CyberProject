@@ -337,14 +337,15 @@ def disconnect_from_game(client_socket, client_address, data, clientID):
     """
     print("disconnect")
     data_parts = data.split("&")
-    port = int(data_parts[0])
-    shmoney = int(data_parts[1])
-    inventory_data = data_parts[2:]  # This assumes the inventory data starts from the third element
+    ip = int(data_parts[0])
+    port = int(data_parts[1])
+    shmoney = int(data_parts[2])
+    inventory_data = data_parts[3:]  # This assumes the inventory data starts from the third element
 
     # Update the user's money and inventory in the database
     update_user_by_id(inventory_data, clientID, shmoney)
     print("sending disconnect")
-    change_connection_status((client_address[0], port), False)
+    change_connection_status((ip, port), False)
     client_socket.send(encrypt("successfully_disconnected", clientID))
 
 
@@ -381,7 +382,8 @@ def handle_client(client_socket, client_address):
                 if method == "Rape_Disconnect":
                     print(data)
                     print ("rape disconnect")
-                    client_address1 = (client_address[0], int(data))
+                    data = data.split("&")
+                    client_address1 = (int(data[0], int(data[1])))
                     change_connection_status(client_address1, False)
                 if method == "GIMME":
                     print("gimme")

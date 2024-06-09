@@ -1077,7 +1077,7 @@ def safe_exit():
     time.sleep(1)
     items = inv.get_inventory_items()
     items_str = '&'.join(items)
-    disconnect_message = f"zSafeDisconnect&{client_id}&{items_str}"
+    disconnect_message = f"zSafeDisconnect&{client_id}&{player_money_bar.value}&{items_str}"
     kaki = encrypt(disconnect_message, secret)
     client.send_data(kaki)
     application.quit()
