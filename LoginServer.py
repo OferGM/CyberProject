@@ -361,25 +361,6 @@ def handle_client(client_socket, client_address):
         try:
             data = client_socket.recv(9192)
             if data:
-                print(client_address[0])
-                if client_address[0] == lb_ip:
-
-                    data = data.decode()
-                    print("received: ", data)
-                    indi = data.split('%')
-                    clientID = int(indi[1])
-                    client_address = (indi[2], int(indi[3]))
-
-                    if data.startswith("Disconnect"):
-                        print("disconnect request")
-                        disconnect_from_game(client_socket, client_address, data, clientID)
-
-                    if data.startswith("Rape_Disconnect"):
-                        print("rape disconnect request")
-                        #client_address1 = (client_address[0], int(data))
-                        change_connection_status(client_address, False)
-                    print("success")
-
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
                 print("id: ", clientID)
@@ -399,6 +380,7 @@ def handle_client(client_socket, client_address):
                     disconnect_from_game(client_socket, client_address, data, clientID)
                 if method == "Rape_Disconnect":
                     print(data)
+                    print ("rape disconnect")
                     client_address1 = (client_address[0], int(data))
                     change_connection_status(client_address1, False)
                 if method == "GIMME":

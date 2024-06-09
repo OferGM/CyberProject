@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3d180aaa-e2c1-4a6e-afeb-47716631cf4e" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist.rar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/CyberProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CyberProject.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameLoop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LoginServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/LoginServer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,18 +40,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.GameInventory.executor": "Run",
-    "Python.LoginServer.executor": "Run",
-    "Python.server.executor": "Run",
-    "Python.yes.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "git-widget-placeholder": "kakakakakaka",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.GameInventory.executor&quot;: &quot;Run&quot;,
+    &quot;Python.GameLoop.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LoginPage.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LoginServer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.yes.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;kakakakakaka&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Python.GameInventory">
+}</component>
+  <component name="RunManager" selected="Python.GameLoop">
     <configuration name="Unnamed" type="CompoundRunConfigurationType">
       <toRun name="LoginServer" type="PythonConfigurationType" />
       <toRun name="server" type="PythonConfigurationType" />
@@ -247,8 +249,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.GameInventory" />
         <item itemvalue="Python.LoginPage" />
+        <item itemvalue="Python.GameInventory" />
         <item itemvalue="Python.LobbyUI" />
         <item itemvalue="Python.GameLoop" />
         <item itemvalue="Python.inventory" />
@@ -258,7 +260,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-67fca87a943a-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.11799.259" />
+        <option value="bundled-python-sdk-50da183f06c8-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13135.95" />
       </set>
     </attachedChunks>
   </component>
