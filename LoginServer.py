@@ -378,8 +378,11 @@ def handle_client(client_socket, client_address):
                         print(data)
                         print("rape disconnect")
                         data = data.split("&")
-                        client_address1 = (int(data[0]), int(data[1]))
-                        change_connection_status(client_address1, False)
+                        user_document = users_collection.find_one({"ip": int(data[0]), "port": int(data[1])})
+                        print("found!")
+                        _id = ObjectId(user_document["_id"])
+                        update = {"$set": {"connected": False}}
+                        users_collection.update_one({"_id": _id}, update)
 
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))

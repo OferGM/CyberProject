@@ -1087,14 +1087,14 @@ def safe_exit():
 def input(key):
     global cursor, inv, activeChest
     if key == 'escape':
+        kaki = f"zDisconnect&{client_id}"
+        kaki = encrypt(kaki, secret)
+        client.send_data(kaki)
         stop_event.set()
         recvThread.join()
         sendThread.join()
         renderThread.join()
         time.sleep(1)
-        kaki = f"zDisconnect&{client_id}"
-        kaki = encrypt(kaki, secret)
-        client.send_data(kaki)
         application.quit()
         exit()
     if held_keys['left mouse']:
