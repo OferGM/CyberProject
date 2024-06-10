@@ -340,7 +340,7 @@ def disconnect_from_game(client_socket, client_address, data):
     """
     print("disconnect")
     data_parts = data.split("&")
-    ip = int(data_parts[0])
+    ip = data_parts[0]
     port = int(data_parts[1])
     shmoney = int(data_parts[2])
     inventory_data = data_parts[3:]  # This assumes the inventory data starts from the third element
@@ -378,11 +378,8 @@ def handle_client(client_socket, client_address):
                         print(data)
                         print("rape disconnect")
                         data = data.split("&")
-                        user_document = users_collection.find_one({"ip": int(data[0]), "port": int(data[1])})
-                        print("found!")
-                        _id = ObjectId(user_document["_id"])
-                        update = {"$set": {"connected": False}}
-                        users_collection.update_one({"_id": _id}, update)
+                        client_address1 = (data[0], int(data[1]))
+                        change_connection_status(client_address1, False)
 
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
