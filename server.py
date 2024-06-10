@@ -419,9 +419,9 @@ class Server:
                     self.coordinates.pop(int(dataArr[1]), None)
                     #self.playerChase.pop(int(dataArr[1]), None)
                     money = dataArr[2]
-                    items_str = '&'.join(dataArr[3:])
-                    print(items_str)
-                    self.socket.sendto(f"DISCONNECT&{dataArr[1]}&{money}&{items_str}".encode(), addr)
+
+                    self.socket.sendto(f"DISCONNECT&{dataArr[1]}&{money}&{dataArr[3]}&{dataArr[4]}&{dataArr[5]}&"
+                                       f"{dataArr[6]}&{dataArr[7]}&{dataArr[8]}&{dataArr[9]}&{dataArr[10]}".encode(), addr)
                     #login_socket = socket.socket()
                     #login_socket.connect((servers_dict['login'][0], 6969))
                     #login_socket.send(f"Disconnect%{dataArr[1]}".encode())

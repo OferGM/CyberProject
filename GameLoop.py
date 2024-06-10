@@ -15,6 +15,7 @@ import socket
 from queue import Queue
 import subprocess
 import clientChat
+from collections import Counter
 
 last_skill_activation = {
     'cooldown': 0,
@@ -1076,8 +1077,20 @@ def safe_exit():
     renderThread.join()
     time.sleep(1)
     items = inv.get_inventory_items()
-    items_str = '&'.join(items)
-    disconnect_message = f"zSafeDisconnect&{client_id}&{player_money_bar.value}&{items_str}"
+    # Define the order of strings
+    order = ('ak-47', 'm4', 'awp', 'mp5', 'medkit', 'bandage', 'potion of swiftness', 'potion of leaping')
+
+    # Count occurrences of each string in the original list
+    counters = Counter(items)
+
+    # Create a new array of counters based on the order
+    counters_in_order = [counters[item] for item in order]
+
+    print(counters_in_order)
+
+    disconnect_message = (f"zSafeDisconnect&{client_id}&{player_money_bar.value}"
+                          f"&{counters_in_order[0]}&{counters_in_order[1]}&{counters_in_order[2]}&{counters_in_order[3]}"
+                          f"&{counters_in_order[4]}&{counters_in_order[5]}&{counters_in_order[6]}&{counters_in_order[7]}")
     kaki = encrypt(disconnect_message, secret)
     client.send_data(kaki)
     application.quit()
@@ -1087,14 +1100,14 @@ def safe_exit():
 def input(key):
     global cursor, inv, activeChest
     if key == 'escape':
-        kaki = f"zDisconnect&{client_id}"
-        kaki = encrypt(kaki, secret)
-        client.send_data(kaki)
         stop_event.set()
         recvThread.join()
         sendThread.join()
         renderThread.join()
         time.sleep(1)
+        kaki = f"zDisconnect&{client_id}"
+        kaki = encrypt(kaki, secret)
+        client.send_data(kaki)
         application.quit()
         exit()
     if held_keys['left mouse']:

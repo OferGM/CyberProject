@@ -293,7 +293,8 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                         login_socket.send(f"Rape_Disconnect%{clientIP[0]}&{clientID}".encode())
 
                     else:
-                        login_socket.send(f"Disconnect&{clientIP[0]}&{clientID}&{indi[2]}&{indi[3:]}".encode())
+                        login_socket.send(f"Disconnect%{clientIP[0]}&{clientID}&{indi[2]}&{indi[3]}&{indi[4]}&{indi[5]}"
+                                          f"&{indi[6]}&{indi[7]}&{indi[8]}&{indi[9]}&{indi[10]}".encode())
                     login_socket.close()
 
                     # Safely remove client and its data from all relevant dictionaries
