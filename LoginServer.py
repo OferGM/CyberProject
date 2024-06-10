@@ -263,7 +263,7 @@ def update_user_by_id(inventory_data, clientID, shmoney):
     user_document = users_collection.find_one({"_id": ObjectId(clientID)})
     if user_document:
         updates = {
-            "$set": {
+            "$inc": {
                 "money": shmoney,
                 "ak-47": int(inventory_data[0]),
                 "m4": int(inventory_data[1]),
