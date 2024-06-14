@@ -74,9 +74,7 @@ def change_connection_status(client_address, connected):
 
     """
     ip, port = client_address
-    print("client address is: ", client_address)
     user_document = users_collection.find_one({"ip": ip, "port": port})
-    print("found!")
     _id = ObjectId(user_document["_id"])
     update = {"$set": {"connected": connected}}
     users_collection.update_one({"_id": _id}, update)
@@ -156,7 +154,6 @@ def init_lobby(client_socket, user_document, clientID):
                  ["ak-47", "m4", "awp", "mp5", "medkit", "bandage", "speed_potion", "leaping_potion"]]
     money = user_document["money"]
     response = "&".join(map(str, inventory)) + f"&{money}"
-    print("Current state: ", response)
     client_socket.send(encrypt(response, clientID))
 
 
@@ -178,7 +175,6 @@ def login(client_socket, client_address, data, clientID):
             update_user_address(ip, port, user_document["_id"])
             client_socket.send(encrypt("Login_successful", clientID))
             change_connection_status(client_address, True)
-            print(f"{client_address} is now logged in")
             init_lobby(client_socket, user_document, clientID)
         else:
             client_socket.send(encrypt("User_already_connected", clientID))
@@ -196,21 +192,16 @@ def sign_in(client_socket, client_address, data, clientID):
         data (str): Data containing username and password separated by '&'.
 
     """
-    print("poopyu")
     username, password = data.split("&")
     user_document = users_collection.find_one({"name": username})
-    print("kak")
     if user_document:
-        print("kaki")
         client_socket.send(encrypt("Taken", clientID))
     else:
-        print("kaka")
         ip, port = client_address
         insert_new_user(username, password, ip, port)
         client_socket.send(encrypt("Sign_in_successful", clientID))
         user_document = users_collection.find_one({"name": username})
         change_connection_status(client_address, True)
-        print(f"{client_address} is now logged into the game")
         init_lobby(client_socket, user_document, clientID)
 
 
@@ -338,7 +329,6 @@ def disconnect_from_game(client_socket, client_address, data):
         clientID (int): Client's unique identifier.
 
     """
-    print("disconnect")
     data_parts = data.split("&")
     ip = data_parts[0]
     port = int(data_parts[1])
@@ -346,12 +336,10 @@ def disconnect_from_game(client_socket, client_address, data):
     inventory_data = data_parts[3:]  # This assumes the inventory data starts from the third element
 
     user_document = users_collection.find_one({"ip": ip, "port": port})
-    print("found!")
     _id = ObjectId(user_document["_id"])
 
     # Update the user's money and inventory in the database
     update_user_by_id(inventory_data, _id, shmoney)
-    print("sending disconnect")
     change_connection_status((ip, port), False)
 
 
@@ -370,24 +358,18 @@ def handle_client(client_socket, client_address):
             if data:
                 if client_address[0] == lb_ip:
                     data = data.decode()
-                    print("received: ", data)
                     method, data = data.split('%')
                     if method == "Disconnect":
                         disconnect_from_game(client_socket, client_address, data)
                     if method == "Rape_Disconnect":
-                        print(data)
-                        print("rape disconnect")
                         data = data.split("&")
                         client_address1 = (data[0], int(data[1]))
                         change_connection_status(client_address1, False)
 
                 indi = data.split(b'&')
                 clientID = int(indi[0].decode('ascii', 'ignore'))
-                print("id: ", clientID)
                 data = decrypt(data)
-                print(data)
                 method, data = data.split("%")
-                print(method)
                 if method == "Login":
                     login(client_socket, client_address, data, clientID)
                 if method == "Sign_in":
@@ -397,7 +379,6 @@ def handle_client(client_socket, client_address):
                 if method == "Play":
                     join_game(data, client_socket, client_address, clientID)
                 if method == "GIMME":
-                    print("gimme")
                     ip, port = client_address
                     user_document = users_collection.find_one({"ip": ip, "port": port})
                     init_lobby(client_socket, user_document, clientID)
@@ -464,11 +445,9 @@ def diffie_program():
         data = (connection.recv(1024).decode())
         public_key_client = int(data.split('&')[0])
         client_id = int(data.split('&')[1])
-        print("client id is: ", client_id)
 
         # Calculate shared secret
         shared_secret = pow(public_key_client, private_key_server, prime)
-        print("shared secret is: ", shared_secret)
         connection.close()
         shared_secrets[public_key_client] = shared_secret
         public_keys[client_id] = public_key_client
@@ -477,9 +456,7 @@ def diffie_program():
 def decrypt(data):
     # Convert key to bytes (using 4 bytes and little endian byteorder)
     indi = data.split(b'&', 1)
-    print('rar')
     clientID = int(indi[0].decode('ascii', 'ignore'))
-    print("id: ", clientID)
     shared_key = shared_secrets[public_keys[clientID]]
     data = indi[1]
     key_bytes = shared_key.to_bytes(1024, byteorder='little')
@@ -488,7 +465,6 @@ def decrypt(data):
     decrypted_bytes = bytes([encrypted_byte ^ key_byte for encrypted_byte, key_byte in zip(data, key_bytes)])
     # Convert the decrypted bytes back to a string
     decrypted_message = decrypted_bytes.decode('ascii', 'ignore')
-    print("i love little kids: ", decrypted_message)
     return decrypted_message
 
 
@@ -500,7 +476,6 @@ def encrypt(data, clientID):
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
-    print(encrypted_bytes)
     return encrypted_bytes
 
 
@@ -511,7 +486,6 @@ def encrypt_login(data):
 
     # Perform XOR operation between each byte of the message and the key
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
-    print(encrypted_bytes)
     return encrypted_bytes
 
 
@@ -529,7 +503,6 @@ def main():
 
     while True:
         client_socket, client_address = server_socket.accept()
-        print('New connection received from: ', client_address)
         client_thread = threading.Thread(target=client_handler, args=(client_socket, client_address))
         client_thread.start()
 

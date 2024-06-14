@@ -40,10 +40,8 @@ class Inventory(Entity):
             for x in range(self.width):
                 grid_positions = [(int(e.x * self.texture_scale[0]), int(e.y * self.texture_scale[1])) for e in
                                   self.children]
-                print(grid_positions)
 
                 if not (x, -y) in grid_positions:
-                    print('found free spot:', x, y)
                     return x, y
 
     def input(self, key):
@@ -56,10 +54,8 @@ class Inventory(Entity):
         return False
 
     def append(self, item, x=0, y=0):
-        print('add item:', item)
 
         if len(self.children) >= self.width * self.height:
-            print('inventory full')
             error_message = Text('<red>Inventory is full!', origin=(0, -1.5), x=-.5, scale=2)
             destroy(error_message, delay=1)
             return
@@ -93,10 +89,8 @@ class Inventory(Entity):
             icon.y = int((icon.y - (icon.scale_y / 2)) * self.height) / self.height
             icon.z += .01
 
-            print(icon.x, icon.y, icon.z)
             icon.slotx = icon.x * self.width
             icon.sloty = icon.y * -self.height
-            print(icon.slotx, icon.sloty)
 
             # if outside, return to original position
             if icon.x < 0 or icon.x >= 1 or icon.y > 0 or icon.y <= -1:

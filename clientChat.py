@@ -3,7 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import simpledialog
 
-HOST = '127.0.0.1'
+HOST = '0.0.0.0'
 PORT = 57687
 
 
@@ -33,7 +33,6 @@ class ChatClient:
     def receive_messages(self):
         while True:
             message, _ = self.socket.recvfrom(1024)
-            print(message.decode())
             self.text_area.insert(tk.END, f"{message.decode()}\n")
 
 
