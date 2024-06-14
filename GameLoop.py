@@ -59,14 +59,10 @@ def RemoveChest(chest_id):
         destroy(chest)
         # Remove the chest from the dictionary to prevent future access
         del chests[chest_id]
-        print(f"Chest with ID {chest_id} has been removed.")
-    else:
-        print(f"No chest found with ID {chest_id}.")
 
 
 def CreateNewPlayer(id):
     if id not in players:
-        print(f"CREATED NEW PLAYER {id}")
         pn = MultiPlayer(id=id)
         players[id] = pn
 
@@ -94,7 +90,6 @@ def CreateOrb(coords, id):
     if id not in destroyed_orbs:
         orb_ = orb(position=coords, id=id)
         orbs[id] = orb_
-        print("orb created!!")
 
 
 def CreateItem(coords, id, type):
@@ -108,12 +103,9 @@ def CreateItem(coords, id, type):
 def CreateChest(coords, id, items):
     if id in chests:
         return
-    print(coords)
-    print(items)
     chest = Chest(coords, id=id)
     new_inv = Inventory(None, 4, 4)  # Create a new inventory for each chest
     for item in items:
-        print(f"{item} is the item")
         new_inv.add_item(item)
     chest._ChestInv = new_inv
     chests[id] = chest  # Store the chest in a dictionary
@@ -309,10 +301,6 @@ class Chest(Entity):
             msg = encrypt(f"gREMOVECHEST&{client.id}&{self.id}", secret)
             client.send_data(msg)
 
-        else:
-            # Handle situation where chest can't be opened (show message, etc.)
-            print("Chest can't be opened right now.")
-
     def Check(self):
         hovered_entity = mouse.hovered_entity
         if hovered_entity and isinstance(hovered_entity, Chest) and calculate_distance(player.position,
@@ -455,7 +443,6 @@ class Item(Entity):
     def pickup(self):
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
             msg = encrypt(f"zPICKED&{client.id}&{self.id}", secret)
-            print("sending PICKED msg: ", f"zPICKED&{client.id}&{self.id}")
             client.send_data(msg)
             inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
@@ -530,7 +517,6 @@ class Enemy(Entity):
     def enemy_hit(self, gun):
         self.health -= gun.damage
         msg = encrypt(f"zDAMAGEMOB&{client.id}&{self.id}&{gun.damage}", secret)
-        print("SENT DAMAGEMOB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         client.send_data(msg)
         if self.health <= 0:
             self.drop_loot()  # Drop loot when the enemy is killed
@@ -588,10 +574,8 @@ class MultiPlayer(Entity):
         client.send_data(msg)
 
     def UpdateItem(self, Item):
-        print("UPDATED ITEM", Item)
         if Item == 'ak-47' and self.last_held != 'ak-47':
             destroy(self.item_entity)
-            print("UPDATED ITEM AK")
             self.last_held = 'ak-47'
             self.item_entity = Entity(parent=self, model='Ak-47.obj', texture=f'{Item}_tex.png')
             self.item_entity.position = Vec3(1, 0, 0)  # Adjust position relative to the player
@@ -600,7 +584,6 @@ class MultiPlayer(Entity):
             self.item_entity.x += 4
             self.item_entity.z += 4
         if Item == 'awp' and self.last_held != 'awp':
-            print("UPDATED ITEM AWP")
             destroy(self.item_entity)
             self.last_held = 'awp'
             self.item_entity = Entity(parent=self, model='awp.obj', texture=f'{Item}_tex.png')
@@ -656,8 +639,9 @@ class Gun(Entity):
             self.model = 'M4a1.obj'
             self.texture = 'm4_tex'
             self.position = (0.5, 1.5, 1)
+            self.damage = 33
             self.scale = 0.25
-            self.cooldown = 0.25
+            self.cooldown = 0.1
             player.cursor.visible = True
 
         if gun_type == 'awp':
@@ -668,7 +652,7 @@ class Gun(Entity):
             self.rotation_y = 0
             self.damage = 100
             self.scale = 0.05
-            self.cooldown = 2
+            self.cooldown = 1
             player.cursor.visible = False
 
     def switchType(self, type):
@@ -718,14 +702,11 @@ class Gun(Entity):
         self.on_cooldown_scope = False
 
     def shoot(self):
-        print(self.on_cooldown, self.canShoot)
         if self.on_cooldown == True or self.canShoot == False:
             return
         sound.play()
         self.on_cooldown = True
-        print("Shooting")
         hovered_entity = mouse.hovered_entity
-        print(type(hovered_entity))
 
         if hovered_entity and isinstance(hovered_entity, Enemy) and (calculate_distance(player.position,
                                                                                         hovered_entity.position) < 20 or gun.gun_type == 'awp'):
@@ -737,9 +718,7 @@ class Gun(Entity):
 
         if hovered_entity and isinstance(hovered_entity, MultiPlayer) and (calculate_distance(player.position,
                                                                                               hovered_entity.position) < 20 or gun.gun_type == 'awp'):
-            print("HIT PLAYER")
             hovered_entity.damage(20)
-        print(self.cooldown)
         invoke(self.reset_cooldown, delay=self.cooldown)  # Set the cooldown duration (0.5 seconds in this example)
 
     def aim(self):
@@ -929,73 +908,26 @@ def encrypt(data, shared_key):
 
 
 def recv_game_data_continuosly(player, stop_event, shared_key):
-        global DEAD
-    #try:
-        while not stop_event.is_set():
-            a = client.receive_data()
-            print("Received: ", a)
-            a = decrypt(a, shared_key)
-            aList = a.split('&')
-            if aList[0] == 'STATE':
-                print("Received STATE msg: ", a)
-                if int(aList[1]) != int(client.get_id()):
-                    if int(aList[1]) in players and len(aList) >= 7:
-                        rendered_players[int(aList[1])] = 1
-                        id = aList[1]
-                        x = aList[2]
-                        y = aList[3]
-                        z = aList[4]
-                        rotation = aList[5]
-                        health = aList[6]
-                        item = aList[7].replace('.png', '')
-                        update_task = lambda: updatePlayer(id, x, y, z, rotation, health, item)
-                        update_queue.put(update_task)
-                        pass
-                    else:
-                        players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
-            if aList[0] == 'aM':
-                print("got aM: ", a)
-                separate_mob_string(a.replace('aM', ''))
-            if aList[0] == 'aW':
-                separate_Witch_string(a.replace('aW', ''))
-            if aList[0] == 'aI':
-                if a.replace('aI&', '') != '':
-                    separate_item_string(a.replace('aI', ''))
-            if aList[0] == 'aC':
-                if a.replace('aC&', '') != '':
-                    separate_chest_string(a.replace('aC', ''))
-            if aList[0] == 'aREMOVECHEST':
-                if int(aList[1]) != int(client.id):
-                    print("Chest Removed")
-                    RemoveChest(int(aList[2]))
-            if aList[0] == 'NEW':
-                print("NEW PLAYER")
-                CreateNewPlayer(int(aList[1]))
-            if aList[0] == 'aR':
-                print(f"Zombie removed: {aList[1]}")
-                if int(aList[1]) in mobs:
-                    destroy(mobs[int(aList[1])])
-                    mobs.pop(int(aList[1]))
-            if aList[0] == 'aH':
-                if int(aList[1]) in players:
-                    p = players[int(aList[1])]
-                    p.health = int(aList[2])
-                if int(aList[1]) == client.get_id():
-                    player.health = int(aList[2])
-                    if player.health <= 0:
-                        death()
-            if aList[0] == 'aPICKED':
-                items[int(aList[1])].enabled = False
-            if aList[0] == 'aO':
-                separate_orb_string(a.replace('aO', ''))
-            if aList[0] == 'aRemoveOrb':
-                orb_id = int(aList[1])  # Parse the orb ID safely
-                if orb_id in orbs:  # Check if the orb actually exists
-                    orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
-                    destroy(orbToDestroy)  # Safely destroy the orb entity
-                    destroyed_orbs.append(orb_id)
-                    print("Removed Orb")
-                    print(len(orbs))
+    global DEAD
+    # try:
+    while not stop_event.is_set():
+        a = client.receive_data()
+        a = decrypt(a, shared_key)
+        aList = a.split('&')
+        if aList[0] == 'STATE':
+            if int(aList[1]) != int(client.get_id()):
+                if int(aList[1]) in players and len(aList) >= 7:
+                    rendered_players[int(aList[1])] = 1
+                    id = aList[1]
+                    x = aList[2]
+                    y = aList[3]
+                    z = aList[4]
+                    rotation = aList[5]
+                    health = aList[6]
+                    item = aList[7].replace('.png', '')
+                    update_task = lambda: updatePlayer(id, x, y, z, rotation, health, item)
+                    update_queue.put(update_task)
+                    pass
                 else:
                     players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
         if aList[0] == 'aM':
@@ -1010,13 +942,10 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
                 separate_chest_string(a.replace('aC', ''))
         if aList[0] == 'aREMOVECHEST':
             if int(aList[1]) != int(client.id):
-                print("Chest Removed")
                 RemoveChest(int(aList[2]))
         if aList[0] == 'NEW':
-            print("NEW PLAYER")
             CreateNewPlayer(int(aList[1]))
         if aList[0] == 'aR':
-            print(f"Zombie removed: {aList[1]}")
             if int(aList[1]) in mobs:
                 destroy(mobs[int(aList[1])])
                 mobs.pop(int(aList[1]))
@@ -1038,10 +967,45 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
                 orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
                 destroy(orbToDestroy)  # Safely destroy the orb entity
                 destroyed_orbs.append(orb_id)
-                print("Removed Orb")
-                print(len(orbs))
             else:
-                print(f"Orb with ID {orb_id} not found")
+                players[int(aList[1])] = MultiPlayer(id=int(aList[1]))
+    if aList[0] == 'aM':
+        separate_mob_string(a.replace('aM', ''))
+    if aList[0] == 'aW':
+        separate_Witch_string(a.replace('aW', ''))
+    if aList[0] == 'aI':
+        if a.replace('aI&', '') != '':
+            separate_item_string(a.replace('aI', ''))
+    if aList[0] == 'aC':
+        if a.replace('aC&', '') != '':
+            separate_chest_string(a.replace('aC', ''))
+    if aList[0] == 'aREMOVECHEST':
+        if int(aList[1]) != int(client.id):
+            RemoveChest(int(aList[2]))
+    if aList[0] == 'NEW':
+        CreateNewPlayer(int(aList[1]))
+    if aList[0] == 'aR':
+        if int(aList[1]) in mobs:
+            destroy(mobs[int(aList[1])])
+            mobs.pop(int(aList[1]))
+    if aList[0] == 'aH':
+        if int(aList[1]) in players:
+            p = players[int(aList[1])]
+            p.health = int(aList[2])
+        if int(aList[1]) == client.get_id():
+            player.health = int(aList[2])
+            if player.health <= 0:
+                death()
+    if aList[0] == 'aPICKED':
+        items[int(aList[1])].enabled = False
+    if aList[0] == 'aO':
+        separate_orb_string(a.replace('aO', ''))
+    if aList[0] == 'aRemoveOrb':
+        orb_id = int(aList[1])  # Parse the orb ID safely
+        if orb_id in orbs:  # Check if the orb actually exists
+            orbToDestroy = orbs.pop(orb_id)  # Remove the orb from the dictionary and get the reference
+            destroy(orbToDestroy)  # Safely destroy the orb entity
+            destroyed_orbs.append(orb_id)
 
 
 # except Exception as e:
@@ -1053,15 +1017,14 @@ stop_event = threading.Event()
 
 def death():
     items = inv.get_inventory_items()
-    print(items)
     kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
-    player.position = (random.randint(-150,150),player.y,random.randint(-150,150))
+    player.position = (random.randint(-150, 150), player.y, random.randint(-150, 150))
     for ID in rendered_players.keys():
-            players[ID].enabled = False
+        players[ID].enabled = False
     for ID in rendered_zombies.keys():
-            mobs[ID].enabled = False
+        mobs[ID].enabled = False
     gun = 0
     inv.CleanInv()
     player.health = 100
@@ -1085,8 +1048,6 @@ def safe_exit():
 
     # Create a new array of counters based on the order
     counters_in_order = [counters[item] for item in order]
-
-    print(counters_in_order)
 
     disconnect_message = (f"zSafeDisconnect&{client_id}&{player_money_bar.value}"
                           f"&{counters_in_order[0]}&{counters_in_order[1]}&{counters_in_order[2]}&{counters_in_order[3]}"
@@ -1134,14 +1095,9 @@ def input(key):
     elif key == 'b' and player.npc:
         player.npc = False
         player.npc_activate = True
-    if key == 'q':
-        print(calculate_distance(player.position, (-600, 11, -800)))
-        print(calculate_distance(player.position, (800, 0, 650)))
     if key == 'q' and (calculate_distance(player.position, (-600, 0, -800)) < 20 or calculate_distance(player.position,
                                                                                                        (800, 0,
                                                                                                         650)) < 20):
-        print(calculate_distance(player.position, (-600, 11, -800)))
-        print(calculate_distance(player.position, (800, 0, 650)))
         safe_exit()
 
     # Check if 'i' is pressed and the chest is open
@@ -1160,7 +1116,6 @@ def input(key):
 
 def addItems(data):
     packet_values = data.split('&')
-    print(packet_values)
     ak47_count = int(packet_values[3])
     m4_count = int(packet_values[4])
     awp_count = int(packet_values[5])
@@ -1260,18 +1215,16 @@ def build_map():
 def deactivate_cooldown_skill():
     skill_display.changeToWhite('cooldown')
     if gun.gun_type == 'awp':
-        gun.cooldown = 2
+        gun.cooldown = 1
     if gun.gun_type == 'm4':
-        gun.cooldown = 0.25
+        gun.cooldown = 0.1
     if gun.gun_type == 'ak-47':
-        gun.cooldown = 0.5
-    print("Cooldown skill deactivated!")
+        gun.cooldown = 0.25
 
 
 def deactivate_speed_skill():
     skill_display.changeToWhite('speed')
     player.speed = 20  # Reset speed to default or previous value
-    print("Speed skill deactivated!")
 
 
 def deactivate_strength_skill():
@@ -1281,8 +1234,7 @@ def deactivate_strength_skill():
     if gun.gun_type == 'm4':
         gun.damage = 33
     if gun.gun_type == 'ak-47':
-        gun.damage = 36
-    print("Strength skill deactivated!")
+        gun.damage = 35
 
 
 def can_activate_skill(skill_name):
@@ -1297,10 +1249,7 @@ def ActivateCoolDownSkill():
     if can_activate_skill('cooldown'):
         gun.cooldown = 0
         last_skill_activation['cooldown'] = time.time()
-        print("Cooldown skill activated!")
         invoke(deactivate_cooldown_skill, delay=15)  # Deactivate after 15 seconds
-    else:
-        print("Cooldown skill is still on cooldown!")
 
 
 def ActivateSpeedSkill():
@@ -1308,10 +1257,7 @@ def ActivateSpeedSkill():
     if can_activate_skill('speed'):
         player.speed = 15
         last_skill_activation['speed'] = time.time()
-        print("Speed skill activated!")
         invoke(deactivate_speed_skill, delay=15)  # Deactivate after 15 seconds
-    else:
-        print("Speed skill is still on cooldown!")
 
 
 def ActivateStrengthSkill():
@@ -1319,10 +1265,7 @@ def ActivateStrengthSkill():
     if can_activate_skill('strength'):
         gun.damage = 100
         last_skill_activation['strength'] = time.time()
-        print("Strength skill activated!")
         invoke(deactivate_strength_skill, delay=15)  # Deactivate after 15 seconds
-    else:
-        print("Strength skill is still on cooldown!")
 
 
 def close_game():
@@ -1341,24 +1284,18 @@ def client_program(port_yes, host, port):
 
     # Receive prime and base from the server
     prime = int(client_socket.recv(1024).decode())
-    print(prime)
     base = int(client_socket.recv(1024).decode())
-    print(base)
     # Generate client's private key
     private_key_client = random.randint(1, prime - 1)  # Assume this is generated securely
 
     # Receive server's public key
     data = client_socket.recv(1024).decode()
-    print(1)
-    print(data)
 
     # Calculate public key to send to the server
     public_key_client = pow(base, private_key_client, prime)
-    print(f"{public_key_client}&{port_yes}")
     client_socket.send(f"{public_key_client}&{port_yes}".encode())
 
     # Calculate shared secret
-    print("5")
     shared_secret = pow(int(data), private_key_client, prime)
 
     client_socket.close()
@@ -1463,22 +1400,17 @@ if __name__ == "__main__":
         lb_ip = ip
 
         port_yes = random.randint(50000, 65534)
-        print("Port generated is: ", port_yes)
 
         secret, client_public_key, client_private_key = client_program(port_yes, lb_ip, 1010)
-        print("secret: " + str(secret))
-        print("public: " + str(client_public_key))
-        print("private: " + str(client_private_key))
 
         secret_login, client_public_key_login, client_private_key_login = client_program(port_yes, login_ip, 7878)
-        print("secret login: " + str(secret_login))
-        print("public login: " + str(client_public_key_login))
-        print("private login: " + str(client_private_key_login))
 
         subprocess.run(
-            ['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(), get_private_ip().encode()])
+            ['python', 'LoginPage.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(),
+             get_private_ip().encode()])
 
-        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(), get_private_ip().encode()])
+        subprocess.run(['python', 'LobbyUI.py', str(port_yes).encode(), str(secret_login).encode(), login_ip.encode(),
+                        get_private_ip().encode()])
 
         client_id = port_yes
 
@@ -1489,8 +1421,6 @@ if __name__ == "__main__":
         msg = f'HI&{client.get_id()}'
         brr = encrypt(msg, secret)
         client.send_data(brr)
-        print("Sending: ", msg)
-
         invdata = 0
         counter = 0
 
@@ -1498,7 +1428,6 @@ if __name__ == "__main__":
             invdata = client.receive_data()
             invdata = decrypt(invdata, secret)
             if invdata.startswith("sINV"):
-                print("Current inv is: ", invdata)
                 break
 
         app = Ursina(borderless=False)
@@ -1520,8 +1449,6 @@ if __name__ == "__main__":
         recvThread = threading.Thread(target=recv_game_data_continuosly, args=(player, stop_event, secret))
         recvThread.start()
 
-        print("here")
-
         awp = Gun(player, 'awp')
         ak = Gun(player, 'ak-47')
         m4 = Gun(player, 'm4')
@@ -1531,21 +1458,13 @@ if __name__ == "__main__":
         m4.enabled = False
         selectedGun = gun
 
-        print("6")
-
         kill_count_ui = KillCountUI('KillCount.png', position=(0, 0.45), scale=2)
-
-        print("7")
 
         inv = Inventory(player, 4, 4)
         inv.enabled = False
         addItems(invdata)
 
-        print("8")
-
         miniInv = MiniInv(inv)
-
-        print("9")
 
         enemies = {}
         items = {}
@@ -1582,12 +1501,8 @@ if __name__ == "__main__":
         player_money_bar = HealthBar(position=(-0.9, -0.445), bar_color=color.gold, max_value=1000)
         player_money_bar.value = 100
 
-        print("10")
-
         time.sleep(1)
 
         app.run()
-
-        print("11")
     except Exception as e:
         print(f"{Exception}:", e)

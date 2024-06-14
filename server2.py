@@ -474,14 +474,14 @@ def get_private_ip():
 if __name__ == "__main__":
     private_ip = get_private_ip()
     print(private_ip)
-    serverNum = 1
+    serverNum = 2
     servers_dict[serverNum] = (private_ip, 12340 + serverNum)  # put the server ip and port in dictionary
     serverAddress = servers_dict[serverNum]
     server = Server(serverAddress)
 
-    ip = input("Fill the ip of the second server, if you already have done it, enter x")
+    ip = input("Fill the ip of the first server, if you already have done it, enter x")
     if ip != 'x':
-        servers_dict[2] = (ip, 12342)
+        servers_dict[1] = (ip, 12341)
 
     ip = input("Fill the ip of the third server, if you already have done it, enter x")
     if ip != 'x':

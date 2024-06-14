@@ -54,28 +54,22 @@ def build_page(client_sock):
 def login(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Login%{username}&{password}"
-        print("Sending login request: ", response)
         client_sock.send(encrypt(response))
         data = client_sock.recv(9192)
         data = decrypt(data)
-        print("Received: ", data)
         if data == "Login_failed":
-            print("Login failed, wrong username or password")
             customtkinter.CTkInputDialog(text="INVALID INPUT\n WRONG USERNAME OR PASSWORD\nWrite feedback below:",
                                          title="sonis faggot")
 
         if data == "User_already_connected":
-            print("Login failed, user already connected")
             customtkinter.CTkInputDialog(text="USER ALREADY CONNECTED\nWrite feedback below:",
                                          title="sonis faggot")
 
         if data == "Login_successful":
-            print("Login successful")
             close_page()
 
 
     else:
-        print("Invalid input, USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN % OR &")
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
                                           "% OR &. \nWrite feedback below:", title="sonis faggot")
 
@@ -86,22 +80,17 @@ def sign_in(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
         response = f"Sign_in%{username}&{password}"
         client_sock.send(encrypt(response))
-        print("Sending sign in request: ", response)
         data = client_sock.recv(9192)
         data = decrypt(data)
-        print("Received: ", data)
         if data == "Taken":
-            print("Sign in failed, username already taken")
             customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME TAKEN\nWrite feedback below:",
                                          title="sonis faggot")
 
         if data == "Sign_in_successful":
-            print("Sign in successful")
             close_page()
             sys.exit()
 
     else:
-        print("Invalid input, USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN % OR &")
         customtkinter.CTkInputDialog(text="INVALID INPUT\n USERNAME AND PASSWORD MUST NOT BE EMPTY OR CONTAIN "
                                           "% OR &. \nWrite feedback below:", title="sonis faggot")
         return
@@ -109,7 +98,6 @@ def sign_in(client_sock, username, password):
 
 def close_page():
     socket1.close()
-    print("Socket closed")
     app.destroy()
 
 
@@ -122,7 +110,6 @@ def encrypt(data):
     encrypted_bytes = bytes([message_byte ^ key_byte for message_byte, key_byte in zip(message_bytes, key_bytes)])
     poo = f"{client_id}&".encode('ascii', 'ignore')
     encrypted_bytes = poo + encrypted_bytes
-    print("encrypted bytes: ", encrypted_bytes)
     return encrypted_bytes
 
 
@@ -142,14 +129,10 @@ if __name__ == "__main__":
     import sys
 
     socket1 = socket.socket()
-    print("Parameter gotten is: ", sys.argv[1])
-    print("Shared key is: ", sys.argv[2])
     socket1.bind((sys.argv[4], int(sys.argv[1])))
     client_id = int(sys.argv[1])
     shared_key = int(sys.argv[2])
-    print(str(sys.argv[3]))
     socket1.connect((str(sys.argv[3]), 6969))
     build_page(socket1)
-    print("Finished with login page")
     socket1.close()
     exit()
