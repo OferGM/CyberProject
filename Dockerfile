@@ -14,5 +14,5 @@ RUN pip install sympy
 CMD ["python3", "LoginServer.py"]
 
 # Expose UDP and TCP ports
-EXPOSE 8888/UDP
-EXPOSE 7878/UDP
+EXPOSE 8888/tcp
+EXPOSE 7878/tcp
