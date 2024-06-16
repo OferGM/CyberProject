@@ -53,7 +53,7 @@ def build_page(client_sock):
 
 def login(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
-        response = f"Login%{username}&{password}"
+        response = f"Login%{username}&{password}&{sys.argv[4]}&{int(sys.argv[1])}"
         client_sock.send(encrypt(response))
         data = client_sock.recv(9192)
         data = decrypt(data)
@@ -78,7 +78,7 @@ def login(client_sock, username, password):
 
 def sign_in(client_sock, username, password):
     if all(char not in (username + password) for char in "%&") and username and password:
-        response = f"Sign_in%{username}&{password}"
+        response = f"Sign_in%{username}&{password}&{sys.argv[4]}&{int(sys.argv[1])}"
         client_sock.send(encrypt(response))
         data = client_sock.recv(9192)
         data = decrypt(data)

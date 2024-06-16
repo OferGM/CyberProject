@@ -392,7 +392,7 @@ class Server:
                     if (dataArr[1]) in self.coordinates.keys():
                         self.coordinates.pop((dataArr[1]), None)
                     # self.playerChase.pop((dataArr[1]), None)
-                    self.socket.sendto(f"DISCONNECT_RAPE&{dataArr[1]}".encode(), addr)
+                    self.socket.sendto(f"DISCONNECT_RAPE&{dataArr[1]}&{dataArr[2]}".encode(), addr)
                     # login_socket = socket.socket()
                     # login_socket.connect((servers_dict['login'][0], 6969))
                     # login_socket.send(f"Rape_Disconnect%{dataArr[1]}".encode())

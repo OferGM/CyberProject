@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  loadbalancer:
+    image: loadbalancer
+    command: docker run -p 9999:9999/UDP -p 8888:8888/TCP -p 1010:1010/TCP -it loadbalancer
+    environment:
+      - LOADBALANCER_INPUTS=172.17.0.4 172.17.0.5 172.17.0.6 172.17.0.7 172.17.0.3
+    ports:
+      - "9999:9999/udp"
+      - "8888:8888/tcp"
+      - "1010:1010/tcp"
+
+  loginserver:
+    image: loginserver
+    command: docker run -p 6969:6969/TCP -p 7878:7878/TCP -it loginserver
+    environment:
+      - LOGINSERVER_INPUTS=172.17.0.2
+    ports:
+      - "6969:6969/tcp"
+      - "7878:7878/tcp"
+
+  server1:
+    image: server1
+    command: docker run -p 12341:12341/UDP -it server1
+    environment:
+      - SERVER1_INPUTS=172.17.0.5 172.17.0.6 172.17.0.7 172.17.0.3 172.17.0.2
+    ports:
+      - "12341:12341/udp"
+
+  server2:
+    image: server2
+    command: docker run -p 12342:12342/UDP -it server2
+    environment:
+      - SERVER2_INPUTS=172.17.0.4 172.17.0.6 172.17.0.7 172.17.0.3 172.17.0.2
+    ports:
+      - "12342:12342/udp"
+
+  server3:
+    image: server3
+    command: docker run -p 12343:12343/UDP -it server3
+    environment:
+      - SERVER3_INPUTS=172.17.0.4 172.17.0.5 172.17.0.7 172.17.0.3 172.17.0.2
+    ports:
+      - "12343:12343/udp"
+
+  server4:
+    image: server4
+    command: docker run -p 12344:12344/UDP -it server4
+    environment:
+      - SERVER4_INPUTS=172.17.0.4 172.17.0.5 172.17.0.6 172.17.0.3 172.17.0.2
+    ports:
+      - "12344:12344/udp"

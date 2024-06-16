@@ -160,19 +160,30 @@ def login(client_socket, client_address, data, clientID):
         data (str): Data containing username and password separated by '&'.
         clientID
     """
-    username, password = data.split("&")
+    username, password, ip, port = data.split("&")
+    print ("1")
     user_document = users_collection.find_one({"name": username, "password": password})
+    print("2")
     if user_document:
         if not user_document["connected"]:
-            ip, port = client_address
-            update_user_address(ip, port, user_document["_id"])
+            print("3")
+            client_address = (ip, int(port))
+            print("4")
+            update_user_address(ip, int(port), user_document["_id"])
+            print("5")
             client_socket.send(encrypt("Login_successful", clientID))
+            print("6")
             change_connection_status(client_address, True)
+            print("7")
             init_lobby(client_socket, user_document, clientID)
+            print("8")
         else:
             client_socket.send(encrypt("User_already_connected", clientID))
     else:
         client_socket.send(encrypt("Login_failed", clientID))
+        print("9")
+    client_socket.close()
+    print("10")
 
 
 def sign_in(client_socket, client_address, data, clientID):
@@ -185,17 +196,19 @@ def sign_in(client_socket, client_address, data, clientID):
         data (str): Data containing username and password separated by '&'.
 
     """
-    username, password = data.split("&")
+    username, password, ip, port = data.split("&")
     user_document = users_collection.find_one({"name": username})
     if user_document:
         client_socket.send(encrypt("Taken", clientID))
     else:
-        ip, port = client_address
-        insert_new_user(username, password, ip, port)
+        insert_new_user(username, password, ip, int(port))
         client_socket.send(encrypt("Sign_in_successful", clientID))
         user_document = users_collection.find_one({"name": username})
+        client_address = (ip, int(port))
+        print(client_address)
         change_connection_status(client_address, True)
         init_lobby(client_socket, user_document, clientID)
+        client_socket.close()
 
 
 def update_user(data, client_address, shmoney):
@@ -272,7 +285,8 @@ def buy_shit(data, client_socket, client_address, clientID):
         client_address (tuple): IP address and port of the client.
 
     """
-
+    data, ip, port=data.split('@')
+    client_address=(ip, int(port))
     client_ip, client_port = client_address
     user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
     inventory_counts = map(int, data.split('&'))
@@ -295,6 +309,8 @@ def join_game(data, client_socket, client_address, clientID):
         client_address (tuple): IP address and port of the client.
 
     """
+    data, ip, port= data.split('@')
+    client_address=(ip, int(port))
     client_ip, client_port = client_address
     user_document = users_collection.find_one({"ip": client_ip, "port": client_port})
     inventory_counts = map(int, data.split('&'))
@@ -357,6 +373,7 @@ def handle_client(client_socket, client_address):
                     if method == "Rape_Disconnect":
                         data = data.split("&")
                         client_address1 = (data[0], int(data[1]))
+                        print (client_address1)
                         change_connection_status(client_address1, False)
 
                 indi = data.split(b'&')
@@ -372,8 +389,8 @@ def handle_client(client_socket, client_address):
                 if method == "Play":
                     join_game(data, client_socket, client_address, clientID)
                 if method == "GIMME":
-                    ip, port = client_address
-                    user_document = users_collection.find_one({"ip": ip, "port": port})
+                    ip, port = data.split('&')
+                    user_document = users_collection.find_one({"ip": ip, "port": int(port)})
                     init_lobby(client_socket, user_document, clientID)
         except:
             pass
@@ -394,6 +411,7 @@ def client_handler(client_socket, client_address):
         print(f"Error handling client {client_address}: {e}")
         change_connection_status(client_address, False)
     finally:
+        print("closing")
         client_socket.close()
 
 

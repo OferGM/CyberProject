@@ -1627,7 +1627,7 @@ class Ui_MainWindow(object):
     def buy_items(self):
         # send packet to confirm
         if self.buy_sum > 0:
-            response = f"Buy%{self.buy_ak_count}&{self.buy_m4_count}&{self.buy_awp_count}&{self.buy_mp5_count}&{self.buy_med_kit_count}&{self.buy_bandage_count}&{self.buy_sPotion_count}&{self.buy_lPotion_count}"
+            response = f"Buy%{self.buy_ak_count}&{self.buy_m4_count}&{self.buy_awp_count}&{self.buy_mp5_count}&{self.buy_med_kit_count}&{self.buy_bandage_count}&{self.buy_sPotion_count}&{self.buy_lPotion_count}@{sys.argv[4]}@{int(sys.argv[1])}"
             self.client_socket.send(encrypt(response))
             data = self.client_socket.recv(1024)
             data = decrypt(data)
@@ -1770,7 +1770,7 @@ class Ui_MainWindow(object):
 
     def play_butt_pressed(self):
         # send packet to confirm
-        request = f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}"
+        request = f"Play%{self.horizontalSlider.value()}&{self.horizontalSlider_2.value()}&{self.horizontalSlider_3.value()}&{self.horizontalSlider_4.value()}&{self.horizontalSlider_5.value()}&{self.horizontalSlider_6.value()}&{self.horizontalSlider_7.value()}&{self.horizontalSlider_8.value()}@{sys.argv[4]}@{int(sys.argv[1])}"
         self.client_socket.send(encrypt(request))
         data = self.client_socket.recv(9192)
         data = decrypt(data)
@@ -1909,7 +1909,7 @@ if __name__ == "__main__":
     import sys
     import gc
 
-    socket1.send(encrypt("GIMME%STATS"))
+    socket1.send(encrypt(f"GIMME%{sys.argv[4]}&{int(sys.argv[1])}"))
     data = socket1.recv(9192)
     data = decrypt(data)
 

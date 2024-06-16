@@ -1066,7 +1066,7 @@ def input(key):
         sendThread.join()
         renderThread.join()
         time.sleep(1)
-        kaki = f"zDisconnect&{client_id}"
+        kaki = f"zDisconnect&{client_id}&{get_private_ip()}"
         kaki = encrypt(kaki, secret)
         client.send_data(kaki)
         application.quit()

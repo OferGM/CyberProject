@@ -286,7 +286,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
                 if data.startswith("DISCONNECT_RAPE"):
 
-                    login_socket.send(f"Rape_Disconnect%{clientIP[0]}&{clientID}".encode())
+                    login_socket.send(f"Rape_Disconnect%{indi[2]}&{clientID}".encode())
 
                 else:
                     login_socket.send(f"Disconnect%{clientIP[0]}&{clientID}&{indi[2]}&{indi[3]}&{indi[4]}&{indi[5]}"
