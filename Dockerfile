@@ -1,19 +1,18 @@
 # Use Debian Bullseye as the base image
-FROM python:3.9-slim-bullseye
+FROM python:3.9
 
 # Set the working directory inside the container
-WORKDIR /server_dockerized
-
-
+WORKDIR /loginserver_dockerized
 
 # Copy the load balancer script into the container
-COPY server.py /server_dockerized
-COPY ChatServer.py /server_dockerized
+COPY LoginServer.py /loginserver_dockerized
+
+RUN pip install pymongo
+RUN pip install sympy
+
 # Command to run the load balancer script
-CMD ["python3", "server.py"]
+CMD ["python3", "LoginServer.py"]
 
 # Expose UDP and TCP ports
-EXPOSE 12341/udp
-EXPOSE 12342/udp
-EXPOSE 12343/udp
-EXPOSE 12344/udp
+EXPOSE 8888/UDP
+EXPOSE 7878/UDP

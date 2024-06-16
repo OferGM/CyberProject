@@ -1,7 +1,4 @@
 import time
-
-from dotenv import load_dotenv, find_dotenv
-import os
 from pymongo import MongoClient
 import socket
 from bson.objectid import ObjectId
@@ -51,12 +48,8 @@ public_key_server = int(lb_socket.recv(1024).decode())
 # Calculate shared secret
 shared_secret_lb = pow(public_key_server, private_key_client, prime)
 
-# Load environment variables
-load_dotenv(find_dotenv())
-
 # MongoDB connection setup
-password = os.environ.get("MONGODB_PWD")
-connection_string = f"mongodb+srv://ofergmizrahi:{password}@logininfo.vytelui.mongodb.net/?retryWrites=true&w=majority"
+connection_string = f"mongodb+srv://ofergmizrahi:xCK7aO6yAtTGc5te@logininfo.vytelui.mongodb.net/?retryWrites=true&w=majority"
 db_client = MongoClient(connection_string)
 login_serverDB = db_client.login_server
 users_collection = login_serverDB.users
