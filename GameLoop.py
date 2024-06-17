@@ -853,11 +853,15 @@ def stop_rendering_continuosly(player, stop_event):
                 players[ID].enabled = False
 
         for ID in rendered_zombies.keys():
-            if rendered_zombies[ID] == 1:
-                mobs[ID].enabled = True
-                rendered_zombies[ID] = 0
+            if ID in mobs.keys():
+                if rendered_zombies[ID] == 1:
+                    mobs[ID].enabled = True
+                    rendered_zombies[ID] = 0
             else:
-                mobs[ID].enabled = False
+                if ID in mobs.keys():
+                    mobs[ID].enabled = False
+                else:
+                    pass#rendered_zombies.pop(ID)
         time.sleep(0.3)
 
 
