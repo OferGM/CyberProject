@@ -25,6 +25,7 @@ class Server:
         self.playerChaseWitches = {}
         self.playerChaseOrbs = {}
         self.items = {}
+        self.itemsYes = {}
         self.chat_messages = []
         self.orbs = {}
         self.heldItems = {}
@@ -37,6 +38,7 @@ class Server:
             list.append(item)
         self.chests[id] = list
         packet = self.CreateChestString()
+        #print(packet)
         self.socket.sendto(packet.encode(), LOAD_BALANCER_UDP_ADDR)
 
     def GenerateMobs(self):
@@ -66,6 +68,11 @@ class Server:
     def GenerateItem(self, x, z):
         id = random.randint(10000000, 99999999)
         random_coordinates = [x, 1, z, random.randint(0, 360)]
+        self.items[id] = random_coordinates
+
+    def GenerateItemYes(self, x, z, item):
+        id = random.randint(10000000, 99999999)
+        random_coordinates = [x, 1, z, random.randint(0, 360), item]
         self.items[id] = random_coordinates
 
     def RemoveChest(self, clientID, id):
@@ -249,7 +256,10 @@ class Server:
         items = ["potion of swiftness", "potion of leaping", "medkit", "bandage"]
         for id, coords in self.items.items():
             # Format each mob's data into "id&x&y&z"
-            type = random.choice(items)
+            if len(coords) < 5:
+                type = random.choice(items)
+            else:
+                type = coords[4]
             item_str = f"{id}&{type}&{coords[0]}&{coords[1]}&{coords[2]}&"
             item_strings.append(item_str)
         # Join all mob strings into one single string, separated by semicolons
@@ -283,7 +293,7 @@ class Server:
             threading.Thread(target=self.handle_client).start()
             threading.Thread(target=self.update_orbs).start()
         except Exception as e:
-            print(f"Error starting server: {e}")
+            pass#print(f"Error starting server: {e}")
 
     def find_closest_player(self, zombieID):
         min_dist = 1000
@@ -442,7 +452,11 @@ class Server:
                     y = dataArr[3]
                     z = dataArr[4]
                     items = [dataArr[i] for i in range(5, len(dataArr))]
-                    self.GenerateChest(x, y, z, items)
+                    #print("items are: ", items)
+                    for item in items:
+                        self.GenerateItemYes(x, z, item)
+                    self.GenerateItemYes(x, z, 'Suitcase_for_tools.glb')
+                    #self.GenerateChest(x, y, z, items)
                     # login_socket = socket.socket()
                     # login_socket.connect(("127.0.0.1", 6969))
                     # login_socket.send(f"Disconnect%{dataArr[1]}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}&{0}".encode())
@@ -452,7 +466,7 @@ class Server:
 
 
             except Exception as e:
-                print(f"Error handling client: {e}, as current dict is: ", self.items.items())
+                pass#print(f"Error handling client: {e}, as current dict is: ", self.items.items())
 
 
 def get_private_ip():

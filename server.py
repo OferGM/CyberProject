@@ -38,7 +38,7 @@ class Server:
             list.append(item)
         self.chests[id] = list
         packet = self.CreateChestString()
-        print(packet)
+        #print(packet)
         self.socket.sendto(packet.encode(), LOAD_BALANCER_UDP_ADDR)
 
     def GenerateMobs(self):
@@ -293,7 +293,7 @@ class Server:
             threading.Thread(target=self.handle_client).start()
             threading.Thread(target=self.update_orbs).start()
         except Exception as e:
-            print(f"Error starting server: {e}")
+            pass#print(f"Error starting server: {e}")
 
     def find_closest_player(self, zombieID):
         min_dist = 1000
@@ -452,7 +452,7 @@ class Server:
                     y = dataArr[3]
                     z = dataArr[4]
                     items = [dataArr[i] for i in range(5, len(dataArr))]
-                    print("items are: ", items)
+                    #print("items are: ", items)
                     for item in items:
                         self.GenerateItemYes(x, z, item)
                     self.GenerateItemYes(x, z, 'Suitcase_for_tools.glb')
@@ -466,7 +466,7 @@ class Server:
 
 
             except Exception as e:
-                print(f"Error handling client: {e}, as current dict is: ", self.items.items())
+                pass#print(f"Error handling client: {e}, as current dict is: ", self.items.items())
 
 
 def get_private_ip():
@@ -488,7 +488,7 @@ def get_private_ip():
 if __name__ == "__main__":
     private_ip = get_private_ip()
     print(private_ip)
-    serverNum = int(input("server num?"))
+    serverNum = 1
     servers_dict[serverNum] = (private_ip, 12340 + serverNum)  # put the server ip and port in dictionary
     serverAddress = servers_dict[serverNum]
     server = Server(serverAddress)
