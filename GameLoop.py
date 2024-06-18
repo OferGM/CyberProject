@@ -96,19 +96,41 @@ def CreateItem(coords, id, type):
     if id in items:
         if items[id].position == coords:
             return
+    if type == "ak-47":
+        type = "Ak-47"
+    if type == "m4":
+        type = "M4"
+    if type == 'Suitcase_for_tools.glb':
+        type = 'Suitcase_for_tools'
     item = Item(position=coords, id=id, ttype=type)
     items[id] = item
 
 
-def CreateChest(coords, id, items):
+def CreateChest(coords, id, itemss):
+    print("coords are: ", coords)
+    print("id is: ", id)
+    print("items are: ", itemss)
+    for item in itemss:
+        id = random.randint(10000000, 99999999)
+        if item == 'ak-47':
+            type = 'Ak-47'
+        if item == 'm4':
+            type = 'M4'
+        if id in items.keys():
+            items[id].set_position(coords)
+        else:
+            pass
+            CreateItem(coords, id, type)
+    '''
     if id in chests:
         return
-    chest = Chest(coords, id=id)
-    new_inv = Inventory(None, 4, 4)  # Create a new inventory for each chest
+    new_inv = Inventory(player, 4, 4)  # Create a new inventory for each chest
     for item in items:
         new_inv.add_item(item)
-    chest._ChestInv = new_inv
-    chests[id] = chest  # Store the chest in a dictionary
+    chest = Chest(coords, id, None)
+    #for item in items:
+    #    new_inv.add_item(item)
+    chests[id] = chest  # Store the chest in a dictionary'''
 
 
 def separate_chest_string(all_chest_string):
@@ -202,6 +224,7 @@ def separate_orb_string(all_orbs_string):
 
 
 def separate_item_string(all_items_string):
+    print("all item string is: ", all_items_string)
     # Split the string by semicolons to get individual mob data strings
     item_entries = all_items_string.split(';')
 
@@ -262,18 +285,18 @@ def combineInv(inv1, inv2):
 
 
 class Chest(Entity):
-    def __init__(self, position, id, chest_inventory=None):
+    def __init__(self, position, id, chest_inventory):
         super().__init__(
             model='Suitcase_for_tools.glb',
             position=position,
             collider='box',
             scale=4,
-            _ChestInv=0,
+            _ChestInv=chest_inventory,
             id=id,
         )
         self.isopen = False
         # Ensure a new Inventory instance is created if not provided
-        self._ChestInv = Inventory(None) if chest_inventory is None else chest_inventory
+        #self._ChestInv = Inventory(None) if chest_inventory is None else chest_inventory
 
     @property
     def ChestInv(self):
@@ -427,6 +450,10 @@ class Item(Entity):
         )
         if ttype == "potion of leaping":
             self.scale = 0.001
+        if ttype == 'Suitcase_for_tools':
+            self.scale = 6
+        if ttype == "Ak-47" or ttype == "M4" or ttype == "mp5" or ttype == 'awp':
+            self.scale = 0.005
         if ttype == "bandage" or ttype == "medkit":
             self.scale = 4
 
@@ -444,7 +471,8 @@ class Item(Entity):
         if distance(self.position, player.position) < 2 and (not inv.isFull()):
             msg = encrypt(f"zPICKED&{client.id}&{self.id}", secret)
             client.send_data(msg)
-            inv.add_item(self.ttype)
+            if self.ttype != "Suitcase_for_tools":
+                inv.add_item(self.ttype)
             # Queue the removal to ensure it happens in the main thread
             update_queue.put(lambda: self.safe_destroy())
 
@@ -550,7 +578,7 @@ class Enemy(Entity):
     def attack(self):
         player.health -= 10
         if player.health <= 0:
-            death()
+            pass#death()
 
 
 class MultiPlayer(Entity):
@@ -853,11 +881,15 @@ def stop_rendering_continuosly(player, stop_event):
                 players[ID].enabled = False
 
         for ID in rendered_zombies.keys():
-            if rendered_zombies[ID] == 1:
-                mobs[ID].enabled = True
-                rendered_zombies[ID] = 0
+            if ID in mobs.keys():
+                if rendered_zombies[ID] == 1:
+                    mobs[ID].enabled = True
+                    rendered_zombies[ID] = 0
             else:
-                mobs[ID].enabled = False
+                if ID in mobs.keys():
+                    mobs[ID].enabled = False
+                else:
+                    pass#rendered_zombies.pop(ID)
         time.sleep(0.3)
 
 
@@ -956,7 +988,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
             if int(aList[1]) == client.get_id():
                 player.health = int(aList[2])
                 if player.health <= 0:
-                    death()
+                    pass#death()
         if aList[0] == 'aPICKED':
             items[int(aList[1])].enabled = False
         if aList[0] == 'aO':
@@ -995,7 +1027,7 @@ def recv_game_data_continuosly(player, stop_event, shared_key):
         if int(aList[1]) == client.get_id():
             player.health = int(aList[2])
             if player.health <= 0:
-                death()
+                pass#death()
     if aList[0] == 'aPICKED':
         items[int(aList[1])].enabled = False
     if aList[0] == 'aO':
@@ -1017,17 +1049,37 @@ stop_event = threading.Event()
 
 def death():
     items = inv.get_inventory_items()
+    print('&'.join(items))
     kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
     player.position = (random.randint(-150, 150), player.y, random.randint(-150, 150))
     for ID in rendered_players.keys():
-        players[ID].enabled = False
+        if ID in players.keys():
+            players[ID].enabled = False
     for ID in rendered_zombies.keys():
-        mobs[ID].enabled = False
+        if ID in mobs.keys():
+            mobs[ID].enabled = False
     gun = 0
     inv.CleanInv()
     player.health = 100
+    '''
+    items = inv.get_inventory_items()
+    kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
+    kaki = encrypt(kaki, secret)
+    client.send_data(kaki)
+    
+    for ID in rendered_players.keys():
+        if ID in players.keys():
+            players[ID].enabled = False
+    for ID in rendered_zombies.keys():
+        if ID in mobs.keys():
+            mobs[ID].enabled = False
+    gun = 0
+    inv.CleanInv()
+    player.health = 100
+    '''
+    #pass
 
 
 activeChest = 0
