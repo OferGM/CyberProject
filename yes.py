@@ -208,7 +208,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
     pring = data
     try:
         data = data.decode(errors='ignore')
-        # print("Received without decrypting: ", data)
+        #print("Received without decrypting: ", data)
         if data.startswith("aM"):
             # Split the string by semicolons to get individual mob data strings
             bata = data.replace('aM', '')
@@ -248,6 +248,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             clientIP = ClientList.get_ip_dict()[clientID]
             precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
             udp_socket.sendto(precious, clientIP)
+            return
 
         if data.startswith("l"):  # if data is intended for login server
             udp_socket.sendto(data.encode(), servers_list['login'])  # send msg to the login server
@@ -270,9 +271,12 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
 
         if data.startswith("a"):  # if data is intended for all clients
             for clientID in ClientList.get_ip_dict().keys():  # for every client:
-                precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
-                udp_socket.sendto(precious, ClientList.get_ip_dict()[clientID])
+                if clientID in ClientList.get_public().keys():
+                    precious = encrypt(data, ClientList.get_hellman()[ClientList.get_public()[clientID]])
+
+                    udp_socket.sendto(precious, ClientList.get_ip_dict()[clientID])
             return
+
 
         if data.startswith("DISCONNECT"):
             # Handle disconnection
@@ -297,24 +301,24 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                 try:
                     ClientList.remove_client(clientID)
                 except KeyError:
-                    print(f"Client ID {clientID} not found in client list")
+                    pass#print(f"Client ID {clientID} not found in client list")
 
                 try:
                     del ClientList.get_server_dict()[clientID]
                 except KeyError:
-                    print(f"Client ID {clientID} not found in server dict")
+                    pass#print(f"Client ID {clientID} not found in server dict")
 
                 try:
                     public = ClientList.get_public()[clientID]
                     del ClientList.get_hellman()[public]
                     del ClientList.get_public()[clientID]
                 except KeyError:
-                    print(f"Public key for client ID {clientID} not found")
+                    pass#print(f"Public key for client ID {clientID} not found")
 
                 try:
                     del ClientList.get_join()[clientID]
                 except KeyError:
-                    print(f"Client ID {clientID} not found in join dict")
+                    pass#print(f"Client ID {clientID} not found in join dict")
 
                 # Optionally notify other clients or the login server
                 # udp_socket.sendto(data.encode(), servers_list['login'])
@@ -359,7 +363,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
                             if ClientList.get_z_dict()[int(client[1])] <= clientZ + LOOKING_DISTANCE:
                                 precious = encrypt(data,
                                                    ClientList.get_hellman()[ClientList.get_public()[int(client[1])]])
-                                print("SENDING STATE MSG TO: ", ClientList.get_ip_dict()[int(client[1])])
+                                pass#print("SENDING STATE MSG TO: ", ClientList.get_ip_dict()[int(client[1])])
                                 udp_socket.sendto(precious,
                                                   ClientList.get_ip_dict()[int(client[1])])  # then send the client
                     else:
@@ -426,7 +430,7 @@ def handle_udp(data, ClientList, servers_list, udp_socket, addr):
             ##    udp_socket.sendto(('0' + data).encode(), servers_list[clientServer[1]])    #send msg to the secondary gameserver
             return
     except Exception as e:
-        print("error 2: ", e)
+        pass#print("error 2: ", e)
 
 
 # Function to handle multiple TCP connections
@@ -524,7 +528,7 @@ def udp_server(host, port, ClientList, servers_list, udp_socket):
             if data:
                 message_queue.put((data, client_address))
         except Exception as e:
-            print("error 1: ", e)
+            pass#print("error 1: ", e)
 
 
 def gen_prime():

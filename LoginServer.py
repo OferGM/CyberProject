@@ -161,29 +161,29 @@ def login(client_socket, client_address, data, clientID):
         clientID
     """
     username, password, ip, port = data.split("&")
-    print ("1")
+    #print ("1")
     user_document = users_collection.find_one({"name": username, "password": password})
-    print("2")
+    #print("2")
     if user_document:
         if not user_document["connected"]:
-            print("3")
+            #print("3")
             client_address = (ip, int(port))
-            print("4")
+            #print("4")
             update_user_address(ip, int(port), user_document["_id"])
-            print("5")
+            #print("5")
             client_socket.send(encrypt("Login_successful", clientID))
-            print("6")
+            #print("6")
             change_connection_status(client_address, True)
-            print("7")
+            #print("7")
             init_lobby(client_socket, user_document, clientID)
-            print("8")
+            #print("8")
         else:
             client_socket.send(encrypt("User_already_connected", clientID))
     else:
         client_socket.send(encrypt("Login_failed", clientID))
-        print("9")
+        #print("9")
     client_socket.close()
-    print("10")
+    #print("10")
 
 
 def sign_in(client_socket, client_address, data, clientID):
@@ -205,7 +205,7 @@ def sign_in(client_socket, client_address, data, clientID):
         client_socket.send(encrypt("Sign_in_successful", clientID))
         user_document = users_collection.find_one({"name": username})
         client_address = (ip, int(port))
-        print(client_address)
+        #print(client_address)
         change_connection_status(client_address, True)
         init_lobby(client_socket, user_document, clientID)
         client_socket.close()
@@ -373,7 +373,7 @@ def handle_client(client_socket, client_address):
                     if method == "Rape_Disconnect":
                         data = data.split("&")
                         client_address1 = (data[0], int(data[1]))
-                        print (client_address1)
+                        #print (client_address1)
                         change_connection_status(client_address1, False)
 
                 indi = data.split(b'&')
@@ -408,10 +408,10 @@ def client_handler(client_socket, client_address):
     try:
         handle_client(client_socket, client_address)
     except Exception as e:
-        print(f"Error handling client {client_address}: {e}")
+        #print(f"Error handling client {client_address}: {e}")
         change_connection_status(client_address, False)
     finally:
-        print("closing")
+        #print("closing")
         client_socket.close()
 
 
@@ -510,7 +510,7 @@ def main():
     server_socket = socket.socket()
     server_socket.bind(("0.0.0.0", 6969))
     server_socket.listen()
-    print("Server up and running, listening at: 0.0.0.0, 6969")
+    #print("Server up and running, listening at: 0.0.0.0, 6969")
 
     while True:
         client_socket, client_address = server_socket.accept()
