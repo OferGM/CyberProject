@@ -107,9 +107,9 @@ def CreateItem(coords, id, type):
 
 
 def CreateChest(coords, id, itemss):
-    print("coords are: ", coords)
-    print("id is: ", id)
-    print("items are: ", itemss)
+    #print("coords are: ", coords)
+    #print("id is: ", id)
+    #print("items are: ", itemss)
     for item in itemss:
         id = random.randint(10000000, 99999999)
         if item == 'ak-47':
@@ -149,8 +149,8 @@ def separate_chest_string(all_chest_string):
                     items = list(map(str, parts[4:]))
                     CreateChest(coords, id, items)
             except Exception as e:
-                # Handle the case where conversion to int fails
-                print(f"Could not convert {entry} to mob data: ", e)
+                pass# Handle the case where conversion to int fails
+                #print(f"Could not convert {entry} to mob data: ", e)
 
 
 def separate_mob_string(all_mobs_string):
@@ -173,7 +173,7 @@ def separate_mob_string(all_mobs_string):
                 rendered_zombies[id] = 1
             except Exception as e:
                 # Handle the case where conversion to int fails
-                print(f"Could not convert {entry} to mob data: ", e)
+                pass#print(f"Could not convert {entry} to mob data: ", e)
 
 
 def separate_Witch_string(all_mobs_string):
@@ -195,7 +195,7 @@ def separate_Witch_string(all_mobs_string):
                     CreateWitch(coords, id)
             except Exception as e:
                 # Handle the case where conversion to int fails
-                print(f"Could not convert {entry} to witch data: ", e)
+                pass#(f"Could not convert {entry} to witch data: ", e)
 
 
 def separate_orb_string(all_orbs_string):
@@ -220,11 +220,11 @@ def separate_orb_string(all_orbs_string):
                     CreateOrb(coords, orb_id)
             except Exception as e:
                 # Handle the case where conversion to int or float fails
-                print(f"Could not convert {entry} to orb data: ", e)
+                pass#print(f"Could not convert {entry} to orb data: ", e)
 
 
 def separate_item_string(all_items_string):
-    print("all item string is: ", all_items_string)
+    pass#print("all item string is: ", all_items_string)
     # Split the string by semicolons to get individual mob data strings
     item_entries = all_items_string.split(';')
 
@@ -244,7 +244,7 @@ def separate_item_string(all_items_string):
                         CreateItem(coords, id, type)
                 except Exception as e:
                     # Handle the case where conversion to int fails
-                    print(f"Could not convert {parts} to item data: ", e)
+                    pass#print(f"Could not convert {parts} to item data: ", e)
 
 
 class orb(Entity):
@@ -901,7 +901,7 @@ def send_game_data_continuously(player, stop_event, secret):
             client.send_data(msg)
             time.sleep(0.01)
         except AssertionError as e:
-            print(e)
+            pass#print(e)
 
 
 def updatePlayer(id, x, y, z, rotation, health, item):
@@ -1049,7 +1049,7 @@ stop_event = threading.Event()
 
 def death():
     items = inv.get_inventory_items()
-    print('&'.join(items))
+    #print('&'.join(items))
     kaki = f"gPLAYERDEATH&{client.id}&{player.x}&{player.y}&{player.z}&{'&'.join(items)}"
     kaki = encrypt(kaki, secret)
     client.send_data(kaki)
@@ -1557,4 +1557,4 @@ if __name__ == "__main__":
 
         app.run()
     except Exception as e:
-        print(f"{Exception}:", e)
+        pass#print(f"{Exception}:", e)
