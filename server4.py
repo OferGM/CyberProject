@@ -455,7 +455,7 @@ class Server:
                     #  print("items are: ", items)
                     for item in items:
                         self.GenerateItemYes(x, z, item)
-                    self.GenerateItemYes(x, z, 'Suitcase_for_tools.glb')
+                    #self.GenerateItemYes(x, z, 'Suitcase_for_tools.glb')
                     #self.GenerateChest(x, y, z, items)
                     # login_socket = socket.socket()
                     # login_socket.connect(("127.0.0.1", 6969))
