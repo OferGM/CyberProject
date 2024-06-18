@@ -115,6 +115,7 @@ class Inventory(Entity):
         icon.drop = drop
 
     def add_item(self,type):
+        print(type)
         self.append(type)
 
     def input(self, key):
