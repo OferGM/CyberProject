@@ -510,7 +510,7 @@ def main():
     server_socket = socket.socket()
     server_socket.bind(("0.0.0.0", 6969))
     server_socket.listen()
-    #print("Server up and running, listening at: 0.0.0.0, 6969")
+    print("running")
 
     while True:
         client_socket, client_address = server_socket.accept()

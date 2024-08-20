@@ -7,7 +7,7 @@ def start_server(host, port):
     clients = set()
 
     try:
-        print(f"Server started at {host}:{port}")
+        #print(f"Chat Server started at {host}:{port}")
         while True:
             msg, addr = server_socket.recvfrom(1024)
             if addr not in clients:
